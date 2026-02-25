@@ -10,6 +10,27 @@ Use it to let AI tools (Codex, Claude Code, and compatible MCP clients) do:
 
 The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 
+## Why This MCP
+
+- Open source (`AGPL-3.0-only`) and free to use.
+- Peer-to-peer first: no central relay required for normal data flow.
+- End-to-end encrypted WebRTC transport (DTLS/SRTP stack).
+- Reliable data channel mode available for ordered/loss-recovered delivery.
+- Low infrastructure overhead for bot-to-bot messaging and file sync.
+- Works for local LAN, remote internet peers, and hybrid topologies.
+- TURN support improves connectivity when direct P2P is blocked.
+- Good fit for multi-agent coordination without exposing plaintext payloads to a middlebox.
+
+## Common and Interesting Use Cases
+
+- AI swarm coordination: multiple agents in a private room exchanging tasks, state, and results.
+- Bot-to-bot handoff: one agent collects context, another executes, another validates, all over P2P.
+- Private file exchange: send logs, artifacts, prompts, and generated outputs directly between agents.
+- Human + AI war room: operator plus several bots sharing near-real-time status updates.
+- Edge + cloud hybrid: local on-device agent syncs with remote agents without standing up a custom tunnel.
+- Temporary secure collaboration spaces: ad-hoc rooms with join tokens and peer allowlists.
+- Cross-tool interop: Codex and Claude instances sharing updates through the same bridge contract.
+
 ## Transport Truth
 
 - This is **WebRTC data transport**, not a generic TCP/SSH tunnel.
