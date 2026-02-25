@@ -31,6 +31,45 @@ The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 - Temporary secure collaboration spaces: ad-hoc rooms with join tokens and peer allowlists.
 - Cross-tool interop: Codex and Claude instances sharing updates through the same bridge contract.
 
+## High-Value AI Advantages
+
+- App-layer by default: agents exchange structured payloads (JSON/events/files) instead of exposing full host networking.
+- Fine-grained blast radius: tool profiles (`core|file|state|full`) limit what an agent can do.
+- Ephemeral-by-design: spin up a room/session for a task, then tear it down cleanly.
+- Fast startup for experiments: no subnet planning, no route setup, no SSH wiring.
+- Works with browser peers and headless Node peers in the same collaboration model.
+- Built for data channels: reliable/ordered delivery for control traffic, with direct file transfer primitives.
+- Good privacy posture for agent collaboration: E2EE transport with optional join-token and session-MAC controls.
+
+## Clever Real-World Patterns
+
+- Reviewer mesh: 1 writer agent, N reviewer agents, 1 arbiter agent; reviewers vote over shared room state.
+- Split-brain prevention: agents exchange heartbeat + state clocks and reconcile via `vdo_state_sync`.
+- Artifact bus: one agent streams generated files while another indexes, summarizes, and routes outputs.
+- Human escalation lane: operator can join the same room and inspect/override in real time.
+- Local-first orchestration: keep sensitive reasoning local, send only minimal outputs to remote agents.
+- Burst compute swarms: create short-lived peer groups per job without maintaining a permanent network.
+
+## Compared with VPN Overlays (e.g., Tailscale)
+
+Where this MCP is often better for AI workflows:
+
+- You need agent-to-agent messaging/file/state semantics, not general host networking.
+- You want least privilege at tool/API level instead of full network reachability between machines.
+- You want browser + Node peers to interoperate quickly.
+- You want ephemeral collaboration sessions without managing a long-lived private network.
+
+Where overlays are often better:
+
+- You need stable always-on private IP connectivity between many services.
+- You need arbitrary protocol support (databases, SSH, internal web apps) over one virtual network.
+- You need centralized network policy/audit at the infrastructure layer.
+
+Practical framing:
+
+- This MCP is not a full replacement for Tailscale.
+- It is a strong complement for AI-native, data-channel-first collaboration.
+
 ## Transport Truth
 
 - This is **WebRTC data transport**, not a generic TCP/SSH tunnel.
