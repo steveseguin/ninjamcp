@@ -31,6 +31,39 @@ The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 - Temporary secure collaboration spaces: ad-hoc rooms with join tokens and peer allowlists.
 - Cross-tool interop: Codex and Claude instances sharing updates through the same bridge contract.
 
+## Fun Agent-to-Agent Rooms
+
+These are real patterns teams are starting to use:
+
+- Claude Code to Codex CLI pair mode:
+  - one agent asks for a second opinion
+  - the second agent sends back patches, test ideas, or risk checks
+- OpenClaw-to-OpenClaw bot rooms:
+  - local assistant A asks local assistant B for tool-specific help
+  - useful for "specialist bot" setups
+- Small LLM idea circles:
+  - 3-5 agents in one room sharing proposals, critiques, and final votes
+- Private "night shift" automation:
+  - bots sync status/events/files all night in a room without opening broad network access
+
+OpenClaw project link:
+
+- https://github.com/openclaw/openclaw
+
+## Quick Example: Claude + Codex Helper Loop
+
+1. Claude-side session:
+`vdo_connect(room=\"agent_help_room\", stream_id=\"claude_agent\")`
+
+2. Codex-side session:
+`vdo_connect(room=\"agent_help_room\", stream_id=\"codex_agent\", target_stream_id=\"claude_agent\")`
+
+3. Claude sends task:
+`vdo_send(session_id=\"<claude_session>\", data={\"type\":\"help.request\",\"task\":\"review patch for race condition\"})`
+
+4. Codex replies:
+`vdo_send(session_id=\"<codex_session>\", data={\"type\":\"help.reply\",\"summary\":\"found 2 edge cases\",\"next_steps\":[\"add timeout guard\",\"add retry test\"]})`
+
 ## High-Value AI Advantages
 
 - Agents share messages/files/state directly, without opening broad machine-to-machine network access.
