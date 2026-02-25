@@ -14,7 +14,7 @@ The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 
 - Open source (`AGPL-3.0-only` with additional unmodified-distribution exception) and free to use.
 - Peer-to-peer first: no central relay required for normal data flow.
-- End-to-end encrypted WebRTC transport (DTLS/SRTP stack).
+- End-to-end encrypted WebRTC data transport (DTLS + SCTP data channels).
 - Reliable data channel mode available for ordered/loss-recovered delivery.
 - Low infrastructure overhead for bot-to-bot messaging and file sync.
 - Works for local LAN, remote internet peers, and hybrid topologies.
@@ -35,16 +35,10 @@ The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 
 These are real patterns teams are starting to use:
 
-- Claude Code to Codex CLI pair mode:
-  - one agent asks for a second opinion
-  - the second agent sends back patches, test ideas, or risk checks
-- OpenClaw-to-OpenClaw bot rooms:
-  - local assistant A asks local assistant B for tool-specific help
-  - useful for "specialist bot" setups
-- Small LLM idea circles:
-  - 3-5 agents in one room sharing proposals, critiques, and final votes
-- Private "night shift" automation:
-  - bots sync status/events/files all night in a room without opening broad network access
+- Claude Code to Codex CLI pair mode where one agent asks for a second opinion and gets patch/test feedback.
+- OpenClaw-to-OpenClaw specialist rooms where one local assistant asks another for tool-specific help.
+- Small LLM idea circles (3-5 agents) sharing proposals, critiques, and final votes.
+- Private "night shift" automation where bots sync status/events/files without broad network exposure.
 
 OpenClaw project link:
 
@@ -53,16 +47,56 @@ OpenClaw project link:
 ## Quick Example: Claude + Codex Helper Loop
 
 1. Claude-side session:
-`vdo_connect(room=\"agent_help_room\", stream_id=\"claude_agent\")`
+```json
+{
+  "name": "vdo_connect",
+  "arguments": {
+    "room": "agent_help_room",
+    "stream_id": "claude_agent"
+  }
+}
+```
 
 2. Codex-side session:
-`vdo_connect(room=\"agent_help_room\", stream_id=\"codex_agent\", target_stream_id=\"claude_agent\")`
+```json
+{
+  "name": "vdo_connect",
+  "arguments": {
+    "room": "agent_help_room",
+    "stream_id": "codex_agent",
+    "target_stream_id": "claude_agent"
+  }
+}
+```
 
 3. Claude sends task:
-`vdo_send(session_id=\"<claude_session>\", data={\"type\":\"help.request\",\"task\":\"review patch for race condition\"})`
+```json
+{
+  "name": "vdo_send",
+  "arguments": {
+    "session_id": "<claude_session>",
+    "data": {
+      "type": "help.request",
+      "task": "review patch for race condition"
+    }
+  }
+}
+```
 
 4. Codex replies:
-`vdo_send(session_id=\"<codex_session>\", data={\"type\":\"help.reply\",\"summary\":\"found 2 edge cases\",\"next_steps\":[\"add timeout guard\",\"add retry test\"]})`
+```json
+{
+  "name": "vdo_send",
+  "arguments": {
+    "session_id": "<codex_session>",
+    "data": {
+      "type": "help.reply",
+      "summary": "found 2 edge cases",
+      "next_steps": ["add timeout guard", "add retry test"]
+    }
+  }
+}
+```
 
 ## High-Value AI Advantages
 
@@ -107,9 +141,13 @@ Practical framing:
 
 - This is **WebRTC data transport**, not a generic TCP/SSH tunnel.
 - Data channels can run in reliable/ordered mode (SCTP over DTLS).
+- Default behavior is direct P2P when possible (great for LAN/local-network speed and low latency).
+- Privacy mode is opt-in via `force_turn=true`: this can reduce direct IP exposure between peers, but may reduce connection success in some environments.
 - TURN improves success on restrictive networks, but it is not a guaranteed firewall bypass for every enterprise policy.
 
 ## Quickstart (No Clone)
+
+Install from a stable folder. The installer stores an absolute script path in Codex/Claude config.
 
 ```bash
 npm i @vdoninja/mcp @roamhq/wrtc
@@ -145,6 +183,13 @@ npx vdon-mcp-demo-file
 ```
 
 Live network mode (instead of local fake mode):
+
+```bash
+MCP_DEMO_FAKE=0 npx vdon-mcp-demo-message
+MCP_DEMO_FAKE=0 npx vdon-mcp-demo-file
+```
+
+Privacy-first relay mode (opt-in):
 
 ```bash
 MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-message
