@@ -12,7 +12,7 @@ The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 
 ## Why This MCP
 
-- Open source (`AGPL-3.0-only`) and free to use.
+- Open source (`AGPL-3.0-only` with additional unmodified-distribution exception) and free to use.
 - Peer-to-peer first: no central relay required for normal data flow.
 - End-to-end encrypted WebRTC transport (DTLS/SRTP stack).
 - Reliable data channel mode available for ordered/loss-recovered delivery.
@@ -199,4 +199,7 @@ node tests/live-turn-preset-matrix.js
 
 ## License
 
-AGPL-3.0-only
+AGPL-3.0-only with additional unmodified-distribution exception.
+
+- Main license text: `LICENSE`
+- Additional permission: `LICENSE-SDK-EXCEPTION`
