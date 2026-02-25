@@ -33,37 +33,37 @@ The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 
 ## High-Value AI Advantages
 
-- App-layer by default: agents exchange structured payloads (JSON/events/files) instead of exposing full host networking.
-- Fine-grained blast radius: tool profiles (`core|file|state|full`) limit what an agent can do.
-- Ephemeral-by-design: spin up a room/session for a task, then tear it down cleanly.
-- Fast startup for experiments: no subnet planning, no route setup, no SSH wiring.
-- Works with browser peers and headless Node peers in the same collaboration model.
-- Built for data channels: reliable/ordered delivery for control traffic, with direct file transfer primitives.
-- Good privacy posture for agent collaboration: E2EE transport with optional join-token and session-MAC controls.
+- Agents share messages/files/state directly, without opening broad machine-to-machine network access.
+- You can limit tool access with profiles (`core|file|state|full`) so each agent only gets what it needs.
+- Rooms can be short-lived: create for a task, then close when done.
+- Easy to start: no private subnet setup, no custom tunnel setup.
+- Works between browser peers and Node peers.
+- Data channels can be reliable and ordered, which is good for control messages.
+- Security options are built in: join tokens, stream allowlists, and session MAC checks.
 
 ## Clever Real-World Patterns
 
-- Reviewer mesh: 1 writer agent, N reviewer agents, 1 arbiter agent; reviewers vote over shared room state.
-- Split-brain prevention: agents exchange heartbeat + state clocks and reconcile via `vdo_state_sync`.
-- Artifact bus: one agent streams generated files while another indexes, summarizes, and routes outputs.
-- Human escalation lane: operator can join the same room and inspect/override in real time.
-- Local-first orchestration: keep sensitive reasoning local, send only minimal outputs to remote agents.
-- Burst compute swarms: create short-lived peer groups per job without maintaining a permanent network.
+- Reviewer team: one writer agent, several reviewer agents, and one decider agent sharing feedback in the same room.
+- State recovery: agents can re-sync shared state with `vdo_state_sync` after reconnects.
+- File pipeline: one agent sends artifacts, another indexes them, another summarizes them.
+- Human override: a person can join the room to inspect progress and step in when needed.
+- Local-first flow: keep sensitive work local and only send required outputs to remote agents.
+- Burst jobs: create short-lived agent groups per task instead of running a permanent private network.
 
 ## Compared with VPN Overlays (e.g., Tailscale)
 
 Where this MCP is often better for AI workflows:
 
-- You need agent-to-agent messaging/file/state semantics, not general host networking.
-- You want least privilege at tool/API level instead of full network reachability between machines.
-- You want browser + Node peers to interoperate quickly.
-- You want ephemeral collaboration sessions without managing a long-lived private network.
+- You need agent-to-agent messaging/file/state, not full network access between hosts.
+- You want tool-level permissions instead of giving every machine broad private-network reach.
+- You want browser and Node agents working together quickly.
+- You want temporary collaboration sessions without managing a permanent virtual network.
 
 Where overlays are often better:
 
-- You need stable always-on private IP connectivity between many services.
-- You need arbitrary protocol support (databases, SSH, internal web apps) over one virtual network.
-- You need centralized network policy/audit at the infrastructure layer.
+- You need always-on private IP connectivity across many services.
+- You need many protocols (databases, SSH, internal web apps) over one virtual network.
+- You need centralized network policy and audit at the infrastructure layer.
 
 Practical framing:
 
