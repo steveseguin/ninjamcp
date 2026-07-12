@@ -1,6 +1,6 @@
 {
   "name": "@vdoninja/mcp",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "VDO.Ninja MCP bridge for WebRTC data-channel messaging, file transfer, and room sync.",
   "license": "AGPL-3.0-only",
   "homepage": "https://github.com/steveseguin/ninjamcp",

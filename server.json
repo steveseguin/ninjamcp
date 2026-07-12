@@ -3,7 +3,7 @@
   "name": "io.github.steveseguin/vdo-ninja-mcp",
   "title": "VDO.Ninja MCP Bridge",
   "description": "WebRTC data-channel MCP bridge for VDO.Ninja with reliable messages, files, and room sync.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "websiteUrl": "https://github.com/steveseguin/ninjamcp",
   "repository": {
     "url": "https://github.com/steveseguin/ninjamcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@vdoninja/mcp",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "runtimeHint": "node",
       "runtimeArguments": [
         {

@@ -24,7 +24,7 @@ const {
 const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2024-11-05'];
 const SERVER_INFO = {
   name: 'vdo-ninja-mcp',
-  version: '0.4.0'
+  version: '0.4.1'
 };
 const DEFAULT_MAX_MESSAGE_BYTES = 1024 * 1024;
 

@@ -16,7 +16,7 @@ function run() {
     'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json'
   );
   assert.equal(manifest.name, 'io.github.steveseguin/vdo-ninja-mcp');
-  assert.equal(manifest.version, '0.4.0');
+  assert.equal(manifest.version, '0.4.1');
   assert.equal(typeof manifest.description, 'string');
   assert.ok(manifest.description.length > 0);
 
