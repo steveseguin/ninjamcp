@@ -27,10 +27,10 @@ LIVE_VDO_TEST=1 VDON_MCP_JOIN_TOKEN_SECRET=change_me npm run test:mcp:preset:mat
 
 Artifacts are written to:
 
-- `MCP/tests/artifacts/latest-preset-matrix-report.json`
-- `MCP/tests/artifacts/latest-preset-matrix-summary.txt`
-- `MCP/tests/artifacts/history/preset-matrix-*.json`
-- `MCP/tests/artifacts/history/preset-matrix-*.txt`
+- `tests/artifacts/latest-preset-matrix-report.json`
+- `tests/artifacts/latest-preset-matrix-summary.txt`
+- `tests/artifacts/history/preset-matrix-*.json`
+- `tests/artifacts/history/preset-matrix-*.txt`
 
 ## Soak / Matrix Knobs
 

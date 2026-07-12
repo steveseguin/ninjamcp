@@ -71,7 +71,7 @@ This file captures operational constraints from this repository's SDK docs.
 
 ## Bridge Runtime Knobs
 
-`MCP/scripts/vdo-data-bridge.js` supports:
+`scripts/vdo-data-bridge.js` supports:
 
 - `VDON_ROOM` (required in real deployments)
 - `VDON_STREAM_ID` (optional; random if omitted)

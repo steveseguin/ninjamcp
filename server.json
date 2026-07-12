@@ -4,12 +4,10 @@
   "title": "VDO.Ninja MCP Bridge",
   "description": "WebRTC data-channel MCP bridge for VDO.Ninja with reliable messages, files, and room sync.",
   "version": "0.4.0",
-  "websiteUrl": "https://github.com/steveseguin/ninjasdk/tree/main/MCP",
+  "websiteUrl": "https://github.com/steveseguin/ninjamcp",
   "repository": {
-    "url": "https://github.com/steveseguin/ninjasdk",
-    "source": "github",
-    "id": "1006762093",
-    "subfolder": "MCP"
+    "url": "https://github.com/steveseguin/ninjamcp",
+    "source": "github"
   },
   "packages": [
     {
@@ -81,7 +79,7 @@
       "url": "http://127.0.0.1:{http_port}/mcp",
       "variables": {
         "http_port": {
-          "description": "Port used by MCP/scripts/vdo-mcp-streamable-http.js.",
+          "description": "Port used by scripts/vdo-mcp-streamable-http.js.",
           "format": "number",
           "default": "8787",
           "isRequired": false

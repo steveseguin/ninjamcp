@@ -27,13 +27,14 @@ Use this skill to run VDO.Ninja as an MCP data bridge in Codex, Claude Code, and
 ## Fast Path
 
 1. Install MCP registration:
-`npm i @vdoninja/mcp @roamhq/wrtc`
+`npm i @vdoninja/mcp`
 
 2. Register for Codex/Claude:
 `npx vdon-mcp-install`
 
 3. Start server:
 `npx vdon-mcp-server`
+If run directly in a terminal, it prints a short running banner and a first-call hint.
 
 4. Optional least-privilege tool profile:
 `VDON_MCP_TOOL_PROFILE=core|file|state|full npx vdon-mcp-server`
@@ -80,11 +81,12 @@ For secure presets, set `VDON_MCP_JOIN_TOKEN_SECRET` before install/runtime.
 
 - Product test bar: `npm run test:mcp`
 - Full engineering suite: `npm run test:mcp:all`
-- Live diagnostics (optional): `MCP/references/advanced-diagnostics.md`
+- Live diagnostics (optional): `references/advanced-diagnostics.md`
 
 ## References
 
-- Operator quickstart: `MCP/references/quickstart-and-compat.md`
-- Tool contract: `MCP/references/mcp-tool-contract.md`
-- Transport notes: `MCP/references/vdo-ninja-p2p-data-notes.md`
-- Registry manifest: `MCP/server.json`
+- Operator quickstart: `references/quickstart-and-compat.md`
+- Client config examples: `references/client-config-examples.md`
+- Tool contract: `references/mcp-tool-contract.md`
+- Transport notes: `references/vdo-ninja-p2p-data-notes.md`
+- Registry manifest: `server.json`

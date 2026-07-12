@@ -13,7 +13,7 @@ This is the fast path for users and AI agents.
 Install locally (no clone), including a Node WebRTC implementation:
 
 ```bash
-npm i @vdoninja/mcp @roamhq/wrtc
+npm i @vdoninja/mcp
 ```
 
 Register MCP for Codex/Claude:
@@ -28,6 +28,9 @@ Start the local MCP server:
 npx vdon-mcp-server
 ```
 
+If started directly in a terminal, it prints a short `Server running (stdio)` banner and a first-call hint.
+If started by an MCP client, no interactive banner may appear, which is normal.
+
 Optional least-privilege profile:
 
 ```bash
@@ -38,7 +41,7 @@ Repo-local equivalents still work when developing in this repo:
 
 ```bash
 npm run mcp:install
-node MCP/scripts/vdo-mcp-server.js
+node scripts/vdo-mcp-server.js
 ```
 
 AI-first sanity check (recommended first call):
@@ -186,13 +189,19 @@ npm run test:mcp:all
 
 ## Compatibility Notes
 
-- Codex and Claude Code both work via command-based local MCP registration.
-- Registry metadata is in `MCP/server.json`.
-- Tool contracts are in `MCP/references/mcp-tool-contract.md`.
+- Works with any MCP client that supports local `stdio` transport (Codex CLI, Claude Code, Cursor, and other MCP-compatible CLIs).
+- Codex and Claude can be auto-registered via `npx vdon-mcp-install`.
+- Cursor and other GUI tools typically need manual MCP JSON config using:
+  - `command`: your Node executable
+  - `args`: path to `.../node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js` plus optional flags
+- Ready-to-paste per-client examples are in `references/client-config-examples.md`.
+- Registry metadata is in `server.json`.
+- Tool contracts are in `references/mcp-tool-contract.md`.
 - `@vdoninja/mcp` depends on `@vdoninja/sdk`, so SDK is installed transitively.
+- License model matches SDK packaging: AGPL-3.0-only with an additional unmodified-distribution exception (`LICENSE-SDK-EXCEPTION`).
 
 ## Optional Advanced Diagnostics
 
 For soak/matrix/preset-matrix/sweep tuning and all reliability knobs, use:
 
-- `MCP/references/advanced-diagnostics.md`
+- `references/advanced-diagnostics.md`

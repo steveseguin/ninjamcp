@@ -2,9 +2,9 @@
 
 Implemented by:
 
-- `MCP/scripts/vdo-mcp-server.js`
-- Installer automation: `MCP/scripts/install-mcp.js`
-- Discovery manifest: `MCP/server.json`
+- `scripts/vdo-mcp-server.js`
+- Installer automation: `scripts/install-mcp.js`
+- Discovery manifest: `server.json`
 
 ## Transport
 
@@ -23,7 +23,7 @@ Implemented by:
 
 ## Server CLI Flags
 
-Supported by `MCP/scripts/vdo-mcp-server.js`:
+Supported by `scripts/vdo-mcp-server.js`:
 
 - `--tool-profile <core|file|state|full>`
 - `--max-message-bytes <bytes>`
@@ -140,7 +140,7 @@ Tools return `isError: true` with:
 Automated registration:
 
 ```bash
-npm i @vdoninja/mcp @roamhq/wrtc
+npm i @vdoninja/mcp
 npx vdon-mcp-install
 ```
 

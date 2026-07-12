@@ -6,7 +6,7 @@ const path = require('node:path');
 
 function run() {
   const manifestPath = path.join(__dirname, '..', 'server.json');
-  assert.equal(fs.existsSync(manifestPath), true, 'expected MCP/server.json');
+  assert.equal(fs.existsSync(manifestPath), true, 'expected server.json');
 
   const raw = fs.readFileSync(manifestPath, 'utf8');
   const manifest = JSON.parse(raw);
@@ -22,7 +22,13 @@ function run() {
 
   assert.ok(manifest.repository);
   assert.equal(manifest.repository.source, 'github');
-  assert.equal(manifest.repository.subfolder, 'MCP');
+  assert.ok(
+    typeof manifest.repository.url === 'string' &&
+    (manifest.repository.url.includes('steveseguin/ninjasdk') || manifest.repository.url.includes('steveseguin/ninjamcp'))
+  );
+  if (Object.prototype.hasOwnProperty.call(manifest.repository, 'subfolder')) {
+    assert.equal(manifest.repository.subfolder, 'MCP');
+  }
 
   assert.ok(Array.isArray(manifest.packages));
   assert.ok(manifest.packages.length >= 1);

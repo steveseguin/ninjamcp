@@ -3,14 +3,13 @@
   "version": "0.4.0",
   "description": "VDO.Ninja MCP bridge for WebRTC data-channel messaging, file transfer, and room sync.",
   "license": "AGPL-3.0-only",
-  "homepage": "https://github.com/steveseguin/ninjasdk/tree/main/MCP",
+  "homepage": "https://github.com/steveseguin/ninjamcp",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/steveseguin/ninjasdk.git",
-    "directory": "MCP"
+    "url": "git+https://github.com/steveseguin/ninjamcp.git"
   },
   "bugs": {
-    "url": "https://github.com/steveseguin/ninjasdk/issues"
+    "url": "https://github.com/steveseguin/ninjamcp/issues"
   },
   "keywords": [
     "mcp",
@@ -29,11 +28,22 @@
     "vdon-mcp-demo-file": "scripts/demo-file-workflow.js"
   },
   "scripts": {
+    "test": "node tests/run-mcp-tests-minimal.js",
+    "test:all": "node tests/run-mcp-tests.js",
+    "check": "npm run test:all",
+    "test:mcp": "node tests/run-mcp-tests-minimal.js",
+    "test:mcp:all": "node tests/run-mcp-tests.js",
+    "test:mcp:live": "node tests/live-turn-smoke.js",
+    "test:mcp:soak": "node tests/live-turn-soak.js",
+    "test:mcp:matrix": "node tests/live-turn-matrix.js",
+    "test:mcp:preset:matrix": "node tests/live-turn-preset-matrix.js",
+    "test:mcp:matrix:sweep": "node tests/live-turn-matrix-sweep.js",
     "mcp:install": "node scripts/install-mcp.js",
     "mcp:server": "node scripts/vdo-mcp-server.js",
     "mcp:http": "node scripts/vdo-mcp-streamable-http.js",
     "demo:message": "node scripts/demo-message-workflow.js",
-    "demo:file": "node scripts/demo-file-workflow.js"
+    "demo:file": "node scripts/demo-file-workflow.js",
+    "prepublishOnly": "npm run test:all"
   },
   "files": [
     "LICENSE",
@@ -43,6 +53,7 @@
     "assets/cloudflare/worker-proxy.js",
     "assets/cloudflare/wrangler.toml.example",
     "references/advanced-diagnostics.md",
+    "references/client-config-examples.md",
     "references/mcp-tool-contract.md",
     "references/quickstart-and-compat.md",
     "references/vdo-ninja-p2p-data-notes.md",
@@ -63,6 +74,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@vdoninja/sdk": "^1.3.18"
+    "@roamhq/wrtc": "^0.9.1",
+    "@vdoninja/sdk": "^1.4.0"
   }
 }

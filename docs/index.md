@@ -11,10 +11,12 @@ It enables:
 ## Quick Start
 
 ```bash
-npm i @vdoninja/mcp @roamhq/wrtc
+npm i @vdoninja/mcp
 npx vdon-mcp-install
 npx vdon-mcp-server
 ```
+
+When run directly in a terminal, the server prints a short startup banner and first-tool hint.
 
 ## Fun Agent Rooms
 
@@ -27,3 +29,5 @@ npx vdon-mcp-server
 - npm: https://www.npmjs.com/package/@vdoninja/mcp
 - repo: https://github.com/steveseguin/ninjamcp
 - docs: https://github.com/steveseguin/ninjamcp/blob/main/README.md
+- quickstart: https://github.com/steveseguin/ninjamcp/blob/main/references/quickstart-and-compat.md
+- client configs (Cursor/Gemini/OpenCode): https://github.com/steveseguin/ninjamcp/blob/main/references/client-config-examples.md

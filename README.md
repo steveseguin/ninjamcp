@@ -10,6 +10,16 @@ Use it to let AI tools (Codex, Claude Code, and compatible MCP clients) do:
 
 The package depends on `@vdoninja/sdk`, so SDK installs transitively.
 
+## Pick The Right Integration
+
+| You want | Use |
+| --- | --- |
+| MCP tools inside Codex, Claude, Cursor, or another MCP client | `@vdoninja/mcp` |
+| A persistent agent sidecar, local inbox, and shell-first room commands | [`@vdoninja/ninja-p2p`](https://github.com/steveseguin/ninja-p2p) |
+| Raw VDO.Ninja media and data-channel primitives in an application | [`@vdoninja/sdk`](https://github.com/steveseguin/ninjasdk) |
+
+This package translates MCP tool calls into SDK operations. It uses VDO.Ninja's existing room, discovery, and WebRTC behavior and does not add signaling-server commands.
+
 ## Why This MCP
 
 - Open source (`AGPL-3.0-only` with additional unmodified-distribution exception) and free to use.
@@ -150,10 +160,12 @@ Practical framing:
 Install from a stable folder. The installer stores an absolute script path in Codex/Claude config.
 
 ```bash
-npm i @vdoninja/mcp @roamhq/wrtc
+npm i @vdoninja/mcp
 npx vdon-mcp-install
 npx vdon-mcp-server
 ```
+
+When started directly in a terminal, `vdon-mcp-server` now prints a short "server running" banner and a first-call hint.
 
 First MCP call (recommended):
 
@@ -168,6 +180,12 @@ Useful install variants:
 - `npx vdon-mcp-install --preset core|file|state|secure-core|secure-full`
 - `npx vdon-mcp-install --uninstall`
 
+## Onboarding Guides
+
+- Operator quickstart: `references/quickstart-and-compat.md`
+- Client setup examples (Cursor, Gemini CLI, OpenCode): `references/client-config-examples.md`
+- First functional workflows (Codex-to-Codex and Claude-to-Claude): `references/client-config-examples.md`
+
 ## Typical Workflows
 
 Message demo:
@@ -176,11 +194,15 @@ Message demo:
 npx vdon-mcp-demo-message
 ```
 
+Purpose: prove end-to-end room connect + message send/receive over data channels.
+
 File demo:
 
 ```bash
 npx vdon-mcp-demo-file
 ```
+
+Purpose: prove reliable chunked file transfer and receive path.
 
 Live network mode (instead of local fake mode):
 

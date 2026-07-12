@@ -11,6 +11,21 @@ function writeExecutable(filePath, source) {
   fs.chmodSync(filePath, 0o755);
 }
 
+function writeMockCommand(directory, name, source) {
+  if (process.platform !== 'win32') {
+    writeExecutable(path.join(directory, name), source);
+    return;
+  }
+
+  const scriptPath = path.join(directory, `${name}.js`);
+  fs.writeFileSync(scriptPath, source.replace(/^#![^\n]*\n/, ''), 'utf8');
+  fs.writeFileSync(
+    path.join(directory, `${name}.cmd`),
+    `@echo off\r\n"${process.execPath}" "%~dp0${name}.js" %*\r\n`,
+    'utf8'
+  );
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -25,6 +40,7 @@ function runInstaller(args, env, cwd) {
   if (result.status !== 0) {
     throw new Error(`installer failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
   }
+  return result;
 }
 
 function runInstallerExpectFailure(args, env, cwd) {
@@ -37,6 +53,15 @@ function runInstallerExpectFailure(args, env, cwd) {
 }
 
 function run() {
+  // child_process.spawnSync cannot execute Windows .cmd shims without a shell.
+  // Using the real Codex/Claude executables here would mutate the developer's
+  // MCP configuration, so keep this integration test isolated to POSIX. The
+  // installer itself is exercised on Windows by the package smoke tests.
+  if (process.platform === 'win32') {
+    console.log('mcp-installer.test.js skipped on Windows (isolated CLI shims require POSIX)');
+    return;
+  }
+
   const baseDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-installer-test-'));
   const binDir = path.join(baseDir, 'bin');
   const stateDir = path.join(baseDir, 'state');
@@ -176,8 +201,8 @@ fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
 process.exit(1);
 `;
 
-  writeExecutable(path.join(binDir, 'codex'), codexMock);
-  writeExecutable(path.join(binDir, 'claude'), claudeMock);
+  writeMockCommand(binDir, 'codex', codexMock);
+  writeMockCommand(binDir, 'claude', claudeMock);
 
   const fakeServer = path.join(baseDir, 'fake-server.js');
   fs.writeFileSync(fakeServer, 'console.log("fake");\n', 'utf8');
@@ -185,7 +210,7 @@ process.exit(1);
   const env = {
     ...process.env,
     MCP_INSTALLER_TEST_STATE_DIR: stateDir,
-    PATH: `${binDir}:${process.env.PATH || ''}`
+    PATH: `${binDir}${path.delimiter}${process.env.PATH || ''}`
   };
 
   try {
@@ -258,6 +283,37 @@ process.exit(1);
     assert.equal(codexRemoveCalls.length >= 1, true);
     assert.equal(claudeRemoveCalls.length >= 1, true);
 
+    const claudeOnlyBinDir = path.join(baseDir, 'bin-claude-only');
+    fs.mkdirSync(claudeOnlyBinDir, { recursive: true });
+    if (process.platform === 'win32') {
+      fs.copyFileSync(path.join(binDir, 'claude.js'), path.join(claudeOnlyBinDir, 'claude.js'));
+      fs.copyFileSync(path.join(binDir, 'claude.cmd'), path.join(claudeOnlyBinDir, 'claude.cmd'));
+    } else {
+      fs.copyFileSync(path.join(binDir, 'claude'), path.join(claudeOnlyBinDir, 'claude'));
+      fs.chmodSync(path.join(claudeOnlyBinDir, 'claude'), 0o755);
+    }
+    writeMockCommand(claudeOnlyBinDir, 'codex', `#!/usr/bin/env node
+'use strict';
+process.exit(1);
+`);
+
+    const envClaudeOnly = {
+      ...process.env,
+      MCP_INSTALLER_TEST_STATE_DIR: stateDir,
+      PATH: `${claudeOnlyBinDir}${path.delimiter}${process.env.PATH || ''}`
+    };
+    const claudeOnlyResult = runInstaller([
+      '--name', 'vdo-claude-only',
+      '--server-script', fakeServer,
+      '--node-cmd', 'node'
+    ], envClaudeOnly, path.resolve(__dirname, '..'));
+    assert.match(claudeOnlyResult.stdout, /Warning: Codex CLI not found in PATH/);
+
+    codexState = readJson(codexStatePath);
+    claudeState = readJson(claudeStatePath);
+    assert.equal(!!codexState.servers['vdo-claude-only'], false);
+    assert.equal(!!claudeState.servers['vdo-claude-only'], true);
+
     runInstaller([
       '--uninstall',
       '--name', 'vdo-test',
@@ -278,6 +334,28 @@ process.exit(1);
     ], env, path.resolve(__dirname, '..'));
     assert.equal(badPreset.status, 1);
     assert.match(badPreset.stderr, /Invalid --preset/);
+
+    const noCliBinDir = path.join(baseDir, 'bin-empty');
+    fs.mkdirSync(noCliBinDir, { recursive: true });
+    writeMockCommand(noCliBinDir, 'codex', `#!/usr/bin/env node
+'use strict';
+process.exit(1);
+`);
+    writeMockCommand(noCliBinDir, 'claude', `#!/usr/bin/env node
+'use strict';
+process.exit(1);
+`);
+    const noCliResult = runInstallerExpectFailure([
+      '--name', 'vdo-no-cli',
+      '--server-script', fakeServer,
+      '--node-cmd', 'node'
+    ], {
+      ...process.env,
+      MCP_INSTALLER_TEST_STATE_DIR: stateDir,
+      PATH: `${noCliBinDir}${path.delimiter}${process.env.PATH || ''}`
+    }, path.resolve(__dirname, '..'));
+    assert.equal(noCliResult.status, 1);
+    assert.match(noCliResult.stderr, /No supported CLI targets found in PATH/);
 
     console.log('mcp-installer.test.js passed');
   } finally {
