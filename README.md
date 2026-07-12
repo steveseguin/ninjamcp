@@ -1,24 +1,43 @@
 # VDO.Ninja MCP (`@vdoninja/mcp`)
 
-MCP bridge for VDO.Ninja WebRTC data channels.
+## TL;DR
 
-Use it to let AI tools (Codex, Claude Code, and compatible MCP clients) do:
+This package gives an AI app a small set of tools for talking to another AI app. Two Codex, Claude, Cursor, or other MCP sessions can join the same VDO.Ninja room, send messages, exchange files, and keep shared task state without you building a new messaging server.
 
-- bot-to-bot messaging
-- reliable file transfer
-- shared state synchronization
+If your AI client supports MCP and you want **tools it can call**, use this package. If you want an **always-on agent room with a local inbox**, use [`ninja-p2p`](https://github.com/steveseguin/ninja-p2p) instead.
 
-The package depends on `@vdoninja/sdk`, so SDK installs transitively.
+**Best for:** MCP-native agent handoffs, file delivery, and small shared-state workflows.
 
-## Pick The Right Integration
+**Not for:** a general VPN, permanent storage, or a large public chat network.
 
-| You want | Use |
+Package: [`@vdoninja/mcp`](https://www.npmjs.com/package/@vdoninja/mcp) | [Quickstart](references/quickstart-and-compat.md) | [Client setup examples](references/client-config-examples.md) | [Support](https://discord.vdo.ninja)
+
+## What It Looks Like
+
+One agent joins a room:
+
+```json
+{ "name": "vdo_connect", "arguments": { "room": "family_calendar", "stream_id": "planner" } }
+```
+
+A second agent joins the same room, then sends it a message:
+
+```json
+{ "name": "vdo_connect", "arguments": { "room": "family_calendar", "stream_id": "reviewer", "target_stream_id": "planner" } }
+{ "name": "vdo_send", "arguments": { "session_id": "<reviewer-session>", "data": { "text": "I checked the plan. Tuesday has a conflict." } } }
+```
+
+Those are normal MCP tool calls. This server translates them into VDO.Ninja SDK operations over WebRTC data channels.
+
+## Which VDO.Ninja Package Do I Need?
+
+| Your goal | Use |
 | --- | --- |
-| MCP tools inside Codex, Claude, Cursor, or another MCP client | `@vdoninja/mcp` |
-| A persistent agent sidecar, local inbox, and shell-first room commands | [`@vdoninja/ninja-p2p`](https://github.com/steveseguin/ninja-p2p) |
-| Raw VDO.Ninja media and data-channel primitives in an application | [`@vdoninja/sdk`](https://github.com/steveseguin/ninjasdk) |
+| Add connect/send/file/state tools to an MCP client | **`@vdoninja/mcp`** |
+| Give agents a persistent room and local inbox | [`@vdoninja/ninja-p2p`](https://github.com/steveseguin/ninja-p2p) |
+| Build directly with WebRTC media or data channels | [`@vdoninja/sdk`](https://github.com/steveseguin/ninjasdk) |
 
-This package translates MCP tool calls into SDK operations. It uses VDO.Ninja's existing room, discovery, and WebRTC behavior and does not add signaling-server commands.
+This package uses VDO.Ninja's existing room, discovery, and WebRTC behavior. It does not add signaling-server commands. `@vdoninja/sdk` and the Node WebRTC runtime install as package dependencies.
 
 ## Why This MCP
 
