@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Copyright (c) 2026 Steve Seguin
+// SPDX-License-Identifier: MIT
+
 'use strict';
 
 const { BridgeSession } = require('./lib/bridge-session');
@@ -24,7 +27,7 @@ const {
 const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2024-11-05'];
 const SERVER_INFO = {
   name: 'vdo-ninja-mcp',
-  version: '0.4.1'
+  version: '0.4.2'
 };
 const DEFAULT_MAX_MESSAGE_BYTES = 1024 * 1024;
 

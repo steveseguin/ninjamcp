@@ -16,6 +16,14 @@ function run() {
   const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
   const scripts = pkg.scripts || {};
 
+  if (pkg.name === '@vdoninja/mcp') {
+    assert.equal(pkg.author, 'Steve Seguin');
+    assert.equal(pkg.license, 'MIT');
+    assert.equal(pkg.dependencies['@vdoninja/sdk'], '^1.5.4');
+    assert.equal(pkg.files.includes('LICENSE'), true);
+    assert.equal(pkg.files.includes('LICENSE-SDK-EXCEPTION'), false);
+  }
+
   const expected = pkg.name === '@vdoninja/mcp'
     ? {
       'test': 'node tests/run-mcp-tests-minimal.js',

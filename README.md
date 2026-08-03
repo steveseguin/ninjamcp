@@ -41,7 +41,7 @@ This package uses VDO.Ninja's existing room, discovery, and WebRTC behavior. It 
 
 ## Why This MCP
 
-- Open source (`AGPL-3.0-only` with additional unmodified-distribution exception) and free to use.
+- Open source under the MIT license and free to use.
 - Peer-to-peer first: no central relay required for normal data flow.
 - End-to-end encrypted WebRTC data transport (DTLS + SCTP data channels).
 - Reliable data channel mode available for ordered/loss-recovered delivery.
@@ -318,7 +318,10 @@ node tests/live-turn-preset-matrix.js
 
 ## License
 
-AGPL-3.0-only with additional unmodified-distribution exception.
+`@vdoninja/mcp` is MIT licensed. Copyright (c) 2026 Steve Seguin.
 
-- Main license text: `LICENSE`
-- Additional permission: `LICENSE-SDK-EXCEPTION`
+Its `@vdoninja/sdk` dependency has its own terms. The SDK package is
+MPL-2.0, with some separately marked wrappers and adapters under MIT. Anyone
+bundling or redistributing the SDK should preserve its copyright and license
+notices and comply with the MPL-2.0 for covered SDK files. Those terms do not
+require the rest of an application to use the MPL-2.0.
