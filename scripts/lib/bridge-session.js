@@ -542,6 +542,8 @@ class BridgeSession extends EventEmitter {
     }
     this.boundListeners = [];
     this.connectedPeers.clear();
+    for (const uuid of this.peerState.keys()) this.invalidatePeer(uuid);
+    this.sharedKeys.clear();
 
     try {
       this.sdk.disconnect();
@@ -555,9 +557,16 @@ class BridgeSession extends EventEmitter {
   attachListeners() {
     if (!this.sdk) return;
 
+    const sdk = this.sdk;
+    let acceptingEvents = true;
     const bind = (eventName, handler) => {
-      this.sdk.addEventListener(eventName, handler);
-      this.boundListeners.push([eventName, handler]);
+      const onEvent = (event) => {
+        if (!this.running || this.sdk !== sdk || !acceptingEvents) return;
+        if (eventName === 'disconnected') acceptingEvents = false;
+        handler(event);
+      };
+      sdk.addEventListener(eventName, onEvent);
+      this.boundListeners.push([eventName, onEvent]);
     };
 
     bind('connected', () => {
@@ -565,6 +574,8 @@ class BridgeSession extends EventEmitter {
     });
 
     bind('disconnected', () => {
+      for (const uuid of this.peerState.keys()) this.invalidatePeer(uuid);
+      this.sharedKeys.clear();
       this.lastDisconnectedAt = nowISO();
       this.state = 'disconnected';
       this.queueEvent({ type: 'disconnected', ts: this.lastDisconnectedAt });
@@ -600,7 +611,8 @@ class BridgeSession extends EventEmitter {
         detail: event.detail || null
       });
       if (uuid) {
-        this.touchPeer(uuid, null);
+        const peer = this.touchPeer(uuid, null);
+        if (peer.handshake_state === 'disconnected') peer.handshake_state = 'discovered';
         this.sendSyncHello(uuid);
       }
     });
@@ -614,11 +626,7 @@ class BridgeSession extends EventEmitter {
         uuid: uuid || null,
         detail: event.detail || null
       });
-      if (uuid && this.peerState.has(uuid)) {
-        const peer = this.peerState.get(uuid);
-        peer.connected = false;
-        peer.last_seen_at = nowISO();
-      }
+      if (uuid) this.invalidatePeer(uuid);
     });
 
     bind('dataChannelOpen', (event) => {
@@ -659,6 +667,8 @@ class BridgeSession extends EventEmitter {
         this.handleProtocolMessage(detail, data);
         return;
       }
+
+      if (!this.authorizeIncomingData(detail.uuid, detail.streamID, 'data')) return;
 
       this.queueEvent({
         type: 'data_received',
@@ -779,6 +789,41 @@ class BridgeSession extends EventEmitter {
   isPeerAllowed(streamID) {
     if (!this.allowPeerStreamIDs.size) return true;
     return !!streamID && this.allowPeerStreamIDs.has(streamID);
+  }
+
+  invalidatePeer(uuid) {
+    const peer = this.peerState.get(uuid);
+    if (peer) {
+      peer.connected = false;
+      peer.auth_ok = false;
+      peer.handshake_state = 'disconnected';
+      peer.shared_key_ready = false;
+      peer.last_seen_at = nowISO();
+    }
+    this.sharedKeys.delete(uuid);
+  }
+
+  authorizeIncomingData(uuid, streamID, kind) {
+    const peer = uuid ? this.peerState.get(uuid) : null;
+    const peerStreamID = streamID || (peer && peer.stream_id) || null;
+    const allowlisted = this.isPeerAllowed(peerStreamID);
+    const authenticated = !this.config.enforceJoinToken || !!(
+      peer && peer.auth_ok &&
+      (peer.handshake_state === 'hello_received' || peer.handshake_state === 'ready')
+    );
+    const revoked = (this.config.enforceJoinToken || this.allowPeerStreamIDs.size > 0) && peer &&
+      (peer.handshake_state === 'rejected' || peer.handshake_state === 'disconnected');
+    if (allowlisted && authenticated && !revoked) return true;
+
+    this.queueEvent({
+      type: 'protocol_auth_failed',
+      ts: nowISO(),
+      kind,
+      uuid: uuid || null,
+      stream_id: peerStreamID,
+      reason: allowlisted ? 'join_token_required' : 'peer_not_allowed'
+    });
+    return false;
   }
 
   maybeDeriveSharedKey(uuid, remotePubKeyBase64) {
@@ -997,7 +1042,7 @@ class BridgeSession extends EventEmitter {
 
   handleSyncMessage(fromUuid, fromStreamID, kind, payload) {
     const peer = this.touchPeer(fromUuid, fromStreamID);
-    if (fromStreamID && !this.isPeerAllowed(fromStreamID)) {
+    if (!this.isPeerAllowed(fromStreamID || (peer && peer.stream_id))) {
       if (peer) {
         peer.handshake_state = 'rejected';
         peer.auth_ok = false;
@@ -1070,6 +1115,7 @@ class BridgeSession extends EventEmitter {
 
     if (peer) {
       peer.auth_ok = tokenCheck.ok;
+      peer.rejected_reason = null;
       peer.token_payload = tokenCheck.payload || null;
       peer.handshake_state = kind === 'sync.hello_ack' ? 'ready' : 'hello_received';
       peer.capabilities = payload && payload.capabilities ? payload.capabilities : null;
@@ -1562,6 +1608,7 @@ class BridgeSession extends EventEmitter {
 
     const isSync = kind.startsWith('sync.');
     if (!isSync) {
+      if (!this.authorizeIncomingData(fromUuid, fromStreamID, kind)) return;
       const macOk = this.verifyEnvelopeMac(fromUuid, envelope);
       if (!macOk) {
         this.queueEvent({
