@@ -14,6 +14,86 @@ function makeToken(secret, room, streamID) {
   }, secret);
 }
 
+async function inboundPolicyTest({ allowlist, enforceToken, token }) {
+  const room = 'incoming_policy_room';
+  const secret = 'offline-test-secret';
+  const server = new VdoMcpServer({
+    sdkFactory: createFakeSDKFactory(), logger: () => {}, onExit: async () => {}
+  });
+  try {
+    const receiver = await server.callTool('vdo_connect', {
+      room, stream_id: 'receiver',
+      allow_peer_stream_ids: allowlist ? ['allowed'] : [],
+      enforce_join_token: enforceToken,
+      join_token_secret: enforceToken ? secret : undefined
+    });
+    const sender = await server.callTool('vdo_connect', {
+      room, stream_id: 'blocked', target_stream_id: 'receiver',
+      ...(token ? { join_token: token } : {})
+    });
+    const receiverSession = server.sessions.get(receiver.session_id);
+    const senderSession = server.sessions.get(sender.session_id);
+    receiverSession.setLocalState('private-state', 'receiver-only', { broadcast: false });
+    receiverSession.eventQueue.length = 0;
+
+    senderSession.send({ text: 'blocked raw payload' });
+    senderSession.send(Buffer.from('blocked binary payload'));
+    senderSession.setLocalState('injected', 'blocked state');
+    senderSession.sendProtocol('file.offer', {
+      transfer_id: 'blocked-file', total_bytes: 4, total_chunks: 1, chunk_bytes: 1024
+    }, receiverSession.sdk.uuid);
+    senderSession.requestStateSnapshot(receiverSession.sdk.uuid);
+
+    assert.equal(receiverSession.getStateValue('injected'), null, 'rejected peers cannot change shared state');
+    assert.equal(receiverSession.incomingTransfers.size, 0, 'rejected peers cannot allocate file transfers');
+    assert.equal(receiverSession.eventQueue.some((event) => event.type === 'data_received'), false,
+      'rejected peers cannot place ordinary or binary messages in the MCP inbox');
+    assert.equal(senderSession.getStateValue('private-state'), null, 'rejected peers cannot request a state snapshot');
+    assert.ok(receiverSession.eventQueue.some((event) => event.type === 'protocol_auth_failed'));
+
+    if (enforceToken) {
+      // A fresh peer starts with auth_ok=true for legacy/open-room behavior;
+      // that must not count as a successful join-token handshake.
+      receiverSession.sdk.emit('dataReceived', {
+        uuid: 'no-handshake', streamID: 'allowed',
+        data: { __vdo_mcp: 'vdo_mcp_bridge_v1', kind: 'state.patch',
+          payload: { key: 'before-handshake', value: true, actor: 'allowed', clock: 1 } }
+      });
+      assert.equal(receiverSession.getStateValue('before-handshake'), null);
+    }
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
+async function authorizedPayloadTest() {
+  const secret = 'offline-authorized-secret';
+  const room = 'authorized_payload_room';
+  const server = new VdoMcpServer({
+    sdkFactory: createFakeSDKFactory(), logger: () => {}, onExit: async () => {}
+  });
+  try {
+    const a = await server.callTool('vdo_connect', {
+      room, stream_id: 'receiver', join_token_secret: secret,
+      enforce_join_token: true, allow_peer_stream_ids: ['allowed']
+    });
+    const b = await server.callTool('vdo_connect', {
+      room, stream_id: 'allowed', target_stream_id: 'receiver',
+      join_token: makeToken(secret, room, 'allowed')
+    });
+    const receiver = server.sessions.get(a.session_id);
+    const sender = server.sessions.get(b.session_id);
+    sender.send({ text: 'authorized payload' });
+    sender.setLocalState('authorized', true);
+    await sender.sendFile({ dataBuffer: Buffer.from('authorized file'), transferId: 'allowed-file' });
+    assert.equal(receiver.getStateValue('authorized'), true);
+    assert.ok(receiver.eventQueue.some((event) => event.data && event.data.text === 'authorized payload'));
+    assert.equal(receiver.readIncomingTransfer('allowed-file', 'utf8').data_text, 'authorized file');
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
 async function run() {
   const secret = 'sync_secret_123';
   const room = 'sync_secure_room';
@@ -83,6 +163,10 @@ async function run() {
     assert.equal(intruder.handshake_state, 'rejected');
     assert.equal(intruder.rejected_reason, 'peer not on allowlist');
 
+    await inboundPolicyTest({ allowlist: true, enforceToken: false });
+    await inboundPolicyTest({ allowlist: false, enforceToken: true });
+    await inboundPolicyTest({ allowlist: false, enforceToken: true, token: 'invalid.token' });
+    await authorizedPayloadTest();
     console.log('mcp-sync-security.test.js passed');
   } finally {
     await server.shutdownAll();
