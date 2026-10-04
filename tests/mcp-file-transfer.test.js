@@ -141,9 +141,94 @@ async function resumeAfterDroppedAckTest() {
   }
 }
 
+async function lostAckKeepsChunkDataTest(droppedSeq) {
+  let dropped = false;
+  const sentChunks = [];
+  const sdkFactory = createFakeSDKFactory({
+    transformMessage: ({ data }) => {
+      if (data && data.kind === 'file.chunk') sentChunks.push(data.payload.seq);
+      if (!dropped && data && data.kind === 'file.ack' && data.payload.seq === droppedSeq) {
+        dropped = true;
+        return { drop: true };
+      }
+      return null;
+    }
+  });
+  const { server, a, b } = await setupPair(sdkFactory, `lost_ack_${droppedSeq}`);
+  try {
+    const payload = Buffer.concat([Buffer.alloc(1024, 'a'), Buffer.alloc(1024, 'b')]);
+    const result = await server.callTool('vdo_file_send', {
+      session_id: a.session_id,
+      transfer_id: 'lost_ack',
+      data_base64: payload.toString('base64'),
+      chunk_bytes: 1024,
+      ack_timeout_ms: 20,
+      max_retries: 2
+    });
+    assert.equal(dropped, true);
+    assert.equal(result.transfer.status, 'completed');
+    assert.deepEqual(sentChunks, [0, 1], 'resume must not reuse old chunk data or send past the end');
+    const receive = await server.callTool('vdo_file_receive', {
+      session_id: b.session_id,
+      transfer_id: 'lost_ack',
+      encoding: 'base64'
+    });
+    assert.equal(receive.data_base64, payload.toString('base64'));
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
+async function completionRequiresReceiverValidationTest(mode) {
+  const sdkFactory = createFakeSDKFactory({
+    transformMessage: ({ data }) => {
+      if (!data || typeof data !== 'object') return null;
+      if (mode === 'failed-hash' && data.kind === 'file.offer') {
+        const copy = JSON.parse(JSON.stringify(data));
+        copy.payload.file_hash = 'incorrect-file-hash';
+        // Exercise file validation in the supported optional-MAC mode.
+        delete copy.mac;
+        return { data: copy };
+      }
+      if (mode === 'missing-complete' && data.kind === 'file.complete') return { drop: true };
+      if (mode === 'lost-complete-ack' && data.kind === 'file.complete_ack') return { drop: true };
+      return null;
+    }
+  });
+  const { server, a, b } = await setupPair(sdkFactory, `completion_${mode}`);
+  try {
+    const send = server.callTool('vdo_file_send', {
+      session_id: a.session_id,
+      transfer_id: mode,
+      data_base64: Buffer.from('completion must be verified').toString('base64'),
+      ack_timeout_ms: 20,
+      max_retries: 2
+    });
+    if (mode === 'lost-complete-ack') {
+      const result = await send;
+      assert.equal(result.transfer.status, 'completed');
+      const receive = await server.callTool('vdo_file_receive', {
+        session_id: b.session_id, transfer_id: mode, encoding: 'utf8'
+      });
+      assert.equal(receive.data_text, 'completion must be verified');
+    } else {
+      await assert.rejects(send, /timed out waiting for file.complete_ack/);
+      const outgoing = await server.callTool('vdo_file_transfers', { session_id: a.session_id });
+      assert.equal(outgoing.outgoing[0].status, 'failed');
+    }
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
 async function run() {
   await basicCorruptionRecoveryTest();
   await resumeAfterDroppedAckTest();
+  await lostAckKeepsChunkDataTest(0);
+  await lostAckKeepsChunkDataTest(1);
+  await completionRequiresReceiverValidationTest('failed-hash');
+  await completionRequiresReceiverValidationTest('missing-complete');
+  await completionRequiresReceiverValidationTest('lost-complete-ack');
   console.log('mcp-file-transfer.test.js passed');
 }
 
