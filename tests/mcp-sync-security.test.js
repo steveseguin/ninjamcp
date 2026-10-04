@@ -94,6 +94,100 @@ async function authorizedPayloadTest() {
   }
 }
 
+async function revokedPeerPayloadTest(reason) {
+  const room = `revoked_${reason.replace(/-/g, '_')}`;
+  const secret = 'offline-revocation-secret';
+  const server = new VdoMcpServer({
+    sdkFactory: createFakeSDKFactory(), logger: () => {}, onExit: async () => {}
+  });
+  try {
+    const a = await server.callTool('vdo_connect', {
+      room, stream_id: 'receiver', join_token_secret: secret,
+      enforce_join_token: true, allow_peer_stream_ids: ['allowed']
+    });
+    const b = await server.callTool('vdo_connect', {
+      room, stream_id: 'allowed', target_stream_id: 'receiver',
+      join_token: makeToken(secret, room, 'allowed')
+    });
+    const receiver = server.sessions.get(a.session_id);
+    const sender = server.sessions.get(b.session_id);
+    const uuid = sender.sdk.uuid;
+    const oldDataCallback = [...receiver.sdk.listeners.get('dataReceived')][0];
+    const oldDisconnectCallback = [...receiver.sdk.listeners.get('peerDisconnected')][0];
+    assert.equal(receiver.peerState.get(uuid).auth_ok, true);
+    const incoming = receiver.createIncomingTransfer(uuid, 'allowed', {
+      transfer_id: 'incoming', total_bytes: 4, total_chunks: 1, chunk_bytes: 1024
+    });
+    const outgoing = receiver.buildOutgoingTransfer({
+      transferId: 'outgoing', dataBuffer: Buffer.from('test'), targetUuid: uuid
+    });
+    const cursor = receiver.protocolCursor;
+    const pendingAck = receiver.waitForProtocolEvent((event) => event.kind === 'file.ack', 20, cursor);
+
+    if (reason === 'rejected') {
+      sender.sendProtocol('sync.reject', { reason: 'revoked' }, receiver.sdk.uuid);
+    } else if (reason === 'peer-disconnected') {
+      receiver.sdk.emit('peerDisconnected', { uuid });
+    } else if (reason === 'sdk-disconnected') {
+      receiver.sdk.emit('disconnected', {});
+    } else {
+      await receiver.connectSession();
+    }
+    assert.equal(receiver.peerState.get(uuid).auth_ok, false);
+    if (reason !== 'rejected') assert.equal(receiver.sharedKeys.has(uuid), false);
+    receiver.eventQueue.length = 0;
+    const protocolCursor = receiver.protocolCursor;
+    const deliver = (data) => oldDataCallback({ detail: { uuid, streamID: 'allowed', data } });
+    deliver({ text: 'late message' });
+    deliver(Buffer.from('late binary'));
+    deliver(new Uint8Array([1, 2]).buffer);
+    const messages = [
+      ['state.patch', { key: 'late', value: true, actor: 'allowed', clock: 1 }],
+      ['state.snapshot', { entries: [{ key: 'late', value: true, actor: 'allowed', clock: 1 }] }],
+      ['state.snapshot_req', {}],
+      ['file.offer', { transfer_id: 'late-file', total_bytes: 4, total_chunks: 1, chunk_bytes: 1024 }],
+      ['file.chunk', { transfer_id: 'incoming', seq: 0, data_base64: Buffer.from('late').toString('base64') }],
+      ['file.complete', { transfer_id: 'incoming' }],
+      ['file.cancel', { transfer_id: 'incoming' }],
+      ['file.resume_req', { transfer_id: 'incoming' }],
+      ...['file.accept', 'file.ack', 'file.nack', 'file.complete_ack', 'file.resume_state'].map((kind) => [
+        kind, { transfer_id: 'outgoing', seq: 0, next_seq: 1, expected_seq: 1, status: 'completed' }
+      ])
+    ];
+    for (const [kind, payload] of messages) {
+      deliver({ __vdo_mcp: 'vdo_mcp_bridge_v1', kind, payload });
+    }
+    assert.equal(await pendingAck, null, 'late acknowledgements cannot resolve pending transfers');
+    assert.equal(receiver.protocolCursor, protocolCursor, 'late protocol data cannot reach file/state handlers');
+    assert.equal(receiver.getStateValue('late'), null);
+    assert.equal(receiver.incomingTransfers.size, 1);
+    assert.equal(incoming.status, 'receiving');
+    assert.equal(incoming.received_chunks.size, 0);
+    assert.equal(incoming.complete_received, false);
+    assert.equal(outgoing.status, 'offered');
+    assert.equal(outgoing.acked_chunks.size, 0);
+    assert.equal(receiver.eventQueue.some((event) => event.type === 'data_received'), false);
+
+    if (reason === 'sdk-replaced') {
+      // The replacement must start unauthenticated, even for an old peer UUID.
+      receiver.sdk.emit('dataReceived', { uuid, streamID: 'allowed', data: { text: 'no inherited auth' } });
+      assert.equal(receiver.eventQueue.some((event) => event.type === 'data_received'), false);
+      // Authenticate on the replacement SDK, then invoke a queued callback
+      // from its predecessor. The old disconnect must not revoke the new key.
+      receiver.sdk.emit('dataReceived', {
+        uuid, streamID: 'allowed',
+        data: sender.buildProtocolEnvelope('sync.hello', {}, receiver.sdk.uuid)
+      });
+      assert.equal(receiver.peerState.get(uuid).auth_ok, true);
+      oldDisconnectCallback({ detail: { uuid } });
+      assert.equal(receiver.peerState.get(uuid).auth_ok, true);
+      assert.equal(receiver.sharedKeys.has(uuid), true);
+    }
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
 async function run() {
   const secret = 'sync_secret_123';
   const room = 'sync_secure_room';
@@ -167,6 +261,9 @@ async function run() {
     await inboundPolicyTest({ allowlist: false, enforceToken: true });
     await inboundPolicyTest({ allowlist: false, enforceToken: true, token: 'invalid.token' });
     await authorizedPayloadTest();
+    for (const reason of ['rejected', 'peer-disconnected', 'sdk-disconnected', 'sdk-replaced']) {
+      await revokedPeerPayloadTest(reason);
+    }
     console.log('mcp-sync-security.test.js passed');
   } finally {
     await server.shutdownAll();
