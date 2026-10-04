@@ -289,6 +289,9 @@ class BridgeSession extends EventEmitter {
     if (parsed > current) {
       this.stateActorClock.set(safeActor, parsed);
     }
+    // The merge order compares clocks across actors, so local writes must
+    // advance beyond every observed clock, including snapshot metadata.
+    this.stateClock = Math.max(this.stateClock, parsed);
   }
 
   asStateEntry(key, value, actor, clock, updatedAt) {
@@ -331,8 +334,6 @@ class BridgeSession extends EventEmitter {
 
     this.roomState.set(incoming.key, incoming);
     this.markStateActorClock(incoming.actor, incoming.clock);
-    const localActorClock = intFromValue(this.stateActorClock.get(this.config.streamID), 0);
-    this.stateClock = Math.max(this.stateClock, localActorClock);
 
     this.queueEvent({
       type: 'state_updated',
@@ -2332,3 +2333,4 @@ class BridgeSession extends EventEmitter {
 module.exports = {
   BridgeSession
 };
+

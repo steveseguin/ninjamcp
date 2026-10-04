@@ -71,6 +71,58 @@ async function run() {
     assert.ok(aMeta.value && Array.isArray(aMeta.value.entries));
     assert.ok(aMeta.value.entries.some((entry) => entry.key === 'mission'));
 
+    // A peer's later write must follow clocks it has already observed, even
+    // when another actor has performed more writes or sorts after it.
+    for (const value of ['second', 'third', 'fourth']) {
+      await server.callTool('vdo_state_set', { session_id: c.session_id, key: 'mission', value });
+    }
+    const observed = await server.callTool('vdo_state_get', {
+      session_id: a.session_id, key: 'mission', include_meta: true
+    });
+    assert.equal(observed.value.value, 'fourth');
+    const later = await server.callTool('vdo_state_set', {
+      session_id: a.session_id, key: 'mission', value: 'latest'
+    });
+    assert.ok(later.entry.clock > observed.value.clock);
+    for (const peer of [a, b, c]) {
+      const result = await server.callTool('vdo_state_get', { session_id: peer.session_id, key: 'mission' });
+      assert.equal(result.value, 'latest');
+    }
+    await server.callTool('vdo_state_sync', { session_id: c.session_id, mode: 'send' });
+    assert.equal((await server.callTool('vdo_state_get', {
+      session_id: a.session_id, key: 'mission'
+    })).value, 'latest');
+
+    // Snapshot entries and actor clocks must both advance the local clock.
+    // Limit the snapshot so the highest-clock entry is omitted from entries.
+    const snapshotSource = await server.callTool('vdo_connect', {
+      room: 'snapshot_clock_room', stream_id: 'z_source', state_max_snapshot_entries: 1
+    });
+    await server.callTool('vdo_state_set', {
+      session_id: snapshotSource.session_id, key: 'a_first', value: 'included', broadcast: false
+    });
+    for (let i = 0; i < 5; i += 1) {
+      await server.callTool('vdo_state_set', {
+        session_id: snapshotSource.session_id, key: 'z_last', value: i, broadcast: false
+      });
+    }
+    const snapshotPeer = await server.callTool('vdo_connect', {
+      room: 'snapshot_clock_room', stream_id: 'a_peer', target_stream_id: 'z_source'
+    });
+    await server.callTool('vdo_state_sync', { session_id: snapshotPeer.session_id, mode: 'request' });
+    const snapshotRead = await server.callTool('vdo_state_get', {
+      session_id: snapshotPeer.session_id, include_meta: true
+    });
+    assert.equal(snapshotRead.value.entries.length, 1);
+    assert.equal(snapshotRead.value.actor_clock.z_source, 6);
+    const snapshotWrite = await server.callTool('vdo_state_set', {
+      session_id: snapshotPeer.session_id, key: 'z_last', value: 'after snapshot'
+    });
+    assert.equal(snapshotWrite.entry.clock, 7);
+    assert.equal((await server.callTool('vdo_state_get', {
+      session_id: snapshotSource.session_id, key: 'z_last'
+    })).value, 'after snapshot');
+
     console.log('mcp-state-sync.test.js passed');
   } finally {
     await server.shutdownAll();
@@ -81,3 +133,4 @@ run().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+
