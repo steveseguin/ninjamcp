@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const http = require('node:http');
 const { startStreamableHttpServer } = require('../scripts/vdo-mcp-streamable-http');
 const { VdoMcpServer } = require('../scripts/vdo-mcp-server');
 const { createFakeSDKFactory } = require('../scripts/lib/fake-network-sdk');
@@ -229,7 +230,82 @@ async function run() {
     await restrictedSvc.close();
   }
 
+  await testCloseDrainsDispatch(false);
+  await testCloseDrainsDispatch(true);
   console.log('mcp-http-smoke.test.js passed');
+}
+
+async function testCloseDrainsDispatch(disconnectClient) {
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  let signalStarted;
+  const started = new Promise((resolve) => { signalStarted = resolve; });
+  const mcp = new VdoMcpServer({ sdkFactory: createFakeSDKFactory(), logger: () => {} });
+  let shutdownCalls = 0;
+  const shutdown = mcp.shutdownAll.bind(mcp);
+  mcp.shutdownAll = async () => {
+    shutdownCalls += 1;
+    return shutdown();
+  };
+  const dispatch = mcp.dispatchMessage.bind(mcp);
+  const sessions = [];
+  let signalFinished;
+  const finished = new Promise((resolve) => { signalFinished = resolve; });
+  mcp.dispatchMessage = async (body) => {
+    signalStarted();
+    await gate;
+    try {
+      await dispatch(body);
+      sessions.push(...mcp.sessions.values());
+    } finally {
+      signalFinished();
+    }
+  };
+  const svc = await startStreamableHttpServer({ host: '127.0.0.1', port: 0, mcpServer: mcp, logger: () => {} });
+  const request = http.request(svc.endpointUrl, { method: 'POST', agent: false });
+  const response = new Promise((resolve, reject) => {
+    request.on('response', (res) => {
+      let text = '';
+      res.on('data', (chunk) => { text += chunk; });
+      res.on('end', () => resolve(JSON.parse(text)));
+      res.on('error', reject);
+    });
+    request.on('error', (error) => disconnectClient ? resolve(null) : reject(error));
+  });
+  request.end(JSON.stringify({
+    jsonrpc: '2.0', id: 30, method: 'tools/call',
+    params: { name: 'vdo_connect', arguments: { room: 'http_close_room', stream_id: 'http_close_peer' } }
+  }));
+  let closing;
+  try {
+    await started;
+    if (disconnectClient) request.destroy();
+    let closed = false;
+    const firstClose = svc.close();
+    closing = firstClose.then(() => { closed = true; });
+    const closingAgain = svc.close();
+    assert.equal(closingAgain, firstClose, 'concurrent close calls must share completion');
+    // A disconnected socket can finish closing while its dispatch is still queued.
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    assert.equal(closed, false, 'close must await accepted dispatch even after client disconnect');
+    assert.equal(svc.server.listening, false, 'close must immediately stop new connections');
+    release();
+    const result = await response;
+    if (!disconnectClient) assert.equal(result.result.structuredContent.ok, true);
+    await Promise.all([closing, closingAgain, finished]);
+    assert.equal(sessions.length, 1, 'accepted connect must complete');
+    assert.equal(mcp.sessions.size, 0, 'close must clean up sessions created by accepted dispatch');
+    assert.equal(sessions[0].sdk, null, 'close must stop the created SDK');
+    await svc.close();
+    assert.equal(shutdownCalls, 1, 'repeated close must not repeat cleanup');
+  } finally {
+    release();
+    request.destroy();
+    await finished;
+    if (closing) await closing;
+    await svc.close();
+    await mcp.shutdownAll();
+  }
 }
 
 run().catch((error) => {

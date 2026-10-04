@@ -212,14 +212,15 @@ async function startStreamableHttpServer(options = {}) {
     endpoint: endpointPath
   });
 
+  let closePromise;
   return {
     server: httpServer,
     mcpServer: server,
     baseUrl,
     endpointUrl: `${baseUrl}${endpointPath}`,
-    close: async () => {
-      await server.shutdownAll();
-      await new Promise((resolve, reject) => {
+    close: () => {
+      if (closePromise) return closePromise;
+      closePromise = new Promise((resolve, reject) => {
         httpServer.close((error) => {
           if (error && error.code !== 'ERR_SERVER_NOT_RUNNING' && error.code !== 'EPERM') {
             reject(error);
@@ -227,7 +228,13 @@ async function startStreamableHttpServer(options = {}) {
           }
           resolve();
         });
+      }).finally(() => {
+        // Stop admission and drain HTTP before cleanup. Disconnected clients
+        // can leave dispatches running after their sockets close, so queue
+        // cleanup behind all accepted MCP work as well.
+        return runInQueue(() => server.shutdownAll());
       });
+      return closePromise;
     }
   };
 }
