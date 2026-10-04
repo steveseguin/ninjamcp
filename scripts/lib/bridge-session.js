@@ -1251,8 +1251,27 @@ class BridgeSession extends EventEmitter {
       return;
     }
 
+    // A retained transfer belongs to one peer and one immutable offer.
+    const existing = this.incomingTransfers.get(transferId);
+    const incomingKinds = ['file.offer', 'file.chunk', 'file.complete', 'file.resume_req', 'file.cancel'];
+    const ownerConflict = existing && incomingKinds.includes(kind) && existing.from_uuid !== (fromUuid || null);
+    const offerConflict = existing && kind === 'file.offer' && (
+      existing.total_bytes !== intFromValue(payload.total_bytes, 0) ||
+      existing.total_chunks !== intFromValue(payload.total_chunks, 0) ||
+      existing.chunk_bytes !== clampInt(payload.chunk_bytes, this.config.fileChunkBytes, MIN_CHUNK_BYTES, MAX_CHUNK_BYTES) ||
+      existing.file_hash !== (payload.file_hash || null) ||
+      existing.name !== (payload.name || null) ||
+      existing.mime !== (payload.mime || 'application/octet-stream')
+    );
+    if (ownerConflict || offerConflict) {
+      const reason = ownerConflict ? 'transfer_owner_conflict' : 'transfer_metadata_conflict';
+      this.sendProtocol('file.nack', { transfer_id: transferId, reason }, fromUuid || null, { preferMac: true });
+      this.queueEvent({ type: 'file_offer_rejected', ts: nowISO(), transfer_id: transferId, reason });
+      return;
+    }
+
     if (kind === 'file.offer') {
-      let incoming = this.incomingTransfers.get(transferId);
+      let incoming = existing;
       if (!incoming) {
         try {
           incoming = this.createIncomingTransfer(fromUuid, fromStreamID, payload || {});
@@ -1456,7 +1475,7 @@ class BridgeSession extends EventEmitter {
 
     if (kind === 'file.accept' || kind === 'file.ack' || kind === 'file.nack' || kind === 'file.complete_ack' || kind === 'file.resume_state') {
       const outgoing = this.outgoingTransfers.get(transferId);
-      if (outgoing) {
+      if (outgoing && outgoing.target_uuid === fromUuid) {
         outgoing.updated_at = nowISO();
 
         if (kind === 'file.accept') {
@@ -1476,8 +1495,13 @@ class BridgeSession extends EventEmitter {
         }
 
         if (kind === 'file.complete_ack') {
-          outgoing.status = 'completed';
-          outgoing.completed_at = nowISO();
+          if (payload.file_hash !== outgoing.file_hash || payload.total_bytes !== outgoing.total_bytes) {
+            outgoing.status = 'failed';
+            outgoing.last_error = 'completion_metadata_mismatch';
+          } else {
+            outgoing.status = 'completed';
+            outgoing.completed_at = nowISO();
+          }
         }
 
         if (kind === 'file.resume_state') {
@@ -1911,13 +1935,19 @@ class BridgeSession extends EventEmitter {
     }
 
     const accepted = await this.waitForProtocolEvent((event) => (
-      event.kind === 'file.accept' &&
+      (event.kind === 'file.accept' || event.kind === 'file.nack') &&
       event.transfer_id === transfer.transfer_id &&
       event.from_uuid === transfer.target_uuid
     ), Math.max(ackTimeoutMs, 1000), offerCursor);
 
     if (!accepted) {
       throw new Error('timed out waiting for file.accept');
+    }
+
+    if (accepted.kind === 'file.nack') {
+      transfer.status = 'failed';
+      transfer.last_error = accepted.payload.reason || 'file_offer_rejected';
+      throw new Error(transfer.last_error);
     }
 
     transfer.status = 'transferring';
@@ -2002,6 +2032,12 @@ class BridgeSession extends EventEmitter {
       event.transfer_id === transfer.transfer_id &&
       event.from_uuid === transfer.target_uuid
     ), Math.max(ackTimeoutMs * 2, 1000), completeCursor);
+
+    if (completeAck && (completeAck.payload.file_hash !== transfer.file_hash || completeAck.payload.total_bytes !== transfer.total_bytes)) {
+      transfer.status = 'failed';
+      transfer.last_error = 'completion_metadata_mismatch';
+      throw new Error(transfer.last_error);
+    }
 
     if (!completeAck) {
       const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs);

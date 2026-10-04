@@ -73,6 +73,8 @@ Enforcement:
 - `vdo_file_send`: send from `data_base64`
 - `vdo_file_send_path`: send directly from local `file_path`
 - `vdo_file_resume`: resume outgoing transfer by `transfer_id`
+
+A retained incoming `transfer_id` is bound to its originating peer UUID and offer metadata (content hash, byte count, chunk layout, name, and MIME type). Identical retries from that peer can resume or confirm completion. Reusing the ID for different content/metadata or from another peer is rejected; use a new ID for a new transfer. Reconnection with a new peer UUID does not transfer ownership of an existing retained ID. Completion acknowledgements must match the sender's content hash and byte count.
 - `vdo_file_transfers`: inspect incoming/outgoing transfer state
 - `vdo_file_receive`: read completed incoming payload (`base64`/`utf8`/`json`)
 - `vdo_file_save`: save completed incoming transfer directly to disk

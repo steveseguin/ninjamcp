@@ -141,7 +141,81 @@ async function resumeAfterDroppedAckTest() {
   }
 }
 
+async function transferIdentityTest(spooled) {
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-identity-'));
+  const server = new VdoMcpServer({ sdkFactory: createFakeSDKFactory(), logger: () => {} });
+  try {
+    const a = await server.callTool('vdo_connect', { room: dir, stream_id: 'a' });
+    const b = await server.callTool('vdo_connect', {
+      room: dir, stream_id: 'b', target_stream_id: 'a', file_spool_dir: dir,
+      file_spool_threshold_bytes: spooled ? 1024 : 1024 * 1024
+    });
+    const c = await server.callTool('vdo_connect', { room: dir, stream_id: 'c', target_stream_id: 'b' });
+    const oldData = Buffer.alloc(2048, 65);
+    const args = {
+      session_id: a.session_id, target: 'b', transfer_id: 'identity', name: 'data.bin',
+      data_base64: oldData.toString('base64'), chunk_bytes: 1024, ack_timeout_ms: 60
+    };
+    assert.equal((await server.callTool('vdo_file_send', args)).transfer.status, 'completed');
+    const receiver = server.sessions.get(b.session_id);
+    const original = receiver.incomingTransfers.get('identity');
+    assert.equal(original.spooled, spooled);
+    for (const change of [
+      { data_base64: Buffer.alloc(2048, 66).toString('base64') },
+      { data_base64: Buffer.alloc(1024, 65).toString('base64') },
+      { chunk_bytes: 2048 }, { name: 'other.bin' }, { mime: 'text/plain' }
+    ]) {
+      await assert.rejects(server.callTool('vdo_file_send', { ...args, ...change }), /transfer_metadata_conflict/);
+      assert.equal(receiver.incomingTransfers.get('identity'), original);
+      assert.equal(original.status, 'completed');
+    }
+    await assert.rejects(server.callTool('vdo_file_send', { ...args, session_id: c.session_id }), /transfer_owner_conflict/);
+    const foreign = server.sessions.get(c.session_id);
+    for (const kind of ['file.chunk', 'file.complete', 'file.cancel', 'file.resume_req']) {
+      foreign.sendProtocol(kind, { transfer_id: 'identity', seq: 0, data_base64: 'Qg==' }, receiver.sdk.uuid);
+      assert.equal(original.status, 'completed');
+      assert.equal(receiver.incomingTransfers.get('identity'), original);
+    }
+    assert.equal((await server.callTool('vdo_file_send', args)).transfer.status, 'completed');
+    const read = await server.callTool('vdo_file_receive', { session_id: b.session_id, transfer_id: 'identity', encoding: 'base64' });
+    assert.equal(read.data_base64, oldData.toString('base64'));
+    assert.equal((await server.callTool('vdo_file_send', { ...args, transfer_id: 'new-identity', data_base64: Buffer.alloc(2048, 66).toString('base64') })).transfer.status, 'completed');
+    await server.shutdownAll();
+    assert.deepEqual(fs.readdirSync(dir), []);
+  } finally {
+    await server.shutdownAll();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+async function completionIdentityTest(field) {
+  const { server, a, b } = await setupPair(createFakeSDKFactory(), `completion-identity-${field}`);
+  const receiver = server.sessions.get(b.session_id);
+  const sendProtocol = receiver.sendProtocol.bind(receiver);
+  // Model an authenticated legacy/buggy receiver, before envelope signing.
+  receiver.sendProtocol = (kind, payload, target, options) => {
+    if (kind === 'file.complete_ack') payload = { ...payload, [field]: field === 'file_hash' ? '0'.repeat(64) : 999 };
+    return sendProtocol(kind, payload, target, options);
+  };
+  try {
+    await assert.rejects(server.callTool('vdo_file_send', {
+      session_id: a.session_id, transfer_id: 'bad-ack', data_base64: Buffer.from('content').toString('base64')
+    }), /completion_metadata_mismatch/);
+    assert.equal(server.sessions.get(a.session_id).outgoingTransfers.get('bad-ack').status, 'failed');
+    assert.equal(server.sessions.get(b.session_id).incomingTransfers.get('bad-ack').status, 'completed');
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
 async function run() {
+  await transferIdentityTest(false);
+  await transferIdentityTest(true);
+  await completionIdentityTest('file_hash');
+  await completionIdentityTest('total_bytes');
   await basicCorruptionRecoveryTest();
   await resumeAfterDroppedAckTest();
   console.log('mcp-file-transfer.test.js passed');
