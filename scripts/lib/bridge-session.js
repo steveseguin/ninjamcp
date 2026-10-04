@@ -1203,6 +1203,8 @@ class BridgeSession extends EventEmitter {
     transfer.completed_at = nowISO();
     transfer.updated_at = transfer.completed_at;
 
+    // A retry completes the same transfer again; retain each ID only once.
+    this.completedIncomingOrder = this.completedIncomingOrder.filter((id) => id !== transfer.transfer_id);
     this.completedIncomingOrder.push(transfer.transfer_id);
     while (this.completedIncomingOrder.length > this.config.maxStoredFiles) {
       const oldestId = this.completedIncomingOrder.shift();
@@ -2019,6 +2021,8 @@ class BridgeSession extends EventEmitter {
     }
 
     transfer.updated_at = nowISO();
+    // A retry completes the same transfer again; retain each ID only once.
+    this.completedOutgoingOrder = this.completedOutgoingOrder.filter((id) => id !== transfer.transfer_id);
     this.completedOutgoingOrder.push(transfer.transfer_id);
     while (this.completedOutgoingOrder.length > this.config.maxStoredFiles) {
       const oldestId = this.completedOutgoingOrder.shift();
