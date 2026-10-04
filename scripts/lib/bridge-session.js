@@ -1875,7 +1875,7 @@ class BridgeSession extends EventEmitter {
     };
   }
 
-  async requestResumeState(transfer, timeoutMs) {
+  async requestResumeState(transfer, timeoutMs, requireCompleted = false) {
     const cursor = this.protocolCursor;
     this.sendProtocol('file.resume_req', {
       transfer_id: transfer.transfer_id
@@ -1887,7 +1887,7 @@ class BridgeSession extends EventEmitter {
       event.from_uuid === transfer.target_uuid
     ), timeoutMs, cursor);
 
-    if (!resume) return null;
+    if (!resume || (requireCompleted && resume.payload.status !== 'completed')) return null;
     return nonNegativeIntFromValue(resume.payload && resume.payload.next_seq, transfer.next_seq);
   }
 
@@ -1968,7 +1968,9 @@ class BridgeSession extends EventEmitter {
           const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs);
           if (Number.isFinite(resumeSeq)) {
             seq = Math.min(Math.max(resumeSeq, 0), transfer.total_chunks);
+            // Restart the outer loop so the chunk and its hash match the resumed sequence.
             transfer.next_seq = seq;
+            break;
           }
           continue;
         }
@@ -2004,7 +2006,7 @@ class BridgeSession extends EventEmitter {
     ), Math.max(ackTimeoutMs * 2, 1000), completeCursor);
 
     if (!completeAck) {
-      const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs);
+      const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs, true);
       if (Number.isFinite(resumeSeq) && resumeSeq >= transfer.total_chunks) {
         transfer.status = 'completed';
         transfer.completed_at = nowISO();
