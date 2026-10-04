@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const http = require('node:http');
 const { startStreamableHttpServer } = require('../scripts/vdo-mcp-streamable-http');
 const { VdoMcpServer } = require('../scripts/vdo-mcp-server');
 const { createFakeSDKFactory } = require('../scripts/lib/fake-network-sdk');
@@ -21,6 +22,28 @@ async function postJson(url, payload, token) {
     body = { parse_error: error.message, raw: text };
   }
   return { status: res.status, body };
+}
+
+function requestWithHost(url, host, token) {
+  return new Promise((resolve, reject) => {
+    const headers = { host, 'content-type': 'application/json' };
+    if (token) headers.authorization = `Bearer ${token}`;
+    const req = http.request(url, { method: 'POST', headers }, (res) => {
+      let text = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => { text += chunk; });
+      res.on('end', () => {
+        try {
+          resolve({ status: res.statusCode, body: JSON.parse(text) });
+        } catch (error) {
+          reject(error);
+        }
+      });
+      res.on('error', reject);
+    });
+    req.on('error', reject);
+    req.end(JSON.stringify({ jsonrpc: '2.0', id: 100, method: 'ping' }));
+  });
 }
 
 async function run() {
@@ -46,6 +69,19 @@ async function run() {
 
   try {
     assert.ok(/:\d+\/mcp$/.test(svc.endpointUrl), 'endpoint should include resolved port');
+
+    for (const authToken of [undefined, token]) {
+      for (const malformedHost of ['[', 'localhost:invalid']) {
+        const malformed = await requestWithHost(svc.endpointUrl, malformedHost, authToken);
+        assert.equal(malformed.status, 400);
+        assert.equal(malformed.body.error, 'invalid_url');
+
+        // A malformed request must not stop the server or bypass normal auth.
+        const valid = await requestWithHost(svc.endpointUrl, 'localhost', authToken);
+        assert.equal(valid.status, authToken ? 200 : 401);
+        if (authToken) assert.deepEqual(valid.body.result, {});
+      }
+    }
 
     const unauthorized = await postJson(svc.endpointUrl, {
       jsonrpc: '2.0',
@@ -236,3 +272,4 @@ run().catch((error) => {
   console.error(error);
   process.exit(1);
 });
+

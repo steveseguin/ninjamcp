@@ -104,8 +104,17 @@ async function startStreamableHttpServer(options = {}) {
   const runInQueue = createQueueRunner();
 
   const httpServer = http.createServer(async (req, res) => {
-    const reqUrl = new URL(req.url || '/', `http://${req.headers.host || `${host}:${port}`}`);
     const corsHeaders = withCorsHeaders({}, allowOrigin);
+    let reqUrl;
+    try {
+      reqUrl = new URL(req.url || '/', `http://${req.headers.host || `${host}:${port}`}`);
+    } catch (error) {
+      jsonResponse(res, 400, {
+        ok: false,
+        error: 'invalid_url'
+      }, corsHeaders);
+      return;
+    }
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204, corsHeaders);
@@ -271,3 +280,4 @@ if (require.main === module) {
 module.exports = {
   startStreamableHttpServer
 };
+
