@@ -317,6 +317,7 @@ process.exit(1);
     runInstaller([
       '--uninstall',
       '--name', 'vdo-test',
+      '--claude-scope', 'user',
       '--server-script', fakeServer,
       '--node-cmd', 'node'
     ], env, path.resolve(__dirname, '..'));
