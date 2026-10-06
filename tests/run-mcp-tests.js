@@ -16,6 +16,7 @@ const tests = [
   'mcp-preset-matrix-config.test.js',
   'mcp-demo-scripts.test.js',
   'mcp-installer.test.js',
+  'mcp-installer-scopes.test.js',
   'live-subprocess-runner.test.js',
   'unit-session.test.js',
   'mcp-server-smoke.js',
