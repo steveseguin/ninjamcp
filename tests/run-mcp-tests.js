@@ -24,6 +24,7 @@ const tests = [
   'mcp-state-sync.test.js',
   'mcp-file-transfer.test.js',
   'mcp-file-spool.test.js',
+  'mcp-file-save.test.js',
   'mcp-stdio-parser.test.js',
   'mcp-stdio-loop.test.js',
   'mcp-http-smoke.test.js'
