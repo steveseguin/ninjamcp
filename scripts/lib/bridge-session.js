@@ -2252,13 +2252,13 @@ class BridgeSession extends EventEmitter {
     fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
 
     if (transfer.spooled && transfer.spool_path) {
-      fs.copyFileSync(transfer.spool_path, resolvedPath);
+      fs.copyFileSync(transfer.spool_path, resolvedPath, overwrite ? 0 : fs.constants.COPYFILE_EXCL);
     } else {
       const data = this.getIncomingTransferBuffer(transfer);
       if (!data) {
         throw new Error(`transfer payload unavailable: ${transferId}`);
       }
-      fs.writeFileSync(resolvedPath, data);
+      fs.writeFileSync(resolvedPath, data, { flag: overwrite ? 'w' : 'wx' });
     }
 
     const stat = fs.statSync(resolvedPath);
