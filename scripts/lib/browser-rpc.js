@@ -66,25 +66,31 @@ class BrowserRpcWorker {
     }
     if (this.options.onAuthenticated) this.options.onAuthenticated(packet.client, event);
     for (const [id, record] of this.records) {
-      if (record.until < now && record.result) { this.cacheBytes -= record.bytes; this.records.delete(id); }
+      if (record.until < now && (record.result || record.replayable && record.finished)) { this.cacheBytes -= record.bytes; this.records.delete(id); }
     }
     const id = `${packet.client}:${request.id}`;
     const fingerprint = crypto.createHash('sha256').update(JSON.stringify(request)).digest('hex');
     const previous = this.records.get(id);
     if (previous) {
       if (previous.fingerprint !== fingerprint) return this.reply(packet.client, event.uuid, request.id, { error: 'request_id_conflict' });
-      if (previous.result && !previous.sending) {
-        previous.sending = true;
-        try { await this.reply(packet.client, event.uuid, request.id, previous.result); } finally { previous.sending = false; }
+      // Only explicitly replayable immutable reads may be recomputed. Keep their
+      // fingerprint after sending, so conflicting reuse still fails. Mutations
+      // and all existing browser calls retain their original cached replies.
+      if (!(previous.replayable && previous.finished && !previous.sending)) {
+        if (previous.result && !previous.sending) {
+          previous.sending = true;
+          try { await this.reply(packet.client, event.uuid, request.id, previous.result); } finally { previous.sending = false; }
+        }
+        return;
       }
-      return;
     }
     if (this.queued >= 16 || this.records.size >= 1024 || this.cacheBytes > 30 * 1024 * 1024) {
       // Leave the request pending until capacity returns or its deadline expires.
       // Do not report rejection while a replay could still be admitted later.
       return;
     }
-    const record = { fingerprint, until: request.deadline + 120000, result: null, bytes: 0, sending: false };
+    const record = { fingerprint, until: request.deadline + 120000, result: null, bytes: 0, sending: false,
+      replayable: this.options.replayableRead?.(request) === true, finished: false };
     this.records.set(id, record);
     this.queued++;
     const run = async () => {
@@ -103,7 +109,15 @@ class BrowserRpcWorker {
       this.cacheBytes += record.bytes;
       this.queued--;
       record.sending = true;
-      try { await this.reply(packet.client, event.uuid, request.id, result); } finally { record.sending = false; }
+      try { await this.reply(packet.client, event.uuid, request.id, result); } finally {
+        record.sending = false;
+        record.finished = true;
+        if (record.replayable && this.records.get(id) === record) {
+          this.cacheBytes -= record.bytes;
+          record.bytes = 0;
+          record.result = null;
+        }
+      }
     };
     if (this.options.parallel) run().catch(() => {});
     else this.chain = this.chain.then(run, run).catch(() => {});
@@ -157,6 +171,7 @@ class BrowserRpcClient {
     if (pending.count && (pending.count !== value.count || pending.boot !== value.boot)) return;
     pending.count = value.count;
     pending.boot = value.boot;
+    if (pending.waitForProgress && !pending.parts.has(value.part)) pending.lastProgressAt = Date.now();
     pending.parts.set(value.part, Buffer.from(value.data, 'base64'));
     if (pending.parts.size === value.count) {
       try {
@@ -180,10 +195,15 @@ class BrowserRpcClient {
     let timer, retry;
     try {
       const result = await new Promise((resolve) => {
-        this.pending.set(id, { resolve, parts: new Map() });
+        const pending = { resolve, parts: new Map(), waitForProgress: this.options.replayableRead?.(request) === true, lastProgressAt: 0 };
+        this.pending.set(id, pending);
         let attempt = 0;
         const send = () => {
+          // Export reads can span several HTTP round trips. Retry a stalled read,
+          // not one still receiving new parts, or duplicate replies fill the queue.
+          if (attempt > 0 && pending.waitForProgress && pending.lastProgressAt && Date.now() - pending.lastProgressAt < 2000) return false;
           if (this.session.sendRequest) return this.session.sendRequest(packet, this.config.worker, { id, attempt: attempt++ });
+          attempt++;
           return this.session.send(packet, this.config.worker);
         };
         send();

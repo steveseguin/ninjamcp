@@ -59,7 +59,7 @@ class ChromeMcp {
   }
 
   async start() {
-    await this.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'ninja-browser-worker', version: '0.4.2' } });
+    await this.request('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'ninja-browser-worker', version: '0.4.3' } });
     this.child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
     const { tools } = await this.request('tools/list');
     for (const name of ['list_pages', 'take_snapshot', 'take_screenshot', 'navigate_page', 'click', 'fill', 'press_key']) {

@@ -1,6 +1,6 @@
 {
   "name": "@vdoninja/mcp",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Private agent rooms with messages, files, and shared state over WebRTC or a self-hosted HTTP relay.",
   "author": "Steve Seguin",
   "license": "MIT",
@@ -95,7 +95,9 @@
     "references/browser-agent.md",
     "scripts/vdo-mcp-ssapp.js",
     "scripts/lib/ssapp-worker.js",
-    "references/ssapp-integration.md"
+    "scripts/lib/ssapp-export.js",
+    "references/ssapp-integration.md",
+    "references/ssapp-capability-matrix.md"
   ],
   "engines": {
     "node": ">=18"

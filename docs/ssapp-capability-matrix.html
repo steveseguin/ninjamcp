@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SSApp capability matrix · VDO.Ninja MCP</title>
+  <meta name="description" content="Remote SSApp capability coverage, implementation references, remaining work and acceptance checks.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/ssapp-capability-matrix.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+<style>
+.matrix-page .docs { max-width: 1700px; gap: 32px; }
+.matrix-page .docs-main { max-width: none; }
+.matrix-page table:has(a[id^="cap-"]) { min-width: 1120px; }
+.matrix-page table:has(a[id^="cap-"]) :is(td, th):nth-child(3) { min-width: 135px; overflow-wrap: normal; }
+.matrix-page a[id^="cap-"] { scroll-margin-top: 110px; }
+.matrix-page td { vertical-align: top; }
+.matrix-page td:first-child { white-space: nowrap; }
+.matrix-page .doc-section p { max-width: 1000px; }
+@media print { .matrix-page table:has(a[id^="cap-"]) { min-width: 0; font-size: 10px; } }
+</style>
+</head>
+<body class="reference-page matrix-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#reading-and-maintaining-the-matrix">Reading and maintaining the matrix</a><a href="#1-connection-identity-and-discovery">1. Connection, identity and discovery</a><a href="#2-targets-and-surface-coverage">2. Targets and surface coverage</a><a href="#3-observation-and-page-understanding">3. Observation and page understanding</a><a href="#4-mouse-keyboard-and-touch">4. Mouse, keyboard and touch</a><a href="#5-navigation-and-window-management">5. Navigation and window management</a><a href="#6-sign-in-prompts-and-native-menus">6. Sign-in, prompts and native menus</a><a href="#7-source-configuration-and-application-state">7. Source configuration and application state</a><a href="#8-dock-overlays-and-audience-operations">8. Dock, overlays and audience operations</a><a href="#9-files-and-artifacts">9. Files and artifacts</a><a href="#10-live-perception-and-media">10. Live perception and media</a><a href="#11-diagnostics-and-recovery-decisions">11. Diagnostics and recovery decisions</a><a href="#12-capture-and-destination-correctness">12. Capture and destination correctness</a><a href="#13-transport-retries-and-process-lifecycle">13. Transport, retries and process lifecycle</a><a href="#14-permissions-ownership-and-ordinary-user-behavior">14. Permissions, ownership and ordinary user behavior</a><a href="#15-agent-and-harness-compatibility">15. Agent and harness compatibility</a><a href="#16-development-and-patch-workflows">16. Development and patch workflows</a><a href="#validation-procedures">Validation procedures</a><a href="#end-to-end-acceptance-workflows">End-to-end acceptance workflows</a><a href="#implementation-sequence">Implementation sequence</a><a href="#evidence-record">Evidence record</a><a href="#implementation-reference-map">Implementation reference map</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / SSApp capability matrix</p>
+      <h1 id="ssapp-remote-capability-matrix">SSApp remote capability matrix</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/ssapp-capability-matrix.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>Use this matrix to implement and validate complete remote workflows in Social Stream Ninja Standalone
+(SSApp). Start with the <a href="ssapp-integration.html">remote setup guide</a>, then select the workflow and row IDs
+that apply. Each row defines the intended behavior, current integration route, remaining work, and an
+observable acceptance check. The scope is SSApp and its owned surfaces; external desktop applications,
+model execution, and repository publishing have separate owners.</p>
+</section><section class="doc-section" id="reading-and-maintaining-the-matrix"><h2>Reading and maintaining the matrix</h2>
+<p>The implementation baseline is SSApp <strong>0.4.38</strong>, control API <strong>1.4.1</strong>, local MCP adapter <strong>1.3.1</strong>,
+and Ninja MCP <strong>0.4.2</strong> with the SSApp backend. Runtime discovery is authoritative. A package version
+alone does not establish that a particular source mode, permission, or workflow is available.</p>
+<p>Settings-export support requires the updated 0.4.38 development build advertising API 1.5.0 /
+MCP 1.4.0 and the Ninja MCP settings-export helper. See the <a href="ssapp-integration.html#retrieve-a-settings-backup">backup workflow</a>.
+The existing 0.4.38 release does not imply these additional commands are available.</p>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">State</th>
+<th scope="col">Meaning and action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Implemented</td>
+<td>A supported code path exists through the remote bridge. Run the stated acceptance check for the intended environment.</td>
+</tr>
+<tr>
+<td>Partial</td>
+<td>Some required behavior exists; the row identifies the remaining part.</td>
+</tr>
+<tr>
+<td>UI path</td>
+<td>The application has a relevant UI and generic controls can reach it, but no dedicated complete command contract exists. Exercise the whole workflow before relying on it.</td>
+</tr>
+<tr>
+<td>Missing</td>
+<td>No SSApp integration route provides the described capability. Implement it before advertising support.</td>
+</tr>
+<tr>
+<td>External</td>
+<td>A cooperating application, model harness, human, or development tool owns this part. Document and validate the handoff.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Implementation and validation are separate dimensions. Record verification as <strong>Not run</strong>, <strong>Supporting
+check</strong>, <strong>Local app verified</strong>, <strong>Remote app verified</strong>, <strong>Inconclusive</strong>, or <strong>Failed</strong>, using the
+<a href="#evidence-record">evidence record</a>. Do not infer a passed remote workflow from forwarding its schema.
+Preserve stable row IDs when adding or splitting requirements.</p>
+<p>Priorities describe delivery order: <strong>P0</strong> = dependable remote control; <strong>P1</strong> = broad app workflows and
+operational completeness; <strong>P2</strong> = optional live media, advanced sharing, and development extensions.
+An implemented P0 row still needs regression validation. Optional P2 features need not block a clearly
+scoped claim of complete screenshot-based app control.</p>
+<p>References such as N1 and S3 resolve in the <a href="#implementation-reference-map">implementation reference map</a>.
+N = Ninja MCP, S = SSApp, C = Social Stream, E = external adapter. V01–V12 are reusable validation
+procedures below; each row adds its particular expected result. Owner names indicate where to make
+a change, not permission to change unrelated behavior.</p>
+</section><section class="doc-section" id="1-connection-identity-and-discovery"><h2>1. Connection, identity and discovery</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-d01"></a>D01</td>
+<td>Connect to an explicitly enabled SSApp without opening a public app port.</td>
+<td>Implemented / P0</td>
+<td>Ninja <a href="#n1">N1</a>–<a href="#n3">N3</a>; SSApp <a href="#s1">S1</a>–<a href="#s2">S2</a></td>
+<td>Preserve localhost binding and separate remote credentials.</td>
+<td><a href="#validation-v01">V01</a>: remote status works; disabled app has no control listener; bridge stop leaves app running.</td>
+</tr>
+<tr>
+<td><a id="cap-d02"></a>D02</td>
+<td>Identify the running app instance and all relevant versions.</td>
+<td>Implemented / P0</td>
+<td><code>ninja_ssapp_status</code>; <code>/api/v1/instance</code>; <a href="#n2">N2</a>, <a href="#s2">S2</a></td>
+<td>Keep app, API, adapter and bridge versions distinct.</td>
+<td><a href="#validation-v01">V01</a>/<a href="#validation-v05">V05</a>: restart app; instance changes and old mutations fail before dispatch.</td>
+</tr>
+<tr>
+<td><a id="cap-d03"></a>D03</td>
+<td>Discover actual tools, argument schemas and result shapes.</td>
+<td>Implemented / P0</td>
+<td><code>tools/list</code>; <code>ssapp_get_capabilities</code>; <a href="#n1">N1</a>–<a href="#n2">N2</a>, <a href="#s1">S1</a></td>
+<td>Tool listing while offline does not imply runtime support.</td>
+<td><a href="#validation-v01">V01</a>: compare permitted local/remote catalogs and unsupported-action errors.</td>
+</tr>
+<tr>
+<td><a id="cap-d04"></a>D04</td>
+<td>Distinguish offline, loading, ready and prompt-blocked states.</td>
+<td>Partial / P0</td>
+<td>status, capabilities and dialog tools; <a href="#s1">S1</a>–<a href="#s2">S2</a>, <a href="#s5">S5</a></td>
+<td>Readiness is spread across interfaces; preserve recovery tools during capability timeouts.</td>
+<td><a href="#validation-v01">V01</a>/<a href="#validation-v03">V03</a>: each induced state produces actionable status without trapping prompt recovery.</td>
+</tr>
+<tr>
+<td><a id="cap-d05"></a>D05</td>
+<td>Discover effective role, tool permissions and control owner.</td>
+<td>Implemented / P0</td>
+<td><code>ninja_ssapp_status</code>; <a href="#n2">N2</a></td>
+<td>Scope is app-wide tools, not selected sources.</td>
+<td><a href="#validation-v06">V06</a>: observer/controller/restricted client receive accurate permissions and lease owner.</td>
+</tr>
+<tr>
+<td><a id="cap-d06"></a>D06</td>
+<td>Address multiple configured instances without confusing them.</td>
+<td>Partial / P1</td>
+<td>Separate worker configs, origins and credentials; <a href="#n1">N1</a>–<a href="#n2">N2</a></td>
+<td>No unified instance directory; configure one worker endpoint per instance.</td>
+<td><a href="#validation-v01">V01</a>: two isolated apps with different ports; calls affect only their configured instance.</td>
+</tr>
+<tr>
+<td><a id="cap-d07"></a>D07</td>
+<td>Diagnose invalid configuration and unreachable app connections.</td>
+<td>Implemented / P0</td>
+<td><code>vdon-mcp-ssapp --doctor</code>; <a href="#n1">N1</a></td>
+<td>Doctor is a connectivity check, not a capture test.</td>
+<td><a href="#validation-v01">V01</a>: bad executable, offline app, bad credential and blocked route return non-success with useful cause.</td>
+</tr>
+<tr>
+<td><a id="cap-d08"></a>D08</td>
+<td>Learn unsupported remote features before attempting work.</td>
+<td>Partial / P1</td>
+<td><a href="#n2">N2</a> discovery <code>live_frames: false</code>; explicit errors</td>
+<td>Local frame-stream tool can still appear in the forwarded catalog; reconcile availability messaging.</td>
+<td><a href="#validation-v01">V01</a>: client can distinguish unsupported remote frames from a temporarily offline target.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="2-targets-and-surface-coverage"><h2>2. Targets and surface coverage</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-s01"></a>S01</td>
+<td>Find the main app, source, sign-in, popup and embedded targets.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_list_browser_targets</code>; <a href="#s3">S3</a>, <a href="#s6">S6</a></td>
+<td>Discovery covers SSApp-owned browser contents.</td>
+<td><a href="#validation-v02">V02</a>: independently enumerate fixture surfaces; every expected controllable surface is listed.</td>
+</tr>
+<tr>
+<td><a id="cap-s02"></a>S02</td>
+<td>Associate targets with source, window, tab and parent identities.</td>
+<td>Partial / P0</td>
+<td><a href="#s3">S3</a> target metadata; <a href="#n2">N2</a> instance binding</td>
+<td>Some associations are nullable; do not treat target, source and session IDs as interchangeable.</td>
+<td><a href="#validation-v02">V02</a>: follow popup lineage and known source; ambiguous associations remain explicit.</td>
+</tr>
+<tr>
+<td><a id="cap-s03"></a>S03</td>
+<td>Discover newly opened windows and remove closed targets.</td>
+<td>Implemented / P0</td>
+<td>Re-list browser targets; <a href="#s3">S3</a></td>
+<td>Poll/re-list; no dedicated remote target lifecycle subscription.</td>
+<td><a href="#validation-v02">V02</a>: open/close popups repeatedly; fresh list matches and stale IDs fail clearly.</td>
+</tr>
+<tr>
+<td><a id="cap-s04"></a>S04</td>
+<td>Automatically notify an agent when targets appear or disappear.</td>
+<td>Missing / P1</td>
+<td>Add scoped lifecycle events in <a href="#s2">S2</a>/<a href="#s3">S3</a> and <a href="#n1">N1</a></td>
+<td>Existing captured-source event tools are not a general target event stream.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v05">V05</a>: exactly one ordered lifecycle notice per transition, with resync after gaps.</td>
+</tr>
+<tr>
+<td><a id="cap-s05"></a>S05</td>
+<td>Control hidden/minimized/background surfaces without stealing desktop focus.</td>
+<td>Implemented / P0</td>
+<td><a href="#s3">S3</a> input; <a href="#s4">S4</a> screenshot preparation</td>
+<td>Showing/focusing remains explicit; distinguish temporary capture preparation from user-visible activation.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v10">V10</a>: interact and capture; independent host focus/visibility remains as intended.</td>
+</tr>
+<tr>
+<td><a id="cap-s06"></a>S06</td>
+<td>Observe virtual sources that have no rendered browser window.</td>
+<td>Implemented / P0</td>
+<td>source status, diagnostics and events; <a href="#s4">S4</a>, <a href="#c1">C1</a></td>
+<td>Return no-window errors for screenshots, not a fabricated target.</td>
+<td><a href="#validation-v07">V07</a>: virtual source remains diagnosable without a browser surface.</td>
+</tr>
+<tr>
+<td><a id="cap-s07"></a>S07</td>
+<td>Handle authentication or links that leave the owned app surfaces.</td>
+<td>External / P1</td>
+<td>Human or separately authorized browser adapter; <a href="#s6">S6</a></td>
+<td>Do not advertise arbitrary desktop/browser control through SSApp.</td>
+<td><a href="#validation-v03">V03</a>: external step is identified; handoff and return to correct source are explicit.</td>
+</tr>
+<tr>
+<td><a id="cap-s08"></a>S08</td>
+<td>Continue through nested overlays, tooltips and modal child windows.</td>
+<td>Partial / P0</td>
+<td>inspection, hover, target listing; <a href="#s3">S3</a>–<a href="#s5">S5</a></td>
+<td>Dynamic UI requires fresh observation; test each modal type rather than assuming coverage.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v03">V03</a>: interact with foreground modal without accidentally activating covered content.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="3-observation-and-page-understanding"><h2>3. Observation and page understanding</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-o01"></a>O01</td>
+<td>Return actual screenshots as MCP images with metadata.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_browser_screenshot</code>; <a href="#s1">S1</a>, <a href="#s3">S3</a>; <a href="#n1">N1</a>–<a href="#n2">N2</a></td>
+<td>Preserve image blocks and avoid duplicating bytes in structured text.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v05">V05</a>: image decodes, matches fixture and retains metadata across remote transport.</td>
+</tr>
+<tr>
+<td><a id="cap-o02"></a>O02</td>
+<td>Map resized image coordinates correctly under zoom and display scaling.</td>
+<td>Implemented / P0</td>
+<td><code>screenshotId</code>, viewport, <code>inputScale</code>; <a href="#s3">S3</a></td>
+<td>Never resize/crop a transported image without a matching coordinate contract.</td>
+<td><a href="#validation-v02">V02</a>: click known grid cells at several widths, zoom levels and host display scales.</td>
+</tr>
+<tr>
+<td><a id="cap-o03"></a>O03</td>
+<td>Inspect visible text, semantic controls and frame content.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_browser_inspect</code>; <a href="#s3">S3</a>–<a href="#s4">S4</a></td>
+<td>Bounded text/elements; this does not return full DOM, selectors or input values.</td>
+<td><a href="#validation-v02">V02</a>: known labels/roles appear across frames; unrelated hidden/private values remain excluded.</td>
+</tr>
+<tr>
+<td><a id="cap-o04"></a>O04</td>
+<td>Inspect late-mounted controls beyond the first element limit.</td>
+<td>Implemented / P0</td>
+<td><code>elementOrder: "reverse"</code>; <a href="#s4">S4</a></td>
+<td>Reverse ordering is not general semantic pagination.</td>
+<td><a href="#validation-v02">V02</a>: late modal control is reachable on an element-heavy page.</td>
+</tr>
+<tr>
+<td><a id="cap-o05"></a>O05</td>
+<td>Reject stale screenshots and element references.</td>
+<td>Implemented / P0</td>
+<td><a href="#s3">S3</a> screenshot generation; <a href="#s4">S4</a> opaque refs</td>
+<td>Scrolling/layout changes still require re-observation even when a token remains valid.</td>
+<td><a href="#validation-v02">V02</a>: navigation/resize/expiry reject old references; new observation succeeds.</td>
+</tr>
+<tr>
+<td><a id="cap-o06"></a>O06</td>
+<td>Wait for a particular element, URL or page-state condition.</td>
+<td>Partial / P1</td>
+<td>Current inspect/status polling; <a href="#s3">S3</a>–<a href="#s4">S4</a></td>
+<td>Add bounded condition waits if needed; no dedicated general wait-for-element tool.</td>
+<td><a href="#validation-v02">V02</a>: delayed control succeeds within deadline; absent control times out without input.</td>
+</tr>
+<tr>
+<td><a id="cap-o07"></a>O07</td>
+<td>Read long pages or virtual lists without overlooking later content.</td>
+<td>Partial / P1</td>
+<td>scrolling plus repeated inspection; <a href="#s3">S3</a></td>
+<td>No complete full-page/virtual-list export contract; track progress and repeated items.</td>
+<td><a href="#validation-v02">V02</a>: fixture's first/middle/last items observed; termination does not falsely imply full coverage.</td>
+</tr>
+<tr>
+<td><a id="cap-o08"></a>O08</td>
+<td>Produce focused crops or changed-region observations efficiently.</td>
+<td>Missing / P2</td>
+<td>Future <a href="#s3">S3</a> capture options and N transport</td>
+<td>Preserve crop origins, timestamp and screenshot identity if introduced.</td>
+<td><a href="#validation-v08">V08</a>: chosen region matches host; coordinate input still lands correctly.</td>
+</tr>
+<tr>
+<td><a id="cap-o09"></a>O09</td>
+<td>Return bounded, redacted observations with untrusted-content markers.</td>
+<td>Implemented / P0</td>
+<td><a href="#s1">S1</a>, <a href="#s4">S4</a>; <a href="#n1">N1</a> preserves results</td>
+<td>Screenshots can visibly contain private data; metadata is not pixel redaction.</td>
+<td><a href="#validation-v06">V06</a>: test secrets in URLs/fields and hostile page text; allowed output retains safety metadata.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="4-mouse-keyboard-and-touch"><h2>4. Mouse, keyboard and touch</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-i01"></a>I01</td>
+<td>Click with left/right/middle buttons and double-click.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_browser_input</code>; <a href="#s3">S3</a></td>
+<td>Use observed viewport/image coordinates.</td>
+<td><a href="#validation-v02">V02</a>: fixture event type, button and click count match each action exactly.</td>
+</tr>
+<tr>
+<td><a id="cap-i02"></a>I02</td>
+<td>Hover and activate hover-dependent controls.</td>
+<td>Implemented / P0</td>
+<td><code>move</code>; <a href="#s3">S3</a></td>
+<td>Re-observe after hover changes layout.</td>
+<td><a href="#validation-v02">V02</a>: tooltip/submenu appears and intended item becomes reachable.</td>
+</tr>
+<tr>
+<td><a id="cap-i03"></a>I03</td>
+<td>Scroll vertically/horizontally in the intended container.</td>
+<td>Implemented / P0</td>
+<td><code>scroll</code>; <a href="#s3">S3</a></td>
+<td>Wheel coordinates choose the receiving surface.</td>
+<td><a href="#validation-v02">V02</a>: nested panel scrolls while unrelated page position is unchanged.</td>
+</tr>
+<tr>
+<td><a id="cap-i04"></a>I04</td>
+<td>Drag sliders, text selections and reorderable items.</td>
+<td>Implemented / P0</td>
+<td><code>drag</code>, mouse down/move/up; <a href="#s3">S3</a></td>
+<td>Keep held gestures in one batch.</td>
+<td><a href="#validation-v02">V02</a>: final value, selected text and item order match independently known fixture state.</td>
+</tr>
+<tr>
+<td><a id="cap-i05"></a>I05</td>
+<td>Perform HTML drag-and-drop with browser drag data.</td>
+<td>Implemented / P0</td>
+<td><a href="#s3">S3</a> drag interception</td>
+<td>Native OS file dragging is a different workflow; use file chooser tools.</td>
+<td><a href="#validation-v02">V02</a>: drop event and payload arrive once at intended target, including cancelled drag.</td>
+</tr>
+<tr>
+<td><a id="cap-i06"></a>I06</td>
+<td>Insert Unicode, emoji and non-English text.</td>
+<td>Implemented / P0</td>
+<td><code>type</code>; <a href="#s3">S3</a></td>
+<td>Unicode insertion is not OS IME composition testing.</td>
+<td><a href="#validation-v02">V02</a>: compare resulting text code points with fixture input, including identical repeated text.</td>
+</tr>
+<tr>
+<td><a id="cap-i07"></a>I07</td>
+<td>Use shortcuts, held modifiers and shifted punctuation.</td>
+<td>Implemented / P0</td>
+<td><code>keypress</code>, <code>keyDown</code>, <code>keyUp</code>; <a href="#s3">S3</a></td>
+<td><code>ControlOrMeta</code> follows host platform; keyboard layout/IME coverage needs separate cases.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v10">V10</a>: selection, shortcut effect, case and punctuation are correct on each claimed host OS.</td>
+</tr>
+<tr>
+<td><a id="cap-i08"></a>I08</td>
+<td>Navigate forms, focus, edit, select and replace text.</td>
+<td>Implemented / P0</td>
+<td>input plus semantic interaction; <a href="#s3">S3</a>–<a href="#s4">S4</a></td>
+<td>Input-value extraction is intentionally unavailable; verify visible result or fixture oracle.</td>
+<td><a href="#validation-v02">V02</a>: Tab/Shift-Tab/arrows/Home/End/Enter/Escape achieve the expected form state.</td>
+</tr>
+<tr>
+<td><a id="cap-i09"></a>I09</td>
+<td>Send touch and multiple-contact gestures.</td>
+<td>Implemented / P1</td>
+<td><code>touchStart/Move/End/Cancel</code>; <a href="#s3">S3</a></td>
+<td>This is browser touch dispatch, not blanket touchscreen/OS emulation.</td>
+<td><a href="#validation-v02">V02</a>: contacts, movement and cancel are correct; no stuck touch after failure.</td>
+</tr>
+<tr>
+<td><a id="cap-i10"></a>I10</td>
+<td>Release held input and expose partial completion after failure.</td>
+<td>Implemented / P0</td>
+<td><a href="#s3">S3</a> input cleanup and completed-action metadata</td>
+<td>A completed action may have side effects even when later input fails.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v05">V05</a>: inject mid-batch failure; no held input remains and completion count is accurate.</td>
+</tr>
+<tr>
+<td><a id="cap-i11"></a>I11</td>
+<td>Validate whole batches and enforce bounded input work.</td>
+<td>Implemented / P0</td>
+<td>schemas; <a href="#s1">S1</a>, <a href="#s3">S3</a>; remote size checks <a href="#n4">N4</a></td>
+<td>64 actions; 2 s per explicit delay, 10 s total; remote envelope can be smaller than local limits.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v05">V05</a>: invalid/oversize batch fails before any fixture event; valid boundary cases succeed.</td>
+</tr>
+<tr>
+<td><a id="cap-i12"></a>I12</td>
+<td>Copy/paste task data without reading unrelated host clipboard content.</td>
+<td>Partial / P1</td>
+<td>Keyboard shortcuts only; <a href="#s3">S3</a></td>
+<td>No isolated clipboard read/write contract; design an app/task buffer if needed.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v06">V06</a>: paste intended content; pre-existing unrelated clipboard data is not returned or leaked.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="5-navigation-and-window-management"><h2>5. Navigation and window management</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-n01"></a>N01</td>
+<td>Navigate to HTTP(S) URLs while preserving SSApp navigation handling.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_browser_navigate</code>; <a href="#s3">S3</a>, <a href="#s6">S6</a></td>
+<td>Accepted navigation is not page-load completion.</td>
+<td><a href="#validation-v02">V02</a>: follow redirects, verify final target and preserve expected session behavior.</td>
+</tr>
+<tr>
+<td><a id="cap-n02"></a>N02</td>
+<td>Back, forward, reload and stop loading.</td>
+<td>Implemented / P0</td>
+<td>navigation history; <a href="#s3">S3</a></td>
+<td>Re-observe after transitions; old screenshot coordinates are invalid.</td>
+<td><a href="#validation-v02">V02</a>: controlled history sequence and slow page produce expected final state.</td>
+</tr>
+<tr>
+<td><a id="cap-n03"></a>N03</td>
+<td>Show/hide/focus/minimize/maximize/restore/resize windows.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_browser_window</code>; <a href="#s3">S3</a></td>
+<td>Resizes use Electron content dimensions; headless visibility restrictions still apply.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v10">V10</a>: host bounds/state match; source remains active where intended.</td>
+</tr>
+<tr>
+<td><a id="cap-n04"></a>N04</td>
+<td>Close the intended surface with normal app close semantics.</td>
+<td>Implemented / P0</td>
+<td><a href="#s3">S3</a> window action; <a href="#s6">S6</a> lifecycle</td>
+<td>Closing main window may hide it according to existing app behavior.</td>
+<td><a href="#validation-v02">V02</a>: child closes alone; main close follows settings and does not imply shutdown.</td>
+</tr>
+<tr>
+<td><a id="cap-n05"></a>N05</td>
+<td>Open the correct new source or sign-in window.</td>
+<td>UI path / P0</td>
+<td>source commands and app controls; <a href="#s3">S3</a>, <a href="#s6">S6</a>, <a href="#c1">C1</a></td>
+<td>No generic remote create-arbitrary-browser tool; use established app flows.</td>
+<td><a href="#validation-v03">V03</a>/<a href="#validation-v07">V07</a>: correct partition/account/source is used and newly created target is discoverable.</td>
+</tr>
+<tr>
+<td><a id="cap-n06"></a>N06</td>
+<td>Handle page load failure, redirect loops and unexpected destinations.</td>
+<td>Partial / P1</td>
+<td>loading state, screenshots, source errors; <a href="#s3">S3</a>–<a href="#s4">S4</a></td>
+<td>Add scoped navigation failure details if existing observations cannot distinguish causes.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v09">V09</a>: known failures are identified without endless retries or global compatibility changes.</td>
+</tr>
+<tr>
+<td><a id="cap-n07"></a>N07</td>
+<td>Change zoom and validate cross-display behavior.</td>
+<td>UI path / P1</td>
+<td>normal menu/UI; <a href="#s3">S3</a> menu and capture metadata</td>
+<td>No dedicated set-zoom command; display movement may need a host-side handoff.</td>
+<td><a href="#validation-v02">V02</a>/<a href="#validation-v10">V10</a>: changed zoom maps screenshots correctly and ordinary window behavior persists.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="6-sign-in-prompts-and-native-menus"><h2>6. Sign-in, prompts and native menus</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-a01"></a>A01</td>
+<td>Use the intended existing account and browser session.</td>
+<td>UI path / P0</td>
+<td>SSApp sign-in/session UI; <a href="#s6">S6</a>, <a href="#c1">C1</a></td>
+<td>Generic controls do not establish that every platform's authentication flow is covered.</td>
+<td><a href="#validation-v03">V03</a>: own test accounts remain isolated; expected account is active after return.</td>
+</tr>
+<tr>
+<td><a id="cap-a02"></a>A02</td>
+<td>Handle notices, consent screens and sign-in form controls.</td>
+<td>UI path / P0</td>
+<td>semantic/native input; <a href="#s3">S3</a>–<a href="#s4">S4</a></td>
+<td>Existing session use first; do not request secret values in conversation.</td>
+<td><a href="#validation-v03">V03</a>: fixture plus authorized real platform flow reaches the intended page.</td>
+</tr>
+<tr>
+<td><a id="cap-a03"></a>A03</td>
+<td>Hand MFA/passkeys/CAPTCHA/private steps to a person and resume.</td>
+<td>External / P0</td>
+<td><code>ssapp_show_source_for_human</code>, window show; <a href="#s3">S3</a>, <a href="#s4">S4</a></td>
+<td>Human participation occurs on host or a separately shared surface; no automatic bypass.</td>
+<td><a href="#validation-v03">V03</a>: pause clearly, complete human step, then continue the original source task once.</td>
+</tr>
+<tr>
+<td><a id="cap-a04"></a>A04</td>
+<td>Detect sign-in success, failure and expired authentication.</td>
+<td>Partial / P0</td>
+<td>source diagnostics and page observation; <a href="#s4">S4</a>, <a href="#c1">C1</a></td>
+<td>No universal authenticated/account-status command; platform-specific evidence is required.</td>
+<td><a href="#validation-v03">V03</a>/<a href="#validation-v09">V09</a>: good/expired/wrong-account cases are distinguished with observable evidence.</td>
+</tr>
+<tr>
+<td><a id="cap-a05"></a>A05</td>
+<td>Answer JavaScript alert/confirm/prompt while renderer is blocked.</td>
+<td>Implemented / P0</td>
+<td>pending/wait/respond dialog tools; <a href="#s5">S5</a>; <a href="#n2">N2</a> bypass queue</td>
+<td>Preserve the prompt recovery path during long operations.</td>
+<td><a href="#validation-v03">V03</a>: open a prompt with input, answer remotely, and verify exactly one result.</td>
+</tr>
+<tr>
+<td><a id="cap-a06"></a>A06</td>
+<td>Operate Electron message/open/save dialogs and structured child prompts.</td>
+<td>Implemented / P0</td>
+<td><a href="#s5">S5</a> dialog tools; <a href="#s3">S3</a>/<a href="#s5">S5</a> child window controls</td>
+<td>File paths require client host-file permission; cancellation is a distinct result.</td>
+<td><a href="#validation-v03">V03</a>/<a href="#validation-v04">V04</a>: accept/cancel/checkbox/default choices and child inputs behave correctly.</td>
+</tr>
+<tr>
+<td><a id="cap-a07"></a>A07</td>
+<td>Discover and invoke application and context menus.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_list_app_menu_items</code>, <code>ssapp_invoke_app_menu_item</code>; <a href="#s3">S3</a></td>
+<td>Use exact returned path/label; context menu IDs expire.</td>
+<td><a href="#validation-v02">V02</a>: right-click, list, invoke; disabled/stale item fails without unintended action.</td>
+</tr>
+<tr>
+<td><a id="cap-a08"></a>A08</td>
+<td>Hand control to a person without losing task context.</td>
+<td>Partial / P1</td>
+<td>release/revoke; <a href="#n1">N1</a>–<a href="#n2">N2</a>; host window controls</td>
+<td>No unified human-assistance request/ack/resume protocol.</td>
+<td><a href="#validation-v03">V03</a>/<a href="#validation-v06">V06</a>: person changes state; agent re-observes and resumes without replaying old input.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="7-source-configuration-and-application-state"><h2>7. Source configuration and application state</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-c01"></a>C01</td>
+<td>Discover supported platforms, identifiers, modes and settings.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_get_capabilities</code>; <a href="#c1">C1</a>, <a href="#s1">S1</a>–<a href="#s2">S2</a></td>
+<td>Read live platform definitions; do not assume common modes apply everywhere.</td>
+<td><a href="#validation-v07">V07</a>: unsupported mode is refused and source-specific defaults match capability output.</td>
+</tr>
+<tr>
+<td><a id="cap-c02"></a>C02</td>
+<td>Add/read/update/remove a source by stable ID.</td>
+<td>Implemented / P0</td>
+<td>source commands; <a href="#s1">S1</a>, <a href="#c1">C1</a></td>
+<td>Inactive-only updates require stopping; source creation supports an idempotency key.</td>
+<td><a href="#validation-v07">V07</a>: repeated keyed add makes one source; changes persist; removal affects only selected ID.</td>
+</tr>
+<tr>
+<td><a id="cap-c03"></a>C03</td>
+<td>Start/stop/restart sources, including filtered bulk operations.</td>
+<td>Implemented / P0</td>
+<td>lifecycle tools; <a href="#s1">S1</a>, <a href="#c1">C1</a></td>
+<td>Capture success requires V07 delivery checks, not only an active status.</td>
+<td><a href="#validation-v07">V07</a>: selected sources transition correctly; excluded sources and destinations stay unchanged.</td>
+</tr>
+<tr>
+<td><a id="cap-c04"></a>C04</td>
+<td>Set mute/visibility/mode/account role/reply-only/auto-activation.</td>
+<td>Implemented / P0</td>
+<td>source settings and presentation tools; <a href="#s1">S1</a>, <a href="#c1">C1</a></td>
+<td>Respect active-source restrictions and per-platform capabilities.</td>
+<td><a href="#validation-v07">V07</a>/<a href="#validation-v10">V10</a>: live mute/visibility works; inactive changes and restart persistence match requested values.</td>
+</tr>
+<tr>
+<td><a id="cap-c05"></a>C05</td>
+<td>Create/rename/reorder groups and manage membership.</td>
+<td>UI path / P1</td>
+<td>group UI; <a href="#c1">C1</a></td>
+<td>No complete group CRUD tool set in local adapter.</td>
+<td><a href="#validation-v07">V07</a>: perform via UI, restart, confirm order/membership and unaffected groups.</td>
+</tr>
+<tr>
+<td><a id="cap-c06"></a>C06</td>
+<td>Configure group discovery and automatic activation workflows.</td>
+<td>UI path / P1</td>
+<td>group controls and platform UI; <a href="#c1">C1</a></td>
+<td>Platform-specific; retired global settings must not be reintroduced.</td>
+<td><a href="#validation-v07">V07</a>: new eligible stream activates once; ineligible/ended stream behavior follows settings.</td>
+</tr>
+<tr>
+<td><a id="cap-c07"></a>C07</td>
+<td>Create/switch/delete application profiles and separate browser sessions.</td>
+<td>UI path / P1</td>
+<td>sessions UI and app IPC; <a href="#s6">S6</a>, <a href="#c1">C1</a></td>
+<td>App profile and browser account partition are different concepts.</td>
+<td><a href="#validation-v03">V03</a>/<a href="#validation-v07">V07</a>: sources/settings/accounts remain isolated; bridge rebinds after relevant restart.</td>
+</tr>
+<tr>
+<td><a id="cap-c08"></a>C08</td>
+<td>Read/update supported global settings.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_get_settings</code>, <code>ssapp_update_settings</code>; <a href="#s1">S1</a>, <a href="#c1">C1</a></td>
+<td>Only advertised settings are in the direct contract; broader settings use UI.</td>
+<td><a href="#validation-v07">V07</a>: allowed update persists; unknown/retired field fails without changing other settings.</td>
+</tr>
+<tr>
+<td><a id="cap-c09"></a>C09</td>
+<td>Detect accidental duplicate source configurations.</td>
+<td>Partial / P1</td>
+<td>source listing; <a href="#c1">C1</a>; add idempotency</td>
+<td>Stable retry key prevents one kind of duplicate; equivalent URLs/accounts require explicit comparison.</td>
+<td><a href="#validation-v07">V07</a>: repeated add is prevented while intentionally separate account sources remain distinct.</td>
+</tr>
+<tr>
+<td><a id="cap-c10"></a>C10</td>
+<td>Import/export configuration or restore a known state.</td>
+<td>Partial / P1</td>
+<td><code>ssapp_export_settings_backup</code>; <a href="#s7">S7</a>, <a href="#n8">N8</a>; existing import UI</td>
+<td>Dedicated settings export and retrieval; restore remains an explicitly authorized UI workflow.</td>
+<td><a href="#validation-v04">V04</a>/<a href="#validation-v10">V10</a>: export matches ordinary backup, alter fixture settings, restore and compare intended state only.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="8-dock-overlays-and-audience-operations"><h2>8. Dock, overlays and audience operations</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-w01"></a>W01</td>
+<td>Open and operate relevant SSN dock/overlay/settings surfaces.</td>
+<td>UI path / P1</td>
+<td><a href="#c1">C1</a>–<a href="#c2">C2</a>; <a href="#s3">S3</a> where app-owned</td>
+<td>External dock/browser surfaces need their own authorized connection.</td>
+<td><a href="#validation-v07">V07</a>: intended destination is identifiable and its actual output can be observed.</td>
+</tr>
+<tr>
+<td><a id="cap-w02"></a>W02</td>
+<td>Configure filters, formatting and routing through supported controls.</td>
+<td>UI path / P1</td>
+<td>Social Stream settings and SSN control actions; <a href="#c2">C2</a></td>
+<td>No blanket parity with all SSN features through local <code>ssapp_*</code> tools.</td>
+<td><a href="#validation-v07">V07</a>: predefined included/excluded fixtures reach precisely their intended destinations.</td>
+</tr>
+<tr>
+<td><a id="cap-w03"></a>W03</td>
+<td>Send a chat reply to the intended account/platform/destination.</td>
+<td>External / P1</td>
+<td>existing SSN message transport; <a href="#c2">C2</a>, <a href="#e2">E2</a></td>
+<td>Remote app access is separate from permission to publish; platform support varies.</td>
+<td><a href="#validation-v07">V07</a>: authorized unique test reply appears once at actual destination, not merely accepted by relay.</td>
+</tr>
+<tr>
+<td><a id="cap-w04"></a>W04</td>
+<td>Moderate supported messages without affecting unrelated content.</td>
+<td>External / P1</td>
+<td>platform/SSN moderation workflow; <a href="#c2">C2</a></td>
+<td>Do not infer platform moderation permission from app control or chat receipt.</td>
+<td><a href="#validation-v07">V07</a>: intended fixture deleted/suppressed; other messages and same-text distinct IDs retained.</td>
+</tr>
+<tr>
+<td><a id="cap-w05"></a>W05</td>
+<td>Operate polls, giveaways, queues and other production controls.</td>
+<td>External / P1</td>
+<td>SSN page/relay capabilities; <a href="#c2">C2</a></td>
+<td>Enumerate specific supported actions and response semantics; no universal local MCP mapping.</td>
+<td><a href="#validation-v07">V07</a>: start/update/end each advertised feature and verify actual dock/overlay state.</td>
+</tr>
+<tr>
+<td><a id="cap-w06"></a>W06</td>
+<td>Inspect/export chat history and retrieve the output.</td>
+<td>UI path / P1</td>
+<td>SSApp history/export UI; F04–F06</td>
+<td>Export on host and return to agent are separate steps.</td>
+<td><a href="#validation-v04">V04</a>/<a href="#validation-v07">V07</a>: expected IDs/timestamps preserved; file retrieved completely with correct encoding.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="9-files-and-artifacts"><h2>9. Files and artifacts</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-f01"></a>F01</td>
+<td>Choose an already authorized host file in an HTML upload control.</td>
+<td>Implemented / P1</td>
+<td><code>ssapp_browser_choose_files</code>; <a href="#s3">S3</a>; <a href="#n2">N2</a> <code>allowHostFiles</code></td>
+<td>Host absolute paths; CSS coordinates; file input or label; default denied remotely.</td>
+<td><a href="#validation-v04">V04</a>: permitted file selected; denied client has no selection side effect.</td>
+</tr>
+<tr>
+<td><a id="cap-f02"></a>F02</td>
+<td>Handle multiple files and native open/save dialogs.</td>
+<td>Implemented / P1</td>
+<td>chooser and dialog tools; <a href="#s3">S3</a>, <a href="#s5">S5</a>, <a href="#n2">N2</a></td>
+<td>Multi-file HTML input required; save path resolves on host.</td>
+<td><a href="#validation-v04">V04</a>: content/name/count correct; missing path and non-multiple input are rejected.</td>
+</tr>
+<tr>
+<td><a id="cap-f03"></a>F03</td>
+<td>Transfer remote files into an SSApp host staging area.</td>
+<td>Missing / P1</td>
+<td>Adapt Ninja file transfers <a href="#n6">N6</a> to an SSApp staging contract</td>
+<td>Generic file tools alone do not create authorized upload staging or host-path grants.</td>
+<td><a href="#validation-v04">V04</a>: interrupted transfer resumes, hash matches, quota enforced, only verified file becomes selectable.</td>
+</tr>
+<tr>
+<td><a id="cap-f04"></a>F04</td>
+<td>Track browser downloads to completion or failure.</td>
+<td>Missing / P1</td>
+<td>Add scoped download lifecycle in <a href="#s6">S6</a>/<a href="#s2">S2</a> and remote contract</td>
+<td>UI may initiate download but there is no complete download listing/result tool.</td>
+<td><a href="#validation-v04">V04</a>: success, cancel, partial and failure have distinct results and no premature completion.</td>
+</tr>
+<tr>
+<td><a id="cap-f05"></a>F05</td>
+<td>Return exports, diagnostics and other host artifacts to the remote agent.</td>
+<td>Partial / P1</td>
+<td>Settings export <a href="#s7">S7</a>, <a href="#n8">N8</a>, <a href="#n2">N2</a></td>
+<td>Settings backups only; explicit per-controller permission, opaque IDs, bounded chunks and verified agent-side save. General artifacts remain missing.</td>
+<td><a href="#validation-v04">V04</a>: retrieve permitted export; length/hash match; other clients and substituted paths denied; existing destination preserved.</td>
+</tr>
+<tr>
+<td><a id="cap-f06"></a>F06</td>
+<td>Manage staging retention, cleanup and artifact ownership.</td>
+<td>Partial / P1</td>
+<td>Settings-export retention <a href="#s7">S7</a>, <a href="#n2">N2</a>, <a href="#n8">N8</a></td>
+<td>Four in-memory settings backups, 8 MiB each, five-minute expiry, explicit release and app-restart invalidation. General staging remains missing; delivered/cached copies persist separately.</td>
+<td><a href="#validation-v04">V04</a>/<a href="#validation-v06">V06</a>: expiry/release ends retrieval; cancelled or corrupt transfer creates no final file; unrelated files preserved.</td>
+</tr>
+<tr>
+<td><a id="cap-f07"></a>F07</td>
+<td>Keep transfer progress separate from upload/submission completion.</td>
+<td>Partial / P1</td>
+<td><a href="#n6">N6</a> transfer receipts; page observation</td>
+<td>Add end-to-end workflow states; file receipt must never automatically submit a form.</td>
+<td><a href="#validation-v04">V04</a>: transfer completes while upload remains pending until authorized; final page/server receipt observed.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="10-live-perception-and-media"><h2>10. Live perception and media</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-m01"></a>M01</td>
+<td>Obtain on-demand viewport frames locally.</td>
+<td>Partial / P2</td>
+<td><code>ssapp_browser_frame_stream</code>; <a href="#s3">S3</a></td>
+<td>Local 1–5 fps multipart JPEG exists; remote worker explicitly rejects it.</td>
+<td><a href="#validation-v08">V08</a>: local stream stops on disconnect; remote advertises no usable remote stream yet.</td>
+</tr>
+<tr>
+<td><a id="cap-m02"></a>M02</td>
+<td>Deliver authorized live SSApp frames across computers.</td>
+<td>Missing / P2</td>
+<td>Build N/S frame forwarding or SDK publisher <a href="#e1">E1</a></td>
+<td>A host-loopback URL is not a remote viewer URL; use scoped subscription and bounded transport.</td>
+<td><a href="#validation-v08">V08</a>: remote sees changing target, stops on revoke, and never receives unselected surfaces.</td>
+</tr>
+<tr>
+<td><a id="cap-m03"></a>M03</td>
+<td>Adjust frame rate/size and preserve freshness/backpressure.</td>
+<td>Partial / P2</td>
+<td><a href="#s3">S3</a> local limits; <a href="#n4">N4</a> large-result transport</td>
+<td>Define remote media adaptation, timestamps and slow-client policy.</td>
+<td><a href="#validation-v08">V08</a>: constrained link drops/adjusts stale frames rather than blocking control input.</td>
+</tr>
+<tr>
+<td><a id="cap-m04"></a>M04</td>
+<td>Share selected app audio without capturing unrelated devices.</td>
+<td>Missing / P2</td>
+<td>New SSApp capture adapter; <a href="#e1">E1</a> transport</td>
+<td>Existing Chrome publisher N7 is not an SSApp audio implementation.</td>
+<td><a href="#validation-v08">V08</a>: known signal is audible remotely; other apps/microphone absent unless explicitly selected.</td>
+</tr>
+<tr>
+<td><a id="cap-m05"></a>M05</td>
+<td>Send frames/audio to a model that can understand them.</td>
+<td>External / P2</td>
+<td>model harness, <a href="#e1">E1</a>; <a href="#n7">N7</a> companion patterns</td>
+<td>Streaming transport alone does not provide model perception or recording consent.</td>
+<td><a href="#validation-v08">V08</a>/<a href="#validation-v11">V11</a>: model answers controlled visual/audio question; interruptions stop queued output.</td>
+</tr>
+<tr>
+<td><a id="cap-m06"></a>M06</td>
+<td>Fall back to screenshots and cleanly end observation.</td>
+<td>Partial / P1</td>
+<td>screenshots work; <a href="#n2">N2</a> close; future media subscription</td>
+<td>Maintain explicit fallback and close all bridge-owned captures; leave sources running.</td>
+<td><a href="#validation-v08">V08</a>/<a href="#validation-v10">V10</a>: media fails, screenshot still works, unsubscribe removes capture work without stopping app.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="11-diagnostics-and-recovery-decisions"><h2>11. Diagnostics and recovery decisions</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-x01"></a>X01</td>
+<td>Read source errors, lifecycle, counters and bounded page/process state.</td>
+<td>Implemented / P0</td>
+<td><code>ssapp_get_source_diagnostics</code>; <a href="#s4">S4</a></td>
+<td>Shared processes can share PID; memory fields may be unavailable by OS.</td>
+<td><a href="#validation-v09">V09</a>: controlled source fault is associated with correct ID; unavailable fields remain explicit.</td>
+</tr>
+<tr>
+<td><a id="cap-x02"></a>X02</td>
+<td>Read/wait for captured events with cursors and gap detection.</td>
+<td>Implemented / P0</td>
+<td>recent/wait source event tools; <a href="#s4">S4</a></td>
+<td>Retained output is not independent evidence of all incoming platform messages.</td>
+<td><a href="#validation-v07">V07</a>/<a href="#validation-v09">V09</a>: drain pages, overflow history, observe <code>historyLost</code>, and reconcile counters.</td>
+</tr>
+<tr>
+<td><a id="cap-x03"></a>X03</td>
+<td>Distinguish quiet chat from failed, paused, filtered or misrouted capture.</td>
+<td>Partial / P0</td>
+<td>X01/X02 plus source/destination observation</td>
+<td>Requires independent expected input and destination evidence.</td>
+<td><a href="#validation-v07">V07</a>: induce each condition; diagnosis identifies stage instead of treating zero traffic as success.</td>
+</tr>
+<tr>
+<td><a id="cap-x04"></a>X04</td>
+<td>Read scoped console and request-failure diagnostics.</td>
+<td>Missing / P1</td>
+<td>Future bounded redacted diagnostic endpoints <a href="#s2">S2</a>/<a href="#s4">S4</a></td>
+<td>Do not substitute arbitrary renderer execution, raw headers or credentials.</td>
+<td><a href="#validation-v09">V09</a>/<a href="#validation-v06">V06</a>: known failing request/console marker appears; unrelated session secrets do not.</td>
+</tr>
+<tr>
+<td><a id="cap-x05"></a>X05</td>
+<td>Produce a useful diagnostic bundle for a remote developer.</td>
+<td>Partial / P1</td>
+<td>Existing structured observations and images</td>
+<td>No complete bundle/export/retrieval contract; connect X01/X04 with F05.</td>
+<td><a href="#validation-v09">V09</a>/<a href="#validation-v04">V04</a>: bundle identifies versions, source, interval and error evidence with bounded size.</td>
+</tr>
+<tr>
+<td><a id="cap-x06"></a>X06</td>
+<td>Correlate failures with configuration changes, navigation and reconnects.</td>
+<td>Partial / P1</td>
+<td>source events and API operations; <a href="#s2">S2</a>/<a href="#s4">S4</a></td>
+<td>No unified durable action timeline; record safe request IDs and timestamps.</td>
+<td><a href="#validation-v09">V09</a>: induced change has a distinguishable before/after state and matching operation record.</td>
+</tr>
+<tr>
+<td><a id="cap-x07"></a>X07</td>
+<td>Select a scoped recovery and prove the result.</td>
+<td>Partial / P0</td>
+<td>reload/restart/mode/UI tools; <a href="#s1">S1</a>–<a href="#s4">S4</a></td>
+<td>Agent reasoning/harness owns diagnosis; avoid changing global app compatibility settings.</td>
+<td><a href="#validation-v09">V09</a>/<a href="#validation-v07">V07</a>: original fault disappears, delivery checks pass, unrelated sources unchanged.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="12-capture-and-destination-correctness"><h2>12. Capture and destination correctness</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-q01"></a>Q01</td>
+<td>Establish eligible incoming messages independently of captured output.</td>
+<td>External / P0</td>
+<td>Fixture/source network evidence; <a href="#c2">C2</a> and validation harness</td>
+<td>Captured-event ledger alone cannot reveal upstream loss.</td>
+<td>Procedure <a href="#validation-v07">V07</a>: expected IDs/occurrences and observation interval known before comparison.</td>
+</tr>
+<tr>
+<td><a id="cap-q02"></a>Q02</td>
+<td>Compare input, capture and each intended destination exactly.</td>
+<td>Partial / P0</td>
+<td><a href="#s4">S4</a> captures plus independent destination observer</td>
+<td>No universal built-in end-to-end delivery assertion tool.</td>
+<td>Procedure <a href="#validation-v07">V07</a>: every eligible message occurs exactly once at each intended stage/destination.</td>
+</tr>
+<tr>
+<td><a id="cap-q03"></a>Q03</td>
+<td>Preserve identical-text messages as distinct occurrences.</td>
+<td>Partial / P0</td>
+<td>Source-native IDs or occurrence-aware fixture ledger</td>
+<td>Counts or author/text hashes alone are insufficient.</td>
+<td>Procedure <a href="#validation-v07">V07</a>: two same-author/same-text messages remain two; one replay of an ID remains one.</td>
+</tr>
+<tr>
+<td><a id="cap-q04"></a>Q04</td>
+<td>Account for history, filters, moderation and exclusions.</td>
+<td>Partial / P0</td>
+<td>source settings and destination workflow; <a href="#c2">C2</a></td>
+<td>Define exclusions before run; do not invent exclusions to hide failures.</td>
+<td>Procedure <a href="#validation-v07">V07</a>: excluded IDs match policy and unrelated messages remain.</td>
+</tr>
+<tr>
+<td><a id="cap-q05"></a>Q05</td>
+<td>Exercise bursts, reload/reconnect/replay, edits and pruning.</td>
+<td>External / P0</td>
+<td>real source runtime and controlled fixture harness</td>
+<td>Validate affected capture modes separately; no inference from one platform to another.</td>
+<td>Procedure <a href="#validation-v07">V07</a>: complete ledgers show zero unexplained loss/duplication after drain.</td>
+</tr>
+<tr>
+<td><a id="cap-q06"></a>Q06</td>
+<td>Cover hidden-window and long-session capture behavior.</td>
+<td>External / P0</td>
+<td>existing SSApp capture harnesses <a href="#s8">S8</a></td>
+<td>A short browser-control run does not establish delivery or long-session behavior.</td>
+<td>Procedure <a href="#validation-v07">V07</a>/<a href="#validation-v10">V10</a>: duration/mode recorded; buffer/hidden/reconnect conditions exercised.</td>
+</tr>
+<tr>
+<td><a id="cap-q07"></a>Q07</td>
+<td>Report failure/inconclusive honestly when evidence is absent.</td>
+<td>External / P0</td>
+<td>harness and agent reporting contract</td>
+<td>No eligible traffic, unseen destination or disabled capture is never a pass.</td>
+<td>Procedure <a href="#validation-v07">V07</a>: each missing-evidence scenario returns inconclusive/non-success with reason.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="13-transport-retries-and-process-lifecycle"><h2>13. Transport, retries and process lifecycle</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-r01"></a>R01</td>
+<td>Connect using WebRTC or explicitly configured HTTP transport.</td>
+<td>Implemented / P0</td>
+<td><a href="#n3">N3</a>–<a href="#n5">N5</a>; <a href="#e1">E1</a></td>
+<td>TURN/network policy can affect connectivity; no universal firewall bypass claim.</td>
+<td><a href="#validation-v05">V05</a>: real second-computer route works; unavailable route reports a useful error.</td>
+</tr>
+<tr>
+<td><a id="cap-r02"></a>R02</td>
+<td>Fall back from WebRTC to HTTP without repeating the action.</td>
+<td>Implemented / P0</td>
+<td><a href="#n3">N3</a> request-route tracking; <a href="#n4">N4</a> dedupe</td>
+<td>Preserve identity across routes and wait for actual effect/result.</td>
+<td><a href="#validation-v05">V05</a>: drop first reply after execution; fallback returns result and host counter increments once.</td>
+</tr>
+<tr>
+<td><a id="cap-r03"></a>R03</td>
+<td>Recover a retained result by request ID.</td>
+<td>Implemented / P0</td>
+<td><code>ninja_ssapp_result</code>; <a href="#n4">N4</a></td>
+<td>Process-local bounded cache; unknown means uncertain, not unexecuted.</td>
+<td><a href="#validation-v05">V05</a>: retrieve result, then test expired/missing record and ensure no automatic mutation replay.</td>
+</tr>
+<tr>
+<td><a id="cap-r04"></a>R04</td>
+<td>Bind queued and dispatched calls to the intended app instance.</td>
+<td>Implemented / P0</td>
+<td><a href="#n2">N2</a> instance check; <a href="#s1">S1</a>–<a href="#s2">S2</a> conditional header</td>
+<td>Re-discover targets and reclaim control after app restart.</td>
+<td><a href="#validation-v05">V05</a>: restart between discovery and dispatch; stale input cannot affect new instance.</td>
+</tr>
+<tr>
+<td><a id="cap-r05"></a>R05</td>
+<td>Handle worker/adapter failure and uncertain execution.</td>
+<td>Implemented / P0</td>
+<td><a href="#n2">N2</a> uncertain flag; <code>reconciled: true</code>; <a href="#n4">N4</a> boot IDs</td>
+<td>Reconciliation is a client assertion after inspection, not proof generated by the flag.</td>
+<td><a href="#validation-v05">V05</a>: kill adapter after dispatch; control pauses until outcome inspection and explicit reclaim.</td>
+</tr>
+<tr>
+<td><a id="cap-r06"></a>R06</td>
+<td>Cancel queued work and expose limits of cancelling active work.</td>
+<td>Partial / P0</td>
+<td>lease revocation/generation; <a href="#n2">N2</a></td>
+<td>No general per-operation cancellation or rollback; active actions may finish.</td>
+<td><a href="#validation-v05">V05</a>/<a href="#validation-v06">V06</a>: revoked queued operation never starts; executing action outcome is reported honestly.</td>
+</tr>
+<tr>
+<td><a id="cap-r07"></a>R07</td>
+<td>Bound concurrent work, request size, result size and deadlines.</td>
+<td>Implemented / P0</td>
+<td><a href="#n2">N2</a>–<a href="#n4">N4</a>; <a href="#s2">S2</a>–<a href="#s3">S3</a></td>
+<td>Limits are distinct; reject oversize before mutation whenever possible.</td>
+<td><a href="#validation-v05">V05</a>: below/at/above limits behave explicitly; no truncation or uncontrolled queue growth.</td>
+</tr>
+<tr>
+<td><a id="cap-r08"></a>R08</td>
+<td>Transfer large screenshots with integrity and backpressure.</td>
+<td>Implemented / P0</td>
+<td><a href="#n4">N4</a> chunks; <a href="#n2">N2</a> 10 MiB result ceiling</td>
+<td>10 MiB is result envelope, not image bytes; size must include base64/metadata overhead.</td>
+<td><a href="#validation-v05">V05</a>: 4 MB payload and boundary result survive byte/hash comparison and a slow receiver.</td>
+</tr>
+<tr>
+<td><a id="cap-r09"></a>R09</td>
+<td>Keep prompt recovery usable during blocked/long-running work.</td>
+<td>Implemented / P0</td>
+<td><a href="#n2">N2</a> observation/dialog dispatch; <a href="#s1">S1</a>/<a href="#s5">S5</a></td>
+<td>Do not reintroduce unconditional capabilities gating or one global serial queue.</td>
+<td><a href="#validation-v03">V03</a>/<a href="#validation-v05">V05</a>: long event wait plus prompt still permits answer and eventual completion.</td>
+</tr>
+<tr>
+<td><a id="cap-r10"></a>R10</td>
+<td>Stop the bridge cleanly while leaving SSApp running.</td>
+<td>Implemented / P0</td>
+<td><a href="#n1">N1</a>–<a href="#n2">N2</a> cleanup</td>
+<td>Own only bridge/adapter resources; do not inherit Chrome-owned-process cleanup behavior.</td>
+<td><a href="#validation-v05">V05</a>/<a href="#validation-v10">V10</a>: disconnect/stop; app and source state remain, leases/capture owned by bridge end.</td>
+</tr>
+<tr>
+<td><a id="cap-r11"></a>R11</td>
+<td>Resume event observations across disconnects without hiding gaps.</td>
+<td>Partial / P1</td>
+<td>source cursors; <a href="#s4">S4</a>; <a href="#s2">S2</a> local SSE</td>
+<td>General SSE is not transparently forwarded; consumers must handle process-local cursor reset/gaps.</td>
+<td><a href="#validation-v05">V05</a>/<a href="#validation-v07">V07</a>: reconnect, drain retained events, identify lost history and new app instance.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="14-permissions-ownership-and-ordinary-user-behavior"><h2>14. Permissions, ownership and ordinary user behavior</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-p01"></a>P01</td>
+<td>Authenticate each agent separately over either transport.</td>
+<td>Implemented / P0</td>
+<td>per-client keys; <a href="#n1">N1</a>, <a href="#n4">N4</a></td>
+<td>Room/session IDs and <code>confirm</code> are not remote credentials.</td>
+<td><a href="#validation-v06">V06</a>: wrong key, wrong client and other room peer cannot read or forge control results.</td>
+</tr>
+<tr>
+<td><a id="cap-p02"></a>P02</td>
+<td>Enforce observer and tool allowlists on the host.</td>
+<td>Implemented / P0</td>
+<td><a href="#n2">N2</a> <code>allowed</code> and execute checks</td>
+<td>Do not rely only on catalog filtering or client-side checks.</td>
+<td><a href="#validation-v06">V06</a>: call a hidden mutation directly; server rejects it with zero side effects.</td>
+</tr>
+<tr>
+<td><a id="cap-p03"></a>P03</td>
+<td>Allow one controller, lease renewal, release and host revocation.</td>
+<td>Implemented / P0</td>
+<td>claim/release/status; <a href="#n1">N1</a>–<a href="#n2">N2</a></td>
+<td>Whole-app lease; already executing action may complete.</td>
+<td><a href="#validation-v06">V06</a>: two controllers contend, expiry/renewal/revoke work, observer continues allowed reads.</td>
+</tr>
+<tr>
+<td><a id="cap-p04"></a>P04</td>
+<td>Restrict access to specified sources/windows including observations.</td>
+<td>Missing / P1</td>
+<td>New <a href="#n2">N2</a> grants plus <a href="#s3">S3</a> ownership metadata</td>
+<td>Filter direct IDs, defaults, menus, dialogs, bulk actions, files, screenshots and nested popups.</td>
+<td><a href="#validation-v06">V06</a>: allowed target succeeds; every route to disallowed target is denied, including images.</td>
+</tr>
+<tr>
+<td><a id="cap-p05"></a>P05</td>
+<td>Rotate/revoke a client's credentials without broad disruption.</td>
+<td>Partial / P1</td>
+<td>config edits and worker restart; <a href="#n1">N1</a></td>
+<td>Current credential policy changes require restart; active hot-revocation interface is absent.</td>
+<td><a href="#validation-v06">V06</a>: revoked client denied; documented restart effect on other clients is accurate.</td>
+</tr>
+<tr>
+<td><a id="cap-p06"></a>P06</td>
+<td>Offer a clear human takeover and remote-access status control.</td>
+<td>Partial / P1</td>
+<td>host terminal <code>revoke</code>/<code>stop</code>; normal app window control</td>
+<td>No integrated SSApp remote-session indicator/takeover panel; add only inside opt-in configuration.</td>
+<td><a href="#validation-v06">V06</a>/<a href="#validation-v10">V10</a>: host regains control promptly; unenabled ordinary UI is unchanged.</td>
+</tr>
+<tr>
+<td><a id="cap-p07"></a>P07</td>
+<td>Keep a bounded action audit without logging sensitive input.</td>
+<td>Missing / P1</td>
+<td>future N/S audit envelope using request/operation IDs</td>
+<td>Define retention, redaction and access; exclude raw passwords, keys and routine screenshots.</td>
+<td><a href="#validation-v06">V06</a>/<a href="#validation-v09">V09</a>: actor/action/outcome trace is useful; seeded secrets absent from normal audit output.</td>
+</tr>
+<tr>
+<td><a id="cap-p08"></a>P08</td>
+<td>Treat page/chat content as untrusted data.</td>
+<td>Partial / P0</td>
+<td><a href="#s1">S1</a>/<a href="#s4">S4</a> safety metadata; consuming agent policy</td>
+<td>Metadata survives transport; resistance also depends on harness behavior.</td>
+<td><a href="#validation-v06">V06</a>/<a href="#validation-v11">V11</a>: hostile fixture instructions do not change authorized task or disclose unrelated content.</td>
+</tr>
+<tr>
+<td><a id="cap-p09"></a>P09</td>
+<td>Preserve normal app appearance, sessions and disabled-mode cost.</td>
+<td>Implemented / P0</td>
+<td>opt-in API, external bridge; <a href="#s6">S6</a>, <a href="#n1">N1</a></td>
+<td>No background model/capture/remote connection merely from ordinary app startup.</td>
+<td><a href="#validation-v10">V10</a>: compare disabled baseline, focus/dialog behavior, connections and settings before/after.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="15-agent-and-harness-compatibility"><h2>15. Agent and harness compatibility</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-h01"></a>H01</td>
+<td>Preserve stable tool schemas, MCP images, structured errors and versions.</td>
+<td>Implemented / P0</td>
+<td><a href="#n1">N1</a>–<a href="#n2">N2</a> forwarding; <a href="#s1">S1</a></td>
+<td>Management tools are distinct from <code>ssapp_*</code> argument schemas.</td>
+<td><a href="#validation-v01">V01</a>/<a href="#validation-v11">V11</a>: schema/result comparison and actual image-using client workflow agree.</td>
+</tr>
+<tr>
+<td><a id="cap-h02"></a>H02</td>
+<td>Use SSApp through ordinary MCP clients and scripted callers.</td>
+<td>Implemented / P0</td>
+<td>stdio MCP; <a href="#s1">S1</a> local HTTP; <a href="#n1">N1</a> remote MCP</td>
+<td>Local HTTP origin is not itself a remotely exposed API; remote code can be an MCP client.</td>
+<td><a href="#validation-v11">V11</a>: two independent clients complete discovery, observe, act, verify and release.</td>
+</tr>
+<tr>
+<td><a id="cap-h03"></a>H03</td>
+<td>Work with Codex, Claude, Pi, OpenCode and a custom local-model harness.</td>
+<td>External / P1</td>
+<td>each client's MCP/tool adapter; <a href="#e3">E3</a></td>
+<td>Verify each advertised client/version; protocol compatibility alone does not prove image/tool behavior.</td>
+<td><a href="#validation-v11">V11</a>: record client/model versions and complete same fixture task without custom per-page code.</td>
+</tr>
+<tr>
+<td><a id="cap-h04"></a>H04</td>
+<td>Offer bounded observations usable by smaller/slower models.</td>
+<td>Partial / P1</td>
+<td><a href="#s3">S3</a> limits and screenshots; external planning loop</td>
+<td>Tune observation size/latency in harness; do not silently remove important controls.</td>
+<td><a href="#validation-v11">V11</a>: constrained model selects intended controls within declared budget and stops on ambiguity.</td>
+</tr>
+<tr>
+<td><a id="cap-h05"></a>H05</td>
+<td>Retain task progress and hand work to another agent.</td>
+<td>External / P1</td>
+<td>ninja-p2p <a href="#e2">E2</a> or client task store</td>
+<td>Separate room protocols need an explicit adapter; task receipt does not grant app control.</td>
+<td><a href="#validation-v11">V11</a>/<a href="#validation-v06">V06</a>: second agent claims, re-observes and continues without replay or stale refs.</td>
+</tr>
+<tr>
+<td><a id="cap-h06"></a>H06</td>
+<td>Provide accurate setup, skill, version and recovery guidance.</td>
+<td>Implemented / P0</td>
+<td>setup guide, <a href="#n1">N1</a> doctor, <a href="#c3">C3</a> skill</td>
+<td>Update Markdown and HTML together and advertise only supported scopes.</td>
+<td><a href="#validation-v01">V01</a>/<a href="#validation-v11">V11</a>: fresh installation follows guide successfully; unavailable features have clear alternatives.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="16-development-and-patch-workflows"><h2>16. Development and patch workflows</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">ID</th>
+<th scope="col">Required behavior</th>
+<th scope="col">State / priority</th>
+<th scope="col">Route and owner</th>
+<th scope="col">Remaining work or constraint</th>
+<th scope="col">Validation and pass condition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a id="cap-z01"></a>Z01</td>
+<td>Identify relevant source code, runtime revision and fault evidence.</td>
+<td>Partial / P2</td>
+<td>diagnostics X rows; <a href="#c2">C2</a> sources; external checkout</td>
+<td>App version does not identify remotely loaded source revision; add a bounded revision descriptor if needed.</td>
+<td><a href="#validation-v12">V12</a>: reproducer records exact source/hash and affected source/mode without dumping secrets.</td>
+</tr>
+<tr>
+<td><a id="cap-z02"></a>Z02</td>
+<td>Reproduce an issue in an isolated real SSApp runtime.</td>
+<td>External / P2</td>
+<td>development harness and SSApp checkout; <a href="#s8">S8</a></td>
+<td>Do not use unrelated Chrome or headless mocks as proof of SSApp compatibility.</td>
+<td><a href="#validation-v12">V12</a>: original failure reproduced with same relevant session/hooks/config and independent oracle.</td>
+</tr>
+<tr>
+<td><a id="cap-z03"></a>Z03</td>
+<td>Edit and apply a narrowly scoped source/config fix.</td>
+<td>External / P2</td>
+<td>authorized coding agent and <a href="#c2">C2</a> checkout</td>
+<td>Browser MCP does not supply arbitrary shell/repository write access; no automatic script execution from chat.</td>
+<td><a href="#validation-v12">V12</a>: diff affects intended source only; runtime uses changed revision.</td>
+</tr>
+<tr>
+<td><a id="cap-z04"></a>Z04</td>
+<td>Reload, verify and roll back an unsuccessful development change.</td>
+<td>Partial / P2</td>
+<td>source reload controls plus authorized development tools</td>
+<td>Implement explicit development override/rollback outside everyday control if required.</td>
+<td><a href="#validation-v12">V12</a>/<a href="#validation-v07">V07</a>: original failure resolves; regression checks pass; rollback restores known revision.</td>
+</tr>
+<tr>
+<td><a id="cap-z05"></a>Z05</td>
+<td>Produce a reviewable patch and submit through authorized repository tools.</td>
+<td>External / P2</td>
+<td>coding agent/Git workflow; <a href="#e3">E3</a></td>
+<td>Respect repository branch/PR/release rules and separate publishing authorization.</td>
+<td><a href="#validation-v12">V12</a>: diff, scope, reproduction and verification evidence accompany the requested submission.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="validation-procedures"><h2>Validation procedures</h2>
+<p>Use an isolated SSApp profile, controlled fixture pages and independently observed host state. On
+Windows run natively, not through WSL. Use actual SSApp for app behavior; unrelated Chrome is suitable
+only for the HTML documentation itself. Never use the <code>CamCam66Gaming</code> channel. Do not restart or
+reconfigure shared relay/mailbox services as an incidental test step. Keep fixtures, credentials,
+logs and screenshots outside public checkouts. Cap concurrent worker pools to at most half the host's
+logical processors, using a lower limit if the machine becomes sluggish.</p>
+<p>Each procedure requires an explicit result: passed within the recorded scope, failed, or inconclusive.
+No fresh runtime run is implied by a matrix row's implementation state.</p>
+<p><a id="validation-v01"></a></p>
+<h3 id="v01-connection-and-contract">V01 — Connection and contract</h3>
+<p>Use the <a href="ssapp-integration.html">setup guide</a> with an isolated app and private worker/client credentials.
+Run <code>node scripts/vdo-mcp-ssapp.js --doctor --config &lt;private-agent-config&gt;</code> from the Ninja MCP checkout.
+Capture initialize, tools/list, status and capabilities through the actual remote client. Record versions,
+instance ID, role, tool names and route; omit credentials. Compare permitted schemas and image/error
+shapes with the host adapter. Repeat while the app is offline, loading, then ready; try an unsupported
+command and a wrong credential. Verify that enabling headless mode alone does not enable the API.
+For multi-instance claims, use separate ports and independent fixture markers. A doctor success alone
+does not satisfy a browser, capture or source workflow.</p>
+<p><a id="validation-v02"></a></p>
+<h3 id="v02-browser-surface-and-input">V02 — Browser surface and input</h3>
+<p>Serve a controlled page containing labelled fields, a click counter, nested scroll panels, same-origin
+and cross-origin frames, a canvas, drag/drop zones, touch event markers, delayed controls and popup
+buttons. Create it through the real SSApp window path. Establish positions/state independently on the
+host fixture. Drive all tested actions from the remote MCP connection. Check exact text, event type,
+button/contact count, drag payload, focus, window bounds and side effects. Repeat selected cases hidden,
+minimized, zoomed and resized. Test stale IDs after navigation/close and references after expiry.
+Record screenshot hash/dimensions and map coordinates using <code>screenshotId</code>; a successful input response
+without the expected fixture effect is not a pass. Validation code may observe fixture state; production
+tools must not depend on arbitrary page-script injection by the agent.</p>
+<p><a id="validation-v03"></a></p>
+<h3 id="v03-authentication-dialogs-and-human-handoff">V03 — Authentication, dialogs and human handoff</h3>
+<p>Start with fixture sign-in fields and JavaScript/Electron prompts, then use an authorized test account
+for each real platform whose support will be claimed. Open the correct session's sign-in flow, observe
+the resulting popup and validate account isolation. Exercise accept/cancel/default/checkbox/file choices.
+Trigger a blocking prompt while another request waits; answer it through the recovery tools. For human
+steps, release or suspend control, show the correct host surface, let the person complete the step, then
+re-discover and resume once. Record only non-secret evidence of the resulting account/source state.
+Fixture password entry does not establish real OAuth, passkey or CAPTCHA completion.</p>
+<p><a id="validation-v04"></a></p>
+<h3 id="v04-files-and-artifacts">V04 — Files and artifacts</h3>
+<p>Use temporary task-owned directories with known small, multiple, Unicode-named and boundary-size files.
+Test denied and permitted host-file clients; establish hashes before transfer. Check browser selection
+and actual upload receipt separately. Exercise missing files, cancellation, transfer interruption,
+partial downloads, quota exhaustion and expiry. Verify exported/retrieved artifact hashes and reject
+path substitution outside the grant. Cleanup must preserve unrelated host files. Until staging/download
+tools exist, mark those subcases missing rather than treating a generic file transfer as full SSApp support.</p>
+<p>For settings export, compare its decoded payload with an ordinary File-menu export, allowing only the
+export timestamp to differ. Include a multi-chunk backup, denied permissions, observer and other-client
+reads, missing confirmation, path substitution, a dropped reply, expiry, restart, size limits, checksum
+corruption and release during transfer. Verify the agent destination is created only after integrity
+checks and an existing file is never replaced. Exercise normal export success/cancel while automation
+is enabled and after an automation export; its dialogs, filename, contents and destination must match
+ordinary behavior, and normal exports must not become automation artifacts.
+Retrieve multiple near-limit backups within the retry-retention window; later calls must still
+complete. Drop a chunk reply and retry the immutable read, checking its hash and retained
+request fingerprint. Export/release mutations must continue to return their original cached receipts.</p>
+<p><a id="validation-v05"></a></p>
+<h3 id="v05-transport-and-lifecycle-faults">V05 — Transport and lifecycle faults</h3>
+<p>Use two computers for remote claims, logging actual route and host-side effects. Exercise WebRTC,
+HTTP-only and automatic fallback separately. Drop a response after a non-idempotent fixture action has
+executed, then retry with the same request identity over the alternate route. Require one host effect and
+the original result. Test request-ID conflicts, duplicate chunks, slow receivers, oversized envelopes,
+expired requests, cache expiry and 4 MB image payloads. Restart app, adapter and worker separately;
+do not assume exactly-once execution across lost process-local caches. Check uncertain-outcome handling,
+reconciliation, stale-instance rejection and fresh discovery. Verify queue revocation, active-action
+limitations, bridge shutdown and app persistence. Record route/ID/result/effect together; encrypted send
+acceptance alone is not completion. Use local fault injection rather than disrupting shared infrastructure.</p>
+<p><a id="validation-v06"></a></p>
+<h3 id="v06-permissions-and-ownership">V06 — Permissions and ownership</h3>
+<p>Create controller A, controller B, observer and restricted-tool credentials. Test normal and direct calls
+to hidden tools, forged identity, absent/expired lease, renewal, revocation, reconnect and queued work.
+Observe independently that denied calls cause no effect. Try file paths through both chooser and dialog
+routes. For future target grants, include default-main-window calls, parent/child popups, menus, bulk
+actions, dialogs, screenshots and source aliases. Plant synthetic private values and hostile instructions
+in fixture content; verify redaction plus the consuming harness's task boundaries. Do not claim target
+isolation when only a tool allowlist exists.</p>
+<p><a id="validation-v07"></a></p>
+<h3 id="v07-sources-and-delivery">V07 — Sources and delivery</h3>
+<p>Choose an affected platform/mode and intended destinations. Establish independently known eligible input
+IDs or occurrence-aware fixture tokens, including two distinct identical-text messages. Define interval,
+history/filter/moderation exclusions and pending-message drain in advance. Collect input, capture and
+actual destination ledgers, not just totals or periodic samples. Compare every eligible identity exactly
+once per intended destination and report missing, duplicate and unexpected identities at each stage.
+Exercise relevant bursts, delayed rows, pruning, edits/moves, hidden windows, pause/resume, reload/replay,
+reconnect and stream changes. Check persistent source/group/settings state separately. No input evidence,
+disabled capture, no eligible traffic or unavailable destination output means inconclusive. Loss/duplication
+fixes require original-failing/final-passing controlled cases plus actual live chat in SSApp for each
+affected source and mode. Use S8 as a starting point, not as a substitute for the required evidence.</p>
+<p><a id="validation-v08"></a></p>
+<h3 id="v08-media-and-observation-lifecycle">V08 — Media and observation lifecycle</h3>
+<p>Use a selected fixture surface with a visible monotonic clock and optional known audio tone. Observe from
+another computer, measure frame freshness and input latency under constrained bandwidth, and verify
+unselected surfaces/audio devices are absent. Test unsubscribe, revoke, target close and route loss;
+bridge-owned capture must stop. Preserve screenshot-based fallback and coordinate mapping. Distinguish
+WebRTC publishing, viewer playback and model understanding as three separate results. Record microphone,
+app-audio and recording choices independently; ordinary app startup must not start capture.</p>
+<p><a id="validation-v09"></a></p>
+<h3 id="v09-diagnostics">V09 — Diagnostics</h3>
+<p>Induce one fault at a time: invalid URL, expired test authentication, request failure, missing page element,
+disabled capture, known filter exclusion, unreachable destination and resource pressure. Compare the
+agent's diagnosis with the injected cause. Require a source/instance/version/time-scoped explanation and
+an appropriately scoped recovery. Bound observations and redact synthetic secrets. Repeat with no eligible
+traffic; the agent should report uncertainty instead of inventing a capture verdict. A useful diagnostic
+bundle needs evidence of both failure and recovery and must be retrievable through an authorized route.</p>
+<p><a id="validation-v10"></a></p>
+<h3 id="v10-ordinary-use-persistence-and-host-matrix">V10 — Ordinary use, persistence and host matrix</h3>
+<p>Compare normal startup with automation disabled against the established baseline: appearance, settings,
+sessions, window focus, native dialogs, network listeners and idle work. Then enable automation and test
+hidden/headless workflows, restarts and shutdown/disconnect behavior. Compare settings and source state
+before/after; verify that no unrelated account or compatibility flag changed. Run on Windows, macOS and
+Linux before claiming all three; test representative display scale, keyboard layout and installed-package
+launches. Record long-run duration, reconnect count and resource trend. A Windows result does not establish
+macOS/Linux host behavior; a Linux agent controlling Windows is still a Windows host result.</p>
+<p><a id="validation-v11"></a></p>
+<h3 id="v11-agent-interoperability-and-complete-tasks">V11 — Agent interoperability and complete tasks</h3>
+<p>Use actual named clients/model versions, not only a protocol simulator. Each should discover tools, view an
+image, identify a control, claim, act, verify and release. Exercise errors, large images and recovery with
+an unfamiliar page without custom per-page automation code. For a local model, configure the endpoint in
+the external harness, then measure task success and observation budget. A model recognizing an image and
+a transport returning image bytes are separate checks. Handoffs must retain task intent while discarding
+stale references and acquiring a new valid lease.</p>
+<p><a id="validation-v12"></a></p>
+<h3 id="v12-diagnosis-to-patch">V12 — Diagnosis-to-patch</h3>
+<p>Use separately authorized development access to the correct source checkout. Record source revision/hash,
+affected mode, reproduction and independent expected output. Demonstrate the original failure in SSApp,
+apply a narrow change, rerun the same case and relevant regressions, then demonstrate rollback. Follow
+live-delivery requirements for capture loss/duplication. Produce a diff and evidence suitable for review.
+Branch creation, PR submission, push, release and deployment follow their own explicit authorization and
+repository rules. Do not turn ordinary chat or a received file into code execution permission.</p>
+</section><section class="doc-section" id="end-to-end-acceptance-workflows"><h2>End-to-end acceptance workflows</h2>
+<p>These workflows prevent broad tool coverage from being mistaken for complete user outcomes.</p>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Workflow</th>
+<th scope="col">Required rows</th>
+<th scope="col">Observable completion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Set up a new source and capture chat</td>
+<td>D01–D05, S01–S03, A01–A05, C01–C04, Q01–Q07</td>
+<td>Correct source/account/mode persists; independently eligible messages reach the intended destination exactly once. Human sign-in steps are explicitly handed off.</td>
+</tr>
+<tr>
+<td>Repair a broken source</td>
+<td>X01–X07, C03–C04, R03–R05, Q01–Q07</td>
+<td>Known cause identified; scoped recovery applied; failure no longer reproduced and delivery verified.</td>
+</tr>
+<tr>
+<td>Operate an unfamiliar sign-in/popup workflow</td>
+<td>S01–S08, O01–O07, I01–I10, N01–N06, A01–A08</td>
+<td>Correct account/session, popup and prompts handled; user-only steps completed by user; agent resumes without stale input.</td>
+</tr>
+<tr>
+<td>Recover from a lost network reply</td>
+<td>R01–R10, P01–P03</td>
+<td>One independently observed action despite retry/fallback; result recovered or uncertainty reported without blind replay.</td>
+</tr>
+<tr>
+<td>Upload a remote file and retrieve an export</td>
+<td>F01–F07, A06, P02</td>
+<td>Authorized file transferred, verified, selected and submitted; correct completed export returned and staging cleaned. Missing F rows remain explicit blockers.</td>
+</tr>
+<tr>
+<td>Share a live source with an agent</td>
+<td>M01–M06, P01–P04</td>
+<td>Selected fresh frames/audio reach authorized viewer/model; stop/revoke removes capture work and preserves app/source operation.</td>
+</tr>
+<tr>
+<td>Hand off between two agents and a person</td>
+<td>P01–P06, A08, H05, R04–R06</td>
+<td>Single owner at a time; person can intervene; successor re-observes and continues with no repeated side effects.</td>
+</tr>
+<tr>
+<td>Diagnose and submit a source fix</td>
+<td>Z01–Z05, X01–X07, Q01–Q07</td>
+<td>Reviewable narrow patch, original/final evidence, relevant live checks and rollback; submission only through authorized repository workflow.</td>
+</tr>
+</tbody>
+</table></div>
+</section><section class="doc-section" id="implementation-sequence"><h2>Implementation sequence</h2>
+<ol>
+<li>Preserve the existing P0 controls and recovery behavior. Complete the V01/V02/V03/V05/V06 fixture
+   workflow across the remote bridge, including stale-instance, large-image and blocked-prompt cases.</li>
+<li>Close P0 observation gaps: useful readiness/navigation diagnosis, bounded state waits, target lifecycle
+   notifications and authentication/human-handoff outcomes. Add direct commands only where existing UI
+   observation cannot reliably express or verify the task.</li>
+<li>Exercise source setup, capture repair and export workflows. Address group/session UI gaps and establish
+   independent destination evidence. Do not expand source capture behavior as an incidental bridge change.</li>
+<li>Implement staged files/download/artifact handles with scoped permissions, then selected-target grants
+   if remote operators need narrower access than the whole app.</li>
+<li>Add remote live frames and optional audio using the SDK and explicit subscription lifecycle. Keep model
+   integration optional. Build development/patch access and ninja-p2p handoffs as separate cooperating layers.</li>
+</ol>
+<p>For every added capability, change the owning layer, preserve schema/instance/error semantics, update
+runtime discovery and the <a href="#c3">canonical SSApp skill</a>, and validate the linked row plus the end-to-end
+workflow it enables. Keep both versions of this matrix synchronized. This sequence is a planning order;
+it does not authorize unrelated platform, account, infrastructure, repository or deployment changes.</p>
+</section><section class="doc-section" id="evidence-record"><h2>Evidence record</h2>
+<p>Keep execution records outside the public repository. Use one record per row and environment, with these
+fields; a single successful fixture run should not silently mark all related rows passed.</p>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Field</th>
+<th scope="col">Required detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Matrix row and workflow</td>
+<td>Stable row ID(s), requirement exercised, exact fixture/scenario.</td>
+</tr>
+<tr>
+<td>Implementation revision</td>
+<td>SSApp, source files, Ninja MCP and relevant SDK revision/hash; dirty-file digest if applicable.</td>
+</tr>
+<tr>
+<td>Environment</td>
+<td>Host/agent OS, app/API/MCP/client/model versions, profile, display/keyboard conditions.</td>
+</tr>
+<tr>
+<td>Route and scope</td>
+<td>Actual WebRTC/HTTP/fallback route, same-machine vs two-computer, permissions and granted targets.</td>
+</tr>
+<tr>
+<td>Observation interval</td>
+<td>Start/end, drain period, duration and repeated-event/reconnect counts.</td>
+</tr>
+<tr>
+<td>Independent oracle</td>
+<td>Expected input/state, how obtained independently, actual app/destination observation.</td>
+</tr>
+<tr>
+<td>Outcome</td>
+<td>Not run, supporting check, local app verified, remote app verified, inconclusive or failed; reason and scope.</td>
+</tr>
+<tr>
+<td>Artifacts</td>
+<td>Redacted logs, result JSON, screenshot hashes, expected/observed ledgers, reproduction command.</td>
+</tr>
+<tr>
+<td>Remaining coverage</td>
+<td>Specific unsupported/untested modes, platforms and fault conditions; next required check.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Retain failures and inconclusive results alongside later passes. Generic code inspection, protocol tests,
+mock servers, schema checks and documentation checks are supporting evidence, not real SSApp workflow
+validation. A retained summary with no per-case details supports only the scope it actually records.</p>
+</section><section class="doc-section" id="implementation-reference-map"><h2>Implementation reference map</h2>
+<h3 id="ninja-mcp">Ninja MCP</h3>
+<ul>
+<li><a id="n1"></a><strong>N1 — Remote entry point:</strong> <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/vdo-mcp-ssapp.js">scripts/vdo-mcp-ssapp.js</a>.
+  Setup, doctor, status/claim/release/result tools, stdio forwarding and host/client lifecycle.</li>
+<li><a id="n2"></a><strong>N2 — SSApp host controller:</strong> <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/ssapp-worker.js">scripts/lib/ssapp-worker.js</a>.
+  <code>LocalMcp</code>, <code>SsappController</code>, <code>allowed</code>, <code>checkLease</code>, <code>execute</code>, <code>RPC_OPTIONS</code>; instance binding,
+  uncertainty, tool policy, host-file permission, queues, prompt bypass and explicit remote-frame rejection.</li>
+<li><a id="n3"></a><strong>N3 — Transport selection:</strong> <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/browser-routes.js">scripts/lib/browser-routes.js</a>
+  and <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/vdo-mcp-browser.js">scripts/vdo-mcp-browser.js</a> <code>makeSession</code>; automatic routes and sessions.</li>
+<li><a id="n4"></a><strong>N4 — Request reliability:</strong> <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/browser-rpc.js">scripts/lib/browser-rpc.js</a>.
+  <code>BrowserRpcWorker</code>/<code>BrowserRpcClient</code>, encryption, boot/request IDs, deadlines, dedupe, chunks and backpressure.</li>
+<li><a id="n5"></a><strong>N5 — Connectivity:</strong> <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/bridge-session.js">scripts/lib/bridge-session.js</a>,
+  <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/http-relay-transport.js">scripts/lib/http-relay-transport.js</a>,
+  <a href="http-relay.html">HTTP relay guide</a> and <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/browser-setup.js">setup implementation</a>.</li>
+<li><a id="n6"></a><strong>N6 — Generic files and tool contract:</strong> <a href="mcp-tool-contract.html">tool reference</a>,
+  <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/vdo-mcp-server.js">scripts/vdo-mcp-server.js</a>, bridge-session transfer methods. Existing generic
+  transfers need an explicit SSApp artifact/staging adapter; they do not grant arbitrary host file access.</li>
+<li>
+<p><a id="n7"></a><strong>N7 — Separate Chrome/media patterns:</strong> <a href="browser-worker.html">browser worker</a>,
+  <a href="browser-agent.html">voice companion</a>, <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/browser-media.js">scripts/lib/browser-media.js</a>.
+  Reuse suitable media patterns without assuming Chrome tab capture supports Electron surfaces.</p>
+</li>
+<li>
+<p><a id="n8"></a><strong>N8 — Agent-side settings export:</strong> <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/ssapp-export.js">scripts/lib/ssapp-export.js</a>.
+  Chunk reads through the authenticated bridge, length/hash verification, private temporary file,
+  no-overwrite delivery, and incomplete-file cleanup. Client registration is in N1; ownership is in N2.</p>
+</li>
+</ul>
+<h3 id="ssapp">SSApp</h3>
+<p>Source repository: <a href="https://github.com/steveseguin/ssn_app">steveseguin/ssn_app</a>.
+In a local workspace, these paths are relative to its <code>ssapp</code> checkout.</p>
+<ul>
+<li><a id="s1"></a><strong>S1 — Local MCP contract:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/ssapp-mcp.js">resources/ssapp-mcp.js</a>.
+  <code>TOOL_DEFINITIONS</code>, <code>DIRECT_WHILE_RENDERER_BLOCKED</code>, <code>listTools</code>, <code>callTool</code>, screenshot and error shaping.</li>
+<li><a id="s2"></a><strong>S2 — API:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/electron-control-api.js">resources/electron-control-api.js</a>.
+  <code>COMMAND_DEFINITIONS</code>, <code>createControlApiRouter</code>, instance endpoint, conditional instance checks, operations/SSE.</li>
+<li><a id="s3"></a><strong>S3 — Browser controls:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/browser-control-service.js">resources/browser-control-service.js</a>.
+  <code>BROWSER_COMMANDS</code>, targets, screenshots, native input, menu/file/window/navigation controls and frame stream.</li>
+<li><a id="s4"></a><strong>S4 — Observation:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/source-observation-service.js">resources/source-observation-service.js</a>.
+  Diagnostics, event cursors, inspection/opaque references, redaction and <code>captureWindowPage</code>.</li>
+<li><a id="s5"></a><strong>S5 — Windows/dialogs:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/app-window-control-service.js">app-window-control-service.js</a>
+  and <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/app-dialog-service.js">app-dialog-service.js</a>.</li>
+<li><a id="s6"></a><strong>S6 — Runtime integration:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/main.js">main.js</a>
+  and <a href="https://github.com/steveseguin/ssn_app/blob/main/bootstrap.js">bootstrap.js</a>. Opt-in startup, browser
+  ownership/session behavior, IPC and packaged MCP launch. Keep source-specific behavior scoped.</li>
+<li><a id="s7"></a><strong>S7 — Settings export:</strong> <a href="https://github.com/steveseguin/ssn_app/blob/main/resources/settings-export-service.js">resources/settings-export-service.js</a>.
+  Shared command schemas, bounded in-memory backups, byte reads, expiry and release. S6 collects
+  settings only on explicit request using the existing backup payload builder.</li>
+<li><a id="s8"></a><strong>S8 — Existing validation starting points:</strong> SSApp <code>tests/electron/mcp-app-window-dialog-e2e.js</code>,
+  <code>tests/electron/hidden-capture-diagnostics.js</code>, and commands in its <code>package.json</code> and <code>AGENTS.md</code>.
+  Inspect each harness before running; choose isolated profiles and independently complete delivery evidence.</li>
+</ul>
+<h3 id="social-stream-and-cooperating-tools">Social Stream and cooperating tools</h3>
+<ul>
+<li><a id="c1"></a><strong>C1 — App source/group/session UI:</strong> SSApp <a href="https://github.com/steveseguin/ssn_app/blob/main/index.html">index.html</a>,
+  including <code>getCapabilities</code>, source command handlers, group management and profile switching. Check
+  <code>resources/ssapp-mcp.js</code> before assuming a UI action has a dedicated tool.</li>
+<li><a id="c2"></a><strong>C2 — Capture and destinations:</strong> <a href="https://github.com/steveseguin/social_stream">social_stream</a>,
+  including platform source files, <code>settings/config*.json</code>, dock/overlay pages and existing message transports.
+  Make source changes in that checkout, never the disposable SSApp <code>resources/social_stream_fallback</code> mirror.</li>
+<li><a id="c3"></a><strong>C3 — Canonical operating skill:</strong> <a href="https://github.com/steveseguin/social_stream/tree/main/docs/skills/control-social-stream">control-social-stream</a>,
+  <a href="https://github.com/steveseguin/social_stream/blob/main/docs/skills/control-social-stream/references/control-api.md">API reference</a>,
+  <a href="https://github.com/steveseguin/social_stream/blob/main/docs/skills/control-social-stream/references/browser-control.md">browser reference</a>,
+  <a href="https://github.com/steveseguin/social_stream/blob/main/docs/skills/control-social-stream/references/version-log.md">version log</a>.
+  Update these with API/MCP/schema/capability compatibility changes in the same work.</li>
+<li><a id="e1"></a><strong>E1 — SDK:</strong> <a href="https://github.com/steveseguin/ninjasdk">ninjasdk</a> and
+  <a href="https://sdk.vdo.ninja/">SDK guide</a>. Data/media connectivity is separate from SSApp authorization and model understanding.</li>
+<li><a id="e2"></a><strong>E2 — Agent coordination:</strong> <a href="https://github.com/steveseguin/ninja-p2p">ninja-p2p</a> and its
+  <a href="https://github.com/steveseguin/ninja-p2p/blob/main/docs/social-stream-bridge.md">SSN chat bridge</a>.
+  Persistent inboxes/handoffs and audience messages do not automatically expose SSApp controls.</li>
+<li><a id="e3"></a><strong>E3 — Client and development adapters:</strong> <a href="client-config-examples.html">client configuration</a>
+  and the chosen client's tools for models, files and repositories. Keep those permissions separate from SSApp control.</li>
+</ul></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

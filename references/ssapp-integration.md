@@ -6,6 +6,9 @@ Use Ninja MCP to let an authorized agent on another computer operate an existing
 Standalone (SSApp) instance: manage sources, diagnose capture, inspect windows, and use browser input.
 The bridge forwards SSApp's `ssapp_*` tool schemas, structured results, and MCP images.
 
+For supported surfaces, integration gaps and acceptance procedures, use the
+[SSApp capability matrix](ssapp-capability-matrix.md).
+
 ## Set up remote access
 
 Use [SSApp 0.4.38 or newer](https://github.com/steveseguin/social_stream/releases/tag/v0.4.38),
@@ -80,6 +83,50 @@ transfer before selecting it. Use `ssapp_browser_screenshot` for remote viewing:
 `ssapp_browser_frame_stream` endpoint is not forwarded, and SSApp audio/video streaming is
 not part of this bridge.
 
+### Retrieve a settings backup
+
+Use an SSApp build advertising **API 1.5.0 / MCP 1.4.0** and `exportSettingsBackup`,
+plus a Ninja MCP bridge with `ninja_ssapp_save_settings_export`. These commands require
+the updated 0.4.38 development build; the published 0.4.38 version alone is insufficient.
+Check capabilities before using them.
+
+In `worker.json`, set `allowSettingsExport: true` for the requesting controller and restart
+the worker. This defaults to false and is separate from `allowHostFiles`. If using a `tools`
+allowlist, include all three `ssapp_*` export tools below. Observers cannot retrieve backups.
+Backups contain saved settings and credentials, so export only when the user requests it.
+
+1. Call `ninja_ssapp_status`, check capabilities, then `ninja_ssapp_claim`.
+2. Call `ssapp_export_settings_backup` with `{"confirm":true}`. A successful response includes
+   `status: "completed"`, `artifactId`, filename, size, SHA-256 and expiry time; no file contents.
+3. Call `ninja_ssapp_save_settings_export` with `artifactId` and an absolute `destination`
+   **on the agent computer**. The parent directory must exist and support hard links.
+   The helper verifies length and checksum before publishing the file and refuses to overwrite.
+4. Call `ssapp_release_settings_export` with `artifactId` and `confirm:true`, then release control.
+   Renew the control lease first if it expired during transfer.
+
+For a custom client, `ssapp_read_settings_export` accepts `artifactId`, byte `offset` and
+`length` (0–262144; default 262144). Length 0 returns metadata only. Decode `dataBase64`,
+advance to `nextOffset`, and verify the final length and SHA-256. Keep contents out of logs
+and conversation output. Only the client that created an export may read or release it.
+
+Exports stay in app memory for five minutes, with at most four backups of 8 MiB each.
+Release or app restart ends retrieval. Cancelling retrieval leaves no final file from the save
+helper; release the export when abandoning it. Files already delivered and cached transport
+results are not erased by release. After bridge restart, create a new export because ownership
+is held by that bridge process. After a lost reply, recover the existing request result before
+creating another export.
+
+The bridge releases export-chunk reply bytes after sending them so repeated backups do not
+fill its retry cache. An exact retry rereads the immutable artifact with permission and expiry
+checks. `ninja_ssapp_result` may not retain chunk contents; reread the same artifact and offset
+while it remains available. Export and release actions keep their cached completion receipts.
+
+These commands leave normal save dialogs, filenames, destinations and notifications unchanged.
+They create no host staging file and do not track ordinary downloads. This workflow exports settings;
+browser-session backups, diagnostic bundles, arbitrary downloads and inbound file staging require
+separate workflows. The permission applies to the dedicated export tools; grant general controller
+access only to agents already trusted to operate the app's UI.
+
 ## Existing interfaces and responsibilities
 
 | Component | Responsibility |
@@ -109,6 +156,8 @@ maintaining a second handwritten tool definition list.
 | SSApp `resources/ssapp-mcp.js` | Tool definitions, normalization, MCP results, HTTP client, compatibility checks. |
 | SSApp `resources/electron-control-api.js` | API version, command definitions, HTTP routes, operations, SSE. |
 | SSApp `resources/browser-control-service.js` | Shared browser schemas, targets, input, screenshots, menus, files, live frames. |
+| SSApp `resources/settings-export-service.js` | Settings-export schemas, bounded backup memory, chunk reads and expiry. |
+| Ninja MCP [settings export](../scripts/lib/ssapp-export.js) | Agent-side backup retrieval, integrity checks and no-overwrite save. |
 | SSApp `resources/source-observation-service.js` | Source diagnostics, captured events, semantic inspection, screenshot capture. |
 | SSApp `resources/app-window-control-service.js`, `resources/app-dialog-service.js` | App-owned window and dialog controls. |
 | SSApp `bootstrap.js`, `main.js` | Packaged MCP launch, opt-in setup, loopback binding, routing and lifecycle. |

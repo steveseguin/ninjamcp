@@ -9,10 +9,14 @@ const { loadConfig: loadBrowserConfig, makeSession } = require('./vdo-mcp-browse
 const { BrowserRpcWorker, BrowserRpcClient } = require('./lib/browser-rpc');
 const { SsappController, RPC_OPTIONS, controlOrigin, validateCommand } = require('./lib/ssapp-worker');
 const { McpStdioParser, writeMcpMessage } = require('./lib/mcp-stdio-parser');
+const { saveSettingsExport } = require('./lib/ssapp-export');
 
 const managementTool = (name, description, properties = {}, required = []) => ({ name, description,
   inputSchema: { type: 'object', properties, required, additionalProperties: false } });
 const MANAGEMENT = [
+  managementTool('ninja_ssapp_save_settings_export', 'Save an owned SSApp settings export on this agent computer. Verifies size and SHA-256 and never overwrites an existing file. Parent directory must exist and support hard links. Returns metadata only; backup may contain credentials.', {
+    artifactId: { type: 'string', pattern: '^export_[a-f0-9]{32}$' }, destination: { type: 'string', minLength: 1 }
+  }, ['artifactId', 'destination']),
   managementTool('ninja_ssapp_status', 'Discover the remote SSApp instance, versions, permissions and control owner. After app restart, list fresh targets and claim control again.'),
   managementTool('ninja_ssapp_claim', 'Claim or renew control of this SSApp instance for this MCP connection. Other agents can observe. Reconcile uncertain outcomes before using reconciled: true.', {
     ttl_ms: { type: 'integer', minimum: 1000, maximum: 120000 }, reconciled: { type: 'boolean' }
@@ -31,6 +35,7 @@ function loadConfig(file) {
     for (const value of Object.values(config.clients)) {
       if (value.tools !== undefined && (!Array.isArray(value.tools) || value.tools.some((tool) => typeof tool !== 'string' || !tool.startsWith('ssapp_')))) throw new Error('Client tools must be an array of ssapp_* tool names');
       if (value.allowHostFiles !== undefined && typeof value.allowHostFiles !== 'boolean') throw new Error('allowHostFiles must be a boolean');
+      if (value.allowSettingsExport !== undefined && typeof value.allowSettingsExport !== 'boolean') throw new Error('allowSettingsExport must be a boolean');
     }
   }
   return config;
@@ -82,6 +87,7 @@ class SsappClient {
   async call(name, args = {}) {
     if (!this.discovery) await this.discover();
     if (name === 'ninja_ssapp_status') return this.discover();
+    if (name === 'ninja_ssapp_save_settings_export') return saveSettingsExport(this, args);
     const common = { instance: this.discovery.instance?.instanceId, lease: this.lease };
     let response;
     if (name === 'ninja_ssapp_claim') {

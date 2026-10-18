@@ -11,6 +11,9 @@
 
 Before working on SSApp support, read [references/ssapp-integration.md](references/ssapp-integration.md).
 It documents the local interface and the optional `vdon-mcp-ssapp` remote backend.
+Use [references/ssapp-capability-matrix.md](references/ssapp-capability-matrix.md) for capability
+coverage, ownership, remaining work and validation procedures. Keep its stable row IDs and distinguish
+implemented code from demonstrated remote workflows; retain execution evidence outside this checkout.
 
 - Reuse SSApp's existing `ssapp_*` MCP tools and control API. Preserve their schemas, image results,
   version information, confirmation semantics, and structured errors.

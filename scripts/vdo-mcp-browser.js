@@ -133,7 +133,7 @@ async function startClient(config, input = process.stdin, output = process.stdou
     inFlight++;
     try {
       let result;
-      if (message.method === 'initialize') result = { protocolVersion: '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'ninja-browser', version: '0.4.2' } };
+      if (message.method === 'initialize') result = { protocolVersion: '2025-06-18', capabilities: { tools: {} }, serverInfo: { name: 'ninja-browser', version: '0.4.3' } };
       else if (message.method === 'ping') result = {};
       else if (message.method === 'tools/list') result = { tools: TOOLS };
       else if (message.method === 'tools/call') {

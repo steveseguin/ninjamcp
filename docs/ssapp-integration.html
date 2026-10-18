@@ -34,7 +34,7 @@
 </div>
 </header>
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#set-up-remote-access">Set up remote access</a><a href="#existing-interfaces-and-responsibilities">Existing interfaces and responsibilities</a><a href="#connect-to-the-local-app">Connect to the local app</a><a href="#tool-reference">Tool reference</a><a href="#observation-and-interaction-rules">Observation and interaction rules</a><a href="#transport-and-recovery">Transport and recovery</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#set-up-remote-access">Set up remote access</a><a href="#existing-interfaces-and-responsibilities">Existing interfaces and responsibilities</a><a href="#connect-to-the-local-app">Connect to the local app</a><a href="#tool-reference">Tool reference</a><a href="#observation-and-interaction-rules">Observation and interaction rules</a><a href="#transport-and-recovery">Transport and recovery</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a><a href="ssapp-capability-matrix.html">SSApp capability matrix</a></aside>
   <main class="docs-main" id="main">
     <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
     <header>
@@ -46,6 +46,8 @@
 <p>Use Ninja MCP to let an authorized agent on another computer operate an existing Social Stream Ninja
 Standalone (SSApp) instance: manage sources, diagnose capture, inspect windows, and use browser input.
 The bridge forwards SSApp's <code>ssapp_*</code> tool schemas, structured results, and MCP images.</p>
+<p>For supported surfaces, integration gaps and acceptance procedures, use the
+<a href="ssapp-capability-matrix.html">SSApp capability matrix</a>.</p>
 </section><section class="doc-section" id="set-up-remote-access"><h2>Set up remote access</h2>
 <p>Use <a href="https://github.com/steveseguin/social_stream/releases/tag/v0.4.38">SSApp 0.4.38 or newer</a>,
 with <strong>API 1.4.1 and MCP adapter 1.3.1 or newer</strong>. Enable <strong>File &gt; Local AI / Automation</strong>,
@@ -104,6 +106,44 @@ Remote file staging is not provided; place a file on the host through a separate
 transfer before selecting it. Use <code>ssapp_browser_screenshot</code> for remote viewing: the local
 <code>ssapp_browser_frame_stream</code> endpoint is not forwarded, and SSApp audio/video streaming is
 not part of this bridge.</p>
+<h3 id="retrieve-a-settings-backup">Retrieve a settings backup</h3>
+<p>Use an SSApp build advertising <strong>API 1.5.0 / MCP 1.4.0</strong> and <code>exportSettingsBackup</code>,
+plus a Ninja MCP bridge with <code>ninja_ssapp_save_settings_export</code>. These commands require
+the updated 0.4.38 development build; the published 0.4.38 version alone is insufficient.
+Check capabilities before using them.</p>
+<p>In <code>worker.json</code>, set <code>allowSettingsExport: true</code> for the requesting controller and restart
+the worker. This defaults to false and is separate from <code>allowHostFiles</code>. If using a <code>tools</code>
+allowlist, include all three <code>ssapp_*</code> export tools below. Observers cannot retrieve backups.
+Backups contain saved settings and credentials, so export only when the user requests it.</p>
+<ol>
+<li>Call <code>ninja_ssapp_status</code>, check capabilities, then <code>ninja_ssapp_claim</code>.</li>
+<li>Call <code>ssapp_export_settings_backup</code> with <code>{"confirm":true}</code>. A successful response includes
+   <code>status: "completed"</code>, <code>artifactId</code>, filename, size, SHA-256 and expiry time; no file contents.</li>
+<li>Call <code>ninja_ssapp_save_settings_export</code> with <code>artifactId</code> and an absolute <code>destination</code>
+<strong>on the agent computer</strong>. The parent directory must exist and support hard links.
+   The helper verifies length and checksum before publishing the file and refuses to overwrite.</li>
+<li>Call <code>ssapp_release_settings_export</code> with <code>artifactId</code> and <code>confirm:true</code>, then release control.
+   Renew the control lease first if it expired during transfer.</li>
+</ol>
+<p>For a custom client, <code>ssapp_read_settings_export</code> accepts <code>artifactId</code>, byte <code>offset</code> and
+<code>length</code> (0–262144; default 262144). Length 0 returns metadata only. Decode <code>dataBase64</code>,
+advance to <code>nextOffset</code>, and verify the final length and SHA-256. Keep contents out of logs
+and conversation output. Only the client that created an export may read or release it.</p>
+<p>Exports stay in app memory for five minutes, with at most four backups of 8 MiB each.
+Release or app restart ends retrieval. Cancelling retrieval leaves no final file from the save
+helper; release the export when abandoning it. Files already delivered and cached transport
+results are not erased by release. After bridge restart, create a new export because ownership
+is held by that bridge process. After a lost reply, recover the existing request result before
+creating another export.</p>
+<p>The bridge releases export-chunk reply bytes after sending them so repeated backups do not
+fill its retry cache. An exact retry rereads the immutable artifact with permission and expiry
+checks. <code>ninja_ssapp_result</code> may not retain chunk contents; reread the same artifact and offset
+while it remains available. Export and release actions keep their cached completion receipts.</p>
+<p>These commands leave normal save dialogs, filenames, destinations and notifications unchanged.
+They create no host staging file and do not track ordinary downloads. This workflow exports settings;
+browser-session backups, diagnostic bundles, arbitrary downloads and inbound file staging require
+separate workflows. The permission applies to the dedicated export tools; grant general controller
+access only to agents already trusted to operate the app's UI.</p>
 </section><section class="doc-section" id="existing-interfaces-and-responsibilities"><h2>Existing interfaces and responsibilities</h2>
 <div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
 <thead>
@@ -164,6 +204,14 @@ maintaining a second handwritten tool definition list.</p>
 <tr>
 <td>SSApp <code>resources/browser-control-service.js</code></td>
 <td>Shared browser schemas, targets, input, screenshots, menus, files, live frames.</td>
+</tr>
+<tr>
+<td>SSApp <code>resources/settings-export-service.js</code></td>
+<td>Settings-export schemas, bounded backup memory, chunk reads and expiry.</td>
+</tr>
+<tr>
+<td>Ninja MCP <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/lib/ssapp-export.js">settings export</a></td>
+<td>Agent-side backup retrieval, integrity checks and no-overwrite save.</td>
 </tr>
 <tr>
 <td>SSApp <code>resources/source-observation-service.js</code></td>

@@ -85,6 +85,7 @@ For secure presets, set `VDON_MCP_JOIN_TOKEN_SECRET` before install/runtime.
 
 ## References
 
+- Optional SSApp download and remote setup: [SSApp guide](references/ssapp-integration.md) ([HTML](docs/ssapp-integration.html))
 - Operator quickstart: `references/quickstart-and-compat.md`
 - Client config examples: `references/client-config-examples.md`
 - Tool contract: `references/mcp-tool-contract.md`
