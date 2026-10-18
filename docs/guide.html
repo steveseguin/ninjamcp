@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Documentation · VDO.Ninja MCP</title>
+  <meta name="description" content="Install, connect, and run the VDO.Ninja MCP server: client setup, every tool and argument, file transfer, shared state, security, the HTTP relay, and troubleshooting.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/guide.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="VDO.Ninja MCP documentation">
+  <meta property="og:description" content="Install, connect, and run the VDO.Ninja MCP server: client setup, every tool and argument, file transfer, shared state, security, the HTTP relay, and troubleshooting.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/guide.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VDO.Ninja MCP documentation">
+  <meta name="twitter:description" content="Install, connect, and run the VDO.Ninja MCP server: client setup, every tool and argument, file transfer, shared state, security, the HTTP relay, and troubleshooting.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+  <style>
+    .dg text { font-family: var(--sans); fill: var(--ink-2); font-size: 13px; }
+    .dg .t-strong { fill: var(--ink); font-weight: 600; font-size: 14px; }
+    .dg .t-mono { font-family: var(--mono); font-size: 11.5px; fill: var(--ink-3); }
+    .dg .t-ok { fill: var(--ok); font-weight: 600; font-size: 12px; }
+    .dg .box { fill: var(--surface); stroke: var(--line-2); stroke-width: 1.2; }
+    .dg .box-soft { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.2; }
+    .dg .machine { fill: none; stroke: var(--line-2); stroke-width: 1.2; stroke-dasharray: 5 5; }
+    .dg .ln { stroke: var(--ink-3); stroke-width: 1.4; fill: none; }
+    .dg .ln-dash { stroke: var(--ink-3); stroke-width: 1.3; stroke-dasharray: 4 5; fill: none; }
+    .dg .ln-ok { stroke: var(--ok); stroke-width: 3; fill: none; }
+    .dg .ln-life { stroke: var(--line-2); stroke-width: 1.5; stroke-dasharray: 3 4; }
+    .dg .arrow { fill: var(--ink-3); }
+    .dg .arrow-ok { fill: var(--ok); }
+    .dg .ln-nack { stroke: var(--warn); stroke-width: 1.4; fill: none; }
+    .dg .arrow-nack { fill: var(--warn); }
+    .dg .t-nack { fill: var(--warn); }
+  </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation">
+    <h5>Start</h5>
+    <a href="#overview"><svg class="icon-sm"><use href="assets/icons.svg#i-book"></use></svg>Overview</a>
+    <a href="#install"><svg class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>Install</a>
+    <a href="#clients"><svg class="icon-sm"><use href="assets/icons.svg#i-plug"></use></svg>Connect a client</a>
+    <a href="#first-run"><svg class="icon-sm"><use href="assets/icons.svg#i-message"></use></svg>First conversation</a>
+    <h5>Concepts</h5>
+    <a href="#how"><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>How it works</a>
+    <a href="#rooms"><svg class="icon-sm"><use href="assets/icons.svg#i-hash"></use></svg>Rooms and sessions</a>
+    <a href="#events"><svg class="icon-sm"><use href="assets/icons.svg#i-zap"></use></svg>Events</a>
+    <h5>Reference</h5>
+    <a href="#tools"><svg class="icon-sm"><use href="assets/icons.svg#i-terminal"></use></svg>Tools</a>
+    <a href="#files"><svg class="icon-sm"><use href="assets/icons.svg#i-file"></use></svg>File transfer</a>
+    <a href="#state"><svg class="icon-sm"><use href="assets/icons.svg#i-layers"></use></svg>Shared state</a>
+    <a href="#config"><svg class="icon-sm"><use href="assets/icons.svg#i-sliders"></use></svg>Configuration</a>
+    <h5>Operate</h5>
+    <a href="#security"><svg class="icon-sm"><use href="assets/icons.svg#i-shield"></use></svg>Security</a>
+    <a href="#network"><svg class="icon-sm"><use href="assets/icons.svg#i-globe"></use></svg>Networking</a>
+    <a href="#relay"><svg class="icon-sm"><use href="assets/icons.svg#i-server"></use></svg>HTTP relay</a>
+    <a href="#mcp-http"><svg class="icon-sm"><use href="assets/icons.svg#i-cloud"></use></svg>MCP over HTTP</a>
+    <a href="#troubleshooting"><svg class="icon-sm"><use href="assets/icons.svg#i-alert"></use></svg>Troubleshooting</a>
+    <a href="#testing"><svg class="icon-sm"><use href="assets/icons.svg#i-check"></use></svg>Testing</a>
+    <h5>More</h5>
+    <a href="./#faq"><svg class="icon-sm"><use href="assets/icons.svg#i-info"></use></svg>FAQ</a>
+    <a href="https://github.com/steveseguin/ninjamcp/blob/main/references/direction.md"><svg class="icon-sm"><use href="assets/icons.svg#i-git-branch"></use></svg>Direction</a>
+    <a href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>Source</a>
+    <a href="https://discord.vdo.ninja"><svg class="icon-sm"><use href="assets/icons.svg#i-users"></use></svg>Support</a>
+  </aside>
+
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
+
+    <header>
+      <h1>Documentation</h1>
+      <p>Everything you need to install, connect, and run <code>@vdoninja/mcp</code>, and an exact account of what it does on the wire.</p>
+    </header>
+
+    <!-- Overview -->
+    <section class="doc-section" id="overview">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-book"></use></svg></span>Overview</h2>
+      <p><code>@vdoninja/mcp</code> is a Model Context Protocol server. It gives AI agents in different apps, or on different computers, a private room where they can find each other, exchange messages, move files, and keep shared task state. By default those tool calls become <a href="https://vdo.ninja">VDO.Ninja</a> SDK operations over WebRTC data channels. When WebRTC isn't available, an optional <a href="#relay">self-hosted HTTP relay</a> carries the same traffic.</p>
+      <div class="grid grid-2 mt-16">
+        <div class="card">
+          <div class="card-icon ok"><svg class="icon"><use href="assets/icons.svg#i-check"></use></svg></div>
+          <h3>Good for</h3>
+          <p>Agent hand-offs, second opinions, file delivery between agents, and small shared task state across machines.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-x"></use></svg></div>
+          <h3>Not for</h3>
+          <p>A general VPN or TCP tunnel, permanent storage, or a large public chat network.</p>
+        </div>
+      </div>
+      <h3>Which VDO.Ninja package?</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Your goal</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>Give an MCP client connect, send, file, and state tools</td><td><code>@vdoninja/mcp</code> (this)</td></tr>
+            <tr><td>Keep an agent room running with a local inbox and wake hooks</td><td><a href="https://github.com/steveseguin/ninja-p2p"><code>@vdoninja/ninja-p2p</code></a></td></tr>
+            <tr><td>Build directly on WebRTC media or data channels</td><td><a href="https://github.com/steveseguin/ninjasdk"><code>@vdoninja/sdk</code></a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section class="doc-section" id="install">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-package"></use></svg></span>Install</h2>
+      <p>Requires <strong>Node.js 18 or newer</strong>. Install into a folder that will stay put: the installer registers an absolute path to the server script, so moving the folder later means re-running it.</p>
+<pre><code class="lang-sh">npm i @vdoninja/mcp
+npx vdon-mcp-install</code></pre>
+      <p>This installs the server, <code>@vdoninja/sdk</code>, and a Node WebRTC runtime (<code>@roamhq/wrtc</code>, an optional dependency; skip it with <code>--omit=optional</code> on relay-only machines). The installer registers the server with Codex and Claude Code, whichever CLIs it finds on your <code>PATH</code>.</p>
+
+      <h3>Installer options</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Flag</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td><code>--codex-only</code> / <code>--claude-only</code></td><td>Register with one client only.</td></tr>
+            <tr><td><code>--preset &lt;name&gt;</code></td><td>Tool profile and security preset (below). Default <code>full</code>.</td></tr>
+            <tr><td><code>--claude-scope &lt;scope&gt;</code></td><td><code>local</code> (default), <code>user</code>, or <code>project</code>.</td></tr>
+            <tr><td><code>--name &lt;name&gt;</code></td><td>Server name in the client. Default <code>vdo-ninja-mcp</code>.</td></tr>
+            <tr><td><code>--server-arg &lt;value&gt;</code></td><td>Extra server argument. Repeatable.</td></tr>
+            <tr><td><code>--node-cmd &lt;path&gt;</code></td><td>Node executable to register. Default: the one running the installer.</td></tr>
+            <tr><td><code>--server-script &lt;path&gt;</code></td><td>Use a different server script.</td></tr>
+            <tr><td><code>--dry-run</code></td><td>Print the commands without running them.</td></tr>
+            <tr><td><code>--uninstall</code></td><td>Remove the registration.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Presets</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Preset</th><th>Tools</th><th>Security</th></tr></thead>
+          <tbody>
+            <tr><td><code>full</code></td><td>All 18</td><td>Off by default</td></tr>
+            <tr><td><code>core</code></td><td>9: session + peer sync</td><td>Off by default</td></tr>
+            <tr><td><code>file</code></td><td>15: core + files</td><td>Off by default</td></tr>
+            <tr><td><code>state</code></td><td>12: core + shared state</td><td>Off by default</td></tr>
+            <tr><td><code>secure-core</code></td><td>9</td><td>Join tokens enforced, session MAC required</td></tr>
+            <tr><td><code>secure-full</code></td><td>All 18</td><td>Join tokens enforced, session MAC required</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note-box">
+        <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-key"></use></svg>
+        <div>For the <code>secure-*</code> presets, set <code>VDON_MCP_JOIN_TOKEN_SECRET</code> in the environment the server runs in. The installer warns if it isn't set. Every peer in the room needs the same secret.</div>
+      </div>
+    </section>
+
+    <!-- Clients -->
+    <section class="doc-section" id="clients">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-plug"></use></svg></span>Connect a client</h2>
+      <p>Any MCP client that can launch a local <code>stdio</code> server works. Codex and Claude Code are automated; the others take a few lines of JSON. Use an absolute path to <code>vdo-mcp-server.js</code> if your client starts in a different folder.</p>
+      <div class="tabs" data-tabs>
+        <div class="tablist" role="tablist" aria-label="Client setup">
+          <button role="tab" id="g-claude" aria-controls="gp-claude" aria-selected="true"><span class="mono-tile t-claude">Cl</span>Claude Code</button>
+          <button role="tab" id="g-codex" aria-controls="gp-codex" aria-selected="false" tabindex="-1"><span class="mono-tile t-codex">Cx</span>Codex</button>
+          <button role="tab" id="g-cursor" aria-controls="gp-cursor" aria-selected="false" tabindex="-1"><span class="mono-tile t-cursor">Cu</span>Cursor</button>
+          <button role="tab" id="g-gemini" aria-controls="gp-gemini" aria-selected="false" tabindex="-1"><span class="mono-tile t-gemini">Ge</span>Gemini CLI</button>
+          <button role="tab" id="g-opencode" aria-controls="gp-opencode" aria-selected="false" tabindex="-1"><span class="mono-tile t-opencode">Oc</span>OpenCode</button>
+          <button role="tab" id="g-other" aria-controls="gp-other" aria-selected="false" tabindex="-1"><span class="mono-tile t-any">+</span>Other</button>
+        </div>
+        <div class="tabpanel" id="gp-claude" role="tabpanel" aria-labelledby="g-claude">
+          <p>Runs <code>claude mcp add -s local vdo-ninja-mcp -- node &lt;script&gt;</code> for you. Check it with <code>claude mcp get vdo-ninja-mcp</code>.</p>
+<pre><code class="lang-sh">npx vdon-mcp-install --claude-only
+npx vdon-mcp-install --claude-only --claude-scope user</code></pre>
+        </div>
+        <div class="tabpanel" id="gp-codex" role="tabpanel" aria-labelledby="g-codex" hidden>
+          <p>Runs <code>codex mcp add vdo-ninja-mcp -- node &lt;script&gt;</code>. Check it with <code>codex mcp get vdo-ninja-mcp</code>.</p>
+<pre><code class="lang-sh">npx vdon-mcp-install --codex-only</code></pre>
+        </div>
+        <div class="tabpanel" id="gp-cursor" role="tabpanel" aria-labelledby="g-cursor" hidden>
+          <p><code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project):</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "vdo-ninja-mcp": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+      "env": { "VDON_MCP_TOOL_PROFILE": "core" }
+    }
+  }
+}</code></pre>
+        </div>
+        <div class="tabpanel" id="gp-gemini" role="tabpanel" aria-labelledby="g-gemini" hidden>
+          <p><code>.gemini/settings.json</code> (project), <code>~/.gemini/settings.json</code>, or <code>%USERPROFILE%\.gemini\settings.json</code> on Windows. Restart, then <code>/mcp</code> shows the server.</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "vdo-ninja-mcp": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+      "env": { "VDON_MCP_TOOL_PROFILE": "core" }
+    }
+  }
+}</code></pre>
+        </div>
+        <div class="tabpanel" id="gp-opencode" role="tabpanel" aria-labelledby="g-opencode" hidden>
+          <p><code>opencode.json</code> in the project root, or <code>~/.config/opencode/opencode.json</code>:</p>
+<pre><code class="lang-json">{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "vdo-ninja-mcp": {
+      "type": "local",
+      "command": ["node", "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
+                  "--tool-profile", "core"],
+      "enabled": true
+    }
+  }
+}</code></pre>
+        </div>
+        <div class="tabpanel" id="gp-other" role="tabpanel" aria-labelledby="g-other" hidden>
+          <p>Every stdio client needs a command, the script path, and optional flags or env:</p>
+<pre><code class="lang-json">{
+  "command": "node",
+  "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
+           "--tool-profile", "core"],
+  "env": { "VDON_MCP_TOOL_PROFILE": "core" }
+}</code></pre>
+          <p>On Windows the path looks like <code>C:\\path\\node_modules\\@vdoninja\\mcp\\scripts\\vdo-mcp-server.js</code>.</p>
+        </div>
+      </div>
+      <h3>Check the wiring</h3>
+      <p>Ask your agent to call <code>vdo_capabilities</code>. If you get back the server's limits and active profile, it's connected.</p>
+<pre><code class="lang-json">{ "name": "vdo_capabilities", "arguments": {} }</code></pre>
+      <div class="note-box">
+        <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"></use></svg>
+        <div>Every MCP server adds tool descriptions to your agent's context. Start with the <code>core</code> profile and widen it only when you need files or state.</div>
+      </div>
+    </section>
+
+    <!-- First run -->
+    <section class="doc-section" id="first-run">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-message"></use></svg></span>First conversation</h2>
+      <p>Open two agent sessions, on one machine or two. Pick a room name nobody else will guess.</p>
+      <h3>1. Agent A joins</h3>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "room": "lab_7f3k2", "stream_id": "agent_a" } }</code></pre>
+      <p>The result includes a <code>session_id</code> like <code>vdo_3f1c…</code>. Every other tool needs it.</p>
+      <h3>2. Agent B joins and points at A</h3>
+<pre><code class="lang-json">{ "name": "vdo_connect",
+  "arguments": { "room": "lab_7f3k2", "stream_id": "agent_b", "target_stream_id": "agent_a" } }</code></pre>
+      <h3>3. Wait for the peer, then A sends</h3>
+      <p>Call <code>vdo_sync_peers</code> on A until <code>agent_b</code> shows up. Then address it by stream ID:</p>
+<pre><code class="lang-json">{ "name": "vdo_send",
+  "arguments": { "session_id": "&lt;agent_a_session&gt;", "target": "agent_b",
+                 "data": { "type": "chat.message", "text": "hello from agent_a" } } }</code></pre>
+      <p><code>ok: true</code> means the transport accepted the message, not that B has read it. Ask B to reply when you need confirmation.</p>
+      <h3>4. B receives</h3>
+<pre><code class="lang-json">{ "name": "vdo_receive",
+  "arguments": { "session_id": "&lt;agent_b_session&gt;", "wait_ms": 1000 } }</code></pre>
+      <p>Expect a <code>data_received</code> event whose <code>data</code> is the object A sent. If you only see lifecycle events, call <code>vdo_receive</code> again: the channel may still be opening.</p>
+      <h3>No agents handy?</h3>
+      <p>Two scripts run the full exchange for you on a simulated local network, then exit with pass or fail:</p>
+<pre><code class="lang-sh">npx vdon-mcp-demo-message
+npx vdon-mcp-demo-file
+# use the real network
+MCP_DEMO_FAKE=0 npx vdon-mcp-demo-message
+# real network, forced through TURN
+MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
+    </section>
+
+    <!-- How it works -->
+    <section class="doc-section" id="how">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-eye"></use></svg></span>How it works</h2>
+      <p>Each agent runs its own copy of the MCP server as a local process. The servers find each other through VDO.Ninja's handshake server, then open a WebRTC data channel between them. From then on, data goes peer to peer.</p>
+      <figure>
+        <svg class="dg" viewBox="0 0 900 330" role="img" aria-labelledby="dg1t">
+          <title id="dg1t">Two agents, each with a local MCP server, connected by a direct WebRTC data channel. A handshake server helps them connect; a TURN relay is a fallback.</title>
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="ah-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="arrow-ok" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="machine" x="6" y="98" width="356" height="134" rx="16"/>
+          <rect class="machine" x="538" y="98" width="356" height="134" rx="16"/>
+          <text x="22" y="122" class="t-mono">MACHINE A</text>
+          <text x="878" y="122" class="t-mono" text-anchor="end">MACHINE B</text>
+
+          <rect class="box" x="22" y="136" width="130" height="80" rx="12"/>
+          <text x="87" y="170" class="t-strong" text-anchor="middle">Agent A</text>
+          <text x="87" y="190" text-anchor="middle">MCP client</text>
+          <rect class="box" x="214" y="136" width="132" height="80" rx="12"/>
+          <text x="280" y="170" class="t-strong" text-anchor="middle">MCP server</text>
+          <text x="280" y="190" class="t-mono" text-anchor="middle">vdon-mcp-server</text>
+          <path class="ln" d="M152 176h60" marker-end="url(#ah)" marker-start="url(#ah)"/>
+          <text x="183" y="166" class="t-mono" text-anchor="middle">stdio</text>
+
+          <rect class="box" x="554" y="136" width="132" height="80" rx="12"/>
+          <text x="620" y="170" class="t-strong" text-anchor="middle">MCP server</text>
+          <text x="620" y="190" class="t-mono" text-anchor="middle">vdon-mcp-server</text>
+          <rect class="box" x="748" y="136" width="130" height="80" rx="12"/>
+          <text x="813" y="170" class="t-strong" text-anchor="middle">Agent B</text>
+          <text x="813" y="190" text-anchor="middle">MCP client</text>
+          <path class="ln" d="M688 176h58" marker-end="url(#ah)" marker-start="url(#ah)"/>
+          <text x="717" y="166" class="t-mono" text-anchor="middle">stdio</text>
+
+          <path class="ln-ok" d="M348 176h204" marker-end="url(#ah-ok)" marker-start="url(#ah-ok)"/>
+          <text x="450" y="164" class="t-ok" text-anchor="middle">WebRTC data channel</text>
+          <text x="450" y="196" class="t-mono" text-anchor="middle">DTLS-encrypted</text>
+
+          <rect class="box-soft" x="370" y="8" width="160" height="56" rx="12"/>
+          <text x="450" y="32" class="t-strong" text-anchor="middle">Handshake server</text>
+          <text x="450" y="50" class="t-mono" text-anchor="middle">wss.vdo.ninja</text>
+          <path class="ln-dash" d="M300 136 382 66"/>
+          <path class="ln-dash" d="M600 136 518 66"/>
+          <text x="300" y="86" class="t-mono" text-anchor="middle">find peers</text>
+          <text x="600" y="86" class="t-mono" text-anchor="middle">find peers</text>
+
+          <rect class="box-soft" x="350" y="266" width="200" height="56" rx="12"/>
+          <text x="450" y="290" class="t-strong" text-anchor="middle">TURN relay</text>
+          <text x="450" y="308" class="t-mono" text-anchor="middle">fallback · ciphertext only</text>
+          <path class="ln-dash" d="M300 216 382 266"/>
+          <path class="ln-dash" d="M600 216 518 266"/>
+        </svg>
+        <figcaption>Dashed lines are only used to connect, or when a direct path is impossible.</figcaption>
+      </figure>
+
+      <h3>Step by step</h3>
+      <ol>
+        <li><strong>Tool call.</strong> Your agent calls <code>vdo_connect</code>. The client passes it to the local server as JSON-RPC over stdio.</li>
+        <li><strong>Handshake.</strong> The server opens a WebSocket to <code>wss://wss.vdo.ninja</code> and joins the room. The room name is hashed with the room password, and the WebRTC offer and ICE candidates are encrypted with it before they leave your machine. Stream IDs are sent as-is with a short hash suffix, so don't put anything sensitive in them.</li>
+        <li><strong>Route discovery.</strong> WebRTC asks public STUN servers (Google, Cloudflare) for your public address and tries to connect directly. If that fails, it uses a VDO.Ninja TURN relay.</li>
+        <li><strong>Data channel.</strong> A DTLS-encrypted, reliable, ordered data channel opens between the two servers.</li>
+        <li><strong>Traffic.</strong> <code>vdo_send</code>, file chunks, and state updates go over that channel. Incoming data is queued locally until your agent calls <code>vdo_receive</code>.</li>
+      </ol>
+
+      <h3>Who sees what</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Party</th><th>When</th><th>Sees</th><th>Never sees</th></tr></thead>
+          <tbody>
+            <tr><td>Handshake server</td><td>While connecting</td><td>Your IP, hashed room ID, stream IDs, encrypted offers</td><td>Messages, files, state</td></tr>
+            <tr><td>STUN servers</td><td>While connecting</td><td>Your public IP and port</td><td>Anything you send</td></tr>
+            <tr><td>TURN relay</td><td>Only if direct fails, or <code>force_turn</code></td><td>Both IPs, encrypted packets</td><td>Contents</td></tr>
+            <tr><td>Your HTTP relay</td><td>Only with <code>transport: "http"</code></td><td>Addresses, opaque room IDs, timing, sizes</td><td>The room key, plaintext</td></tr>
+            <tr><td>The other agent</td><td>Once connected</td><td>What you send it; your IP when direct</td><td>Anything tools don't send</td></tr>
+            <tr><td>Your AI provider</td><td>Every tool call</td><td>Tool calls and results the agent reads</td><td>Files moved disk to disk</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note-box warn">
+        <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-alert"></use></svg>
+        <div><strong>The default room password is public.</strong> If you don't pass <code>password</code>, the SDK uses VDO.Ninja's well-known default key. Set your own for private rooms. <code>password: false</code> turns handshake encryption off entirely; the data channel itself is always DTLS-encrypted.</div>
+      </div>
+    </section>
+
+    <!-- Rooms -->
+    <section class="doc-section" id="rooms">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-hash"></use></svg></span>Rooms and sessions</h2>
+      <ul>
+        <li><strong>Room</strong>: a meeting point. Everyone with the same room name and password can find each other. Stick to letters, numbers, and underscores.</li>
+        <li><strong>Stream ID</strong>: an agent's name in the room, like <code>planner</code>. Random if you omit it. Peers use it in <code>target_stream_id</code> and allowlists.</li>
+        <li><strong>Target stream</strong>: set <code>target_stream_id</code> to connect straight to one peer. That's the simplest, most reliable two-agent setup.</li>
+        <li><strong>Session</strong>: one <code>vdo_connect</code> call. Returns a <code>session_id</code>. One server can hold several sessions, in different rooms, at once.</li>
+        <li><strong>Addressing</strong>: pass a peer's stream ID (or its UUID from <code>vdo_sync_peers</code>) as <code>target</code> to reach one peer. Omit it to send to everyone connected.</li>
+        <li><strong>Transport</strong>: <code>webrtc</code> (default) or <code>http</code> for the <a href="#relay">relay</a>. Everyone in a room must use the same one.</li>
+      </ul>
+      <p>Two to five agents per room works best. VDO.Ninja's guidance is about 80 peers per room at most.</p>
+    </section>
+
+    <!-- Events -->
+    <section class="doc-section" id="events">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-zap"></use></svg></span>Events</h2>
+      <p><code>vdo_receive</code> returns everything that happened since the last call, oldest first. Pass <code>wait_ms</code> (up to 30,000) to wait for something to arrive. Up to 2,000 events are held per session; older ones are dropped first.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Group</th><th>Event types</th></tr></thead>
+          <tbody>
+            <tr><td>Lifecycle</td><td><code>ready</code> <code>connected</code> <code>disconnected</code> <code>connection_failed</code> <code>sdk_error</code> <code>reconnect_scheduled</code></td></tr>
+            <tr><td>Peers</td><td><code>peer_connected</code> <code>peer_disconnected</code> <code>data_channel_open</code> <code>data_channel_close</code> <code>heartbeat_sent</code></td></tr>
+            <tr><td>Data</td><td><code>data_received</code> <code>send_error</code> <code>send_rejected</code></td></tr>
+            <tr><td>Sync and auth</td><td><code>sync_hello_sent</code> <code>sync_peer_updated</code> <code>sync_peer_rejected</code> <code>protocol_auth_failed</code></td></tr>
+            <tr><td>Files</td><td><code>file_offer_received</code> <code>file_chunk_received</code> <code>file_chunk_rejected</code> <code>file_received</code> <code>file_transfer_complete</code> <code>file_transfer_cancelled</code></td></tr>
+            <tr><td>State</td><td><code>state_updated</code> <code>state_snapshot_merged</code> <code>state_protocol_unhandled</code></td></tr>
+            <tr><td>HTTP relay</td><td><code>relay_receipt</code> <code>relay_connection</code> <code>relay_history_lost</code> <code>relay_message_rejected</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Errors</h3>
+      <p>Failed tool calls return <code>isError: true</code> and this shape. <code>validation_error</code> means bad arguments or a tool outside the active profile; fix and retry.</p>
+<pre><code class="lang-json">{ "ok": false,
+  "error": { "type": "validation_error", "message": "…", "tool": "vdo_send" } }</code></pre>
+    </section>
+
+    <!-- Tools -->
+    <section class="doc-section" id="tools">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-terminal"></use></svg></span>Tools</h2>
+      <p>18 tools in four groups. The profile column shows the smallest profile that includes each one. <span class="req" style="color:var(--warn);font-weight:600;font-size:12px">required</span> marks required arguments.</p>
+
+      <h3>Session</h3>
+      <details class="tool-ref" open>
+        <summary><code>vdo_connect</code><span>Join a room and open a session.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body">
+          <table class="args">
+            <thead><tr><th>Argument</th><th>Default</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><code>room</code><span class="req">required</span></td><td></td><td>Room name.</td></tr>
+              <tr><td><code>stream_id</code></td><td>random</td><td>This agent's name in the room.</td></tr>
+              <tr><td><code>target_stream_id</code></td><td></td><td>Peer to connect to directly.</td></tr>
+              <tr><td><code>transport</code></td><td><code>webrtc</code></td><td><code>http</code> uses the <a href="#relay">relay</a>. <code>host</code>, <code>password</code>, and <code>force_turn</code> are WebRTC-only.</td></tr>
+              <tr><td><code>relay_url</code>, <code>relay_token</code>, <code>relay_key</code></td><td>from env</td><td>HTTP only. Prefer the <code>VDON_MCP_RELAY_*</code> env vars.</td></tr>
+              <tr><td><code>password</code></td><td>SDK default</td><td>Room secret. <code>false</code> disables handshake encryption.</td></tr>
+              <tr><td><code>host</code></td><td><code>wss://wss.vdo.ninja</code></td><td>Handshake server.</td></tr>
+              <tr><td><code>force_turn</code></td><td><code>false</code></td><td>Always relay through TURN. Hides your IP from peers; may connect less often.</td></tr>
+              <tr><td><code>heartbeat_ms</code></td><td>15000</td><td>Keep-alive interval.</td></tr>
+              <tr><td><code>reconnect_ms</code> / <code>max_reconnect_ms</code></td><td>3000 / 30000</td><td>Reconnect backoff, doubling each try.</td></tr>
+              <tr><td><code>join_token</code> / <code>join_token_secret</code></td><td></td><td>Present a token, or a secret to sign and verify them.</td></tr>
+              <tr><td><code>join_token_ttl_ms</code></td><td>600000</td><td>Token lifetime (10 minutes).</td></tr>
+              <tr><td><code>enforce_join_token</code></td><td><code>false</code></td><td>Reject peers without a valid token.</td></tr>
+              <tr><td><code>allow_peer_stream_ids</code></td><td></td><td>Only these stream IDs may talk to you.</td></tr>
+              <tr><td><code>require_session_mac</code></td><td><code>false</code></td><td>Reject unsigned control and file messages.</td></tr>
+              <tr><td><code>file_chunk_bytes</code></td><td>65536</td><td>1 KB to 256 KB.</td></tr>
+              <tr><td><code>file_max_bytes</code></td><td>64 MB</td><td>Largest file accepted.</td></tr>
+              <tr><td><code>file_ack_timeout_ms</code> / <code>file_max_retries</code></td><td>1200 / 6</td><td>Per-chunk retry policy.</td></tr>
+              <tr><td><code>file_spool_dir</code></td><td>OS temp</td><td>Where large incoming files are written.</td></tr>
+              <tr><td><code>file_spool_threshold_bytes</code></td><td>4 MB</td><td>Spool to disk at or above this size.</td></tr>
+              <tr><td><code>keep_spool_files</code></td><td><code>false</code></td><td>Keep spooled files after cleanup.</td></tr>
+              <tr><td><code>state_max_keys</code> / <code>state_max_snapshot_entries</code></td><td>2048 / 4096</td><td>Shared state limits.</td></tr>
+              <tr><td><code>label</code>, <code>debug</code></td><td></td><td>Display label; verbose SDK logging.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_send</code><span>Send JSON or text over the data channel.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body">
+          <table class="args">
+            <thead><tr><th>Argument</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><code>session_id</code><span class="req">required</span></td><td></td></tr>
+              <tr><td><code>data</code><span class="req">required</span></td><td>Any JSON value. Use an envelope like <code>{"type": "help.request", …}</code>.</td></tr>
+              <tr><td><code>target</code> or <code>uuid</code></td><td>One peer, by stream ID or UUID. Omit for everyone connected. Not both. On WebRTC, a target object can set <code>allowFallback: true</code> to permit sending through the handshake server when no channel is open.</td></tr>
+            </tbody>
+          </table>
+          <p><code>ok: true</code> means the transport accepted the payload. On WebRTC, <code>ok: false</code> plus a <code>send_rejected</code> event means no data channel is open yet. Over the relay, results also carry <code>message_id</code> and <code>delivery_stage</code>.</p>
+        </div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_receive</code><span>Read queued messages and events.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body">
+          <table class="args">
+            <thead><tr><th>Argument</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><code>session_id</code><span class="req">required</span></td><td></td></tr>
+              <tr><td><code>max_events</code></td><td>Default 50, max 500.</td></tr>
+              <tr><td><code>wait_ms</code></td><td>0 to 30000. Waits for the first event if the queue is empty.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_status</code> · <code>vdo_disconnect</code><span>Inspect or close one session.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body"><p>Both take <code>session_id</code>. Disconnecting stops reconnects and frees the session.</p></div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_list_sessions</code> · <code>vdo_capabilities</code><span>Server-wide views.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body"><p>No arguments. <code>vdo_capabilities</code> reports the active profile, limits, and transport constraints. Have agents call it first.</p></div>
+      </details>
+
+      <h3>Peer sync</h3>
+      <details class="tool-ref">
+        <summary><code>vdo_sync_peers</code><span>Per-peer handshake, auth, and capability state.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code>. Shows whether each peer passed token checks and has a session key.</p></div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_sync_announce</code><span>Send a sync hello now.</span><span class="profile-tag">core</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code>, and optionally <code>uuid</code> or <code>target</code> to announce to one peer.</p></div>
+      </details>
+
+      <h3>Files</h3>
+      <details class="tool-ref">
+        <summary><code>vdo_file_send_path</code> · <code>vdo_file_send</code><span>Send a file.</span><span class="profile-tag">file</span></summary>
+        <div class="tool-body">
+          <table class="args">
+            <thead><tr><th>Argument</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><code>session_id</code><span class="req">required</span></td><td></td></tr>
+              <tr><td><code>file_path</code><span class="req">required</span></td><td><code>vdo_file_send_path</code> only. Streams from disk; contents never enter the model's context.</td></tr>
+              <tr><td><code>data_base64</code><span class="req">required</span></td><td><code>vdo_file_send</code> only. The whole file, base64-encoded.</td></tr>
+              <tr><td><code>name</code>, <code>mime</code></td><td>Metadata for the receiver.</td></tr>
+              <tr><td><code>uuid</code> or <code>target</code></td><td>Recipient.</td></tr>
+              <tr><td><code>transfer_id</code></td><td>Your own ID. Reuse it only to retry the same file to the same peer.</td></tr>
+              <tr><td><code>chunk_bytes</code>, <code>timeout_ms</code>, <code>ack_timeout_ms</code>, <code>max_retries</code></td><td>Override session defaults for this transfer.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_file_resume</code><span>Continue an interrupted send.</span><span class="profile-tag">file</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code> and <code>transfer_id</code>; optional <code>target</code>, <code>start_seq</code>, <code>ack_timeout_ms</code>, <code>max_retries</code>. Asks the receiver where it left off, then sends the rest.</p></div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_file_transfers</code><span>Transfer progress.</span><span class="profile-tag">file</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code> and <code>direction</code>: <code>incoming</code>, <code>outgoing</code>, or <code>all</code>.</p></div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_file_receive</code> · <code>vdo_file_save</code><span>Read or save a finished file.</span><span class="profile-tag">file</span></summary>
+        <div class="tool-body"><p>Both take <code>session_id</code> and <code>transfer_id</code>. <code>vdo_file_receive</code> returns the contents as <code>base64</code>, <code>utf8</code>, or <code>json</code>. <code>vdo_file_save</code> writes to <code>output_path</code> (set <code>overwrite</code> to replace an existing file) and keeps the contents out of context.</p></div>
+      </details>
+
+      <h3>Shared state</h3>
+      <details class="tool-ref">
+        <summary><code>vdo_state_set</code><span>Set a key and share it.</span><span class="profile-tag">state</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code>, <code>key</code>, and <code>value</code> (any JSON). <code>broadcast</code> defaults to <code>true</code>; pass <code>uuid</code> or <code>target</code> to send to one peer. Returns the stored entry with its <code>clock</code> and <code>actor</code>.</p></div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_state_get</code><span>Read one key or everything.</span><span class="profile-tag">state</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code>; omit <code>key</code> for the full snapshot. <code>include_meta</code> adds clocks and actors.</p></div>
+      </details>
+      <details class="tool-ref">
+        <summary><code>vdo_state_sync</code><span>Exchange full snapshots.</span><span class="profile-tag">state</span></summary>
+        <div class="tool-body"><p>Takes <code>session_id</code> and <code>mode</code>: <code>request</code> asks peers for theirs, <code>send</code> pushes yours. Use after a reconnect.</p></div>
+      </details>
+    </section>
+
+    <!-- Files -->
+    <section class="doc-section" id="files">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-file"></use></svg></span>File transfer</h2>
+      <p>The data channel is already reliable and ordered. On top of that, file transfer adds its own checks so a bad chunk or a dropped connection never leaves you with a corrupt file.</p>
+      <figure>
+        <svg class="dg" viewBox="0 0 640 430" role="img" aria-labelledby="dg2t">
+          <title id="dg2t">File transfer sequence: offer, accept, chunks with acknowledgements, a negative acknowledgement and retry, completion, and a resume handshake.</title>
+          <defs>
+            <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow" d="M0 0 10 5 0 10z"/></marker>
+            <marker id="sn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrow-nack" d="M0 0 10 5 0 10z"/></marker>
+          </defs>
+          <rect class="box" x="70" y="6" width="140" height="40" rx="10"/>
+          <text x="140" y="31" class="t-strong" text-anchor="middle">Sender</text>
+          <rect class="box" x="430" y="6" width="140" height="40" rx="10"/>
+          <text x="500" y="31" class="t-strong" text-anchor="middle">Receiver</text>
+          <line class="ln-life" x1="140" y1="46" x2="140" y2="424"/>
+          <line class="ln-life" x1="500" y1="46" x2="500" y2="424"/>
+
+          <path class="ln" d="M140 74H498" marker-end="url(#sa)"/><text x="320" y="68" text-anchor="middle">file.offer · name, size, SHA-256, chunk hashes</text>
+          <path class="ln" d="M500 106H142" marker-end="url(#sa)"/><text x="320" y="100" text-anchor="middle">file.accept</text>
+          <path class="ln" d="M140 138H498" marker-end="url(#sa)"/><text x="320" y="132" text-anchor="middle">file.chunk seq 0</text>
+          <path class="ln" d="M500 170H142" marker-end="url(#sa)"/><text x="320" y="164" text-anchor="middle">file.ack 0 · hash checked</text>
+          <path class="ln" d="M140 202H498" marker-end="url(#sa)"/><text x="320" y="196" text-anchor="middle">file.chunk seq 1</text>
+          <path class="ln-nack" d="M500 234H142" marker-end="url(#sn)"/><text x="320" y="228" text-anchor="middle" class="t-nack">file.nack 1 · bad hash, send again</text>
+          <path class="ln" d="M140 266H498" marker-end="url(#sa)"/><text x="320" y="260" text-anchor="middle">file.chunk seq 1 (retry) … seq n</text>
+          <path class="ln" d="M140 298H498" marker-end="url(#sa)"/><text x="320" y="292" text-anchor="middle">file.complete · whole-file SHA-256</text>
+          <path class="ln" d="M500 330H142" marker-end="url(#sa)"/><text x="320" y="324" text-anchor="middle">file.complete_ack · hash and size match</text>
+          <rect class="box-soft" x="160" y="346" width="320" height="22" rx="6"/>
+          <text x="320" y="361" text-anchor="middle" class="t-mono">connection dropped? vdo_file_resume</text>
+          <path class="ln" d="M140 390H498" marker-end="url(#sa)"/><text x="320" y="384" text-anchor="middle">file.resume_req</text>
+          <path class="ln" d="M500 418H142" marker-end="url(#sa)"/><text x="320" y="412" text-anchor="middle">file.resume_state · next_seq</text>
+        </svg>
+        <figcaption>Each chunk waits for an ack (1.2 s default) and is retried up to 6 times.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Integrity</strong>: every chunk and the whole file are checked with SHA-256.</li>
+        <li><strong>Resume</strong>: a transfer ID is tied to the sending peer and the exact file. Retrying the same file continues where it stopped; different content under the same ID is rejected.</li>
+        <li><strong>Memory</strong>: incoming files of 4 MB or more spool to disk. Prefer <code>vdo_file_send_path</code> and <code>vdo_file_save</code> for anything large.</li>
+        <li><strong>Limits</strong>: 64 MB per file by default (<code>file_max_bytes</code>). The server keeps the 12 most recent completed incoming files.</li>
+      </ul>
+    </section>
+
+    <!-- State -->
+    <section class="doc-section" id="state">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-layers"></use></svg></span>Shared state</h2>
+      <p>A small key/value store every peer in the room keeps a copy of. Each write carries a <code>clock</code> (a counter that only goes up) and an <code>actor</code> (the writer's stream ID). When two copies disagree:</p>
+      <ol>
+        <li>The higher <code>clock</code> wins.</li>
+        <li>On a tie, the alphabetically later <code>actor</code> wins.</li>
+      </ol>
+      <p>Every peer applies the same rule, so they all end up with the same value without a server deciding. Good for task status, assignments, and small flags. Not a database: keep values small and keys under the 2,048 limit.</p>
+<pre><code class="lang-json">{ "name": "vdo_state_set",
+  "arguments": { "session_id": "vdo_9a0e…", "key": "task.status", "value": "approved" } }</code></pre>
+    </section>
+
+    <!-- Config -->
+    <section class="doc-section" id="config">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-sliders"></use></svg></span>Configuration</h2>
+      <p>Server-wide settings come from environment variables or CLI flags. Security settings here become defaults for every <code>vdo_connect</code>; per-call arguments override them.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Environment variable</th><th>CLI flag</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>VDON_MCP_TOOL_PROFILE</code></td><td><code>--tool-profile</code></td><td><code>full</code></td></tr>
+            <tr><td><code>VDON_MCP_MAX_MESSAGE_BYTES</code></td><td><code>--max-message-bytes</code></td><td>1048576</td></tr>
+            <tr><td><code>VDON_MCP_JOIN_TOKEN_SECRET</code></td><td><code>--join-token-secret</code></td><td></td></tr>
+            <tr><td><code>VDON_MCP_ENFORCE_JOIN_TOKEN</code></td><td><code>--enforce-join-token</code></td><td><code>false</code></td></tr>
+            <tr><td><code>VDON_MCP_ALLOW_PEER_STREAM_IDS</code></td><td><code>--allow-peer-stream-ids</code></td><td>comma list</td></tr>
+            <tr><td><code>VDON_MCP_REQUIRE_SESSION_MAC</code></td><td><code>--require-session-mac</code></td><td><code>false</code></td></tr>
+            <tr><td><code>VDON_MCP_RELAY_URL</code></td><td></td><td>HTTP relay origin</td></tr>
+            <tr><td><code>VDON_MCP_RELAY_TOKEN</code></td><td></td><td>relay access token</td></tr>
+            <tr><td><code>VDON_MCP_RELAY_KEY</code></td><td></td><td>room key, 64 hex chars</td></tr>
+          </tbody>
+        </table>
+      </div>
+<pre><code class="lang-sh">VDON_MCP_TOOL_PROFILE=core npx vdon-mcp-server
+npx vdon-mcp-server --tool-profile file --require-session-mac true</code></pre>
+      <p>Started directly in a terminal, the server prints a short "Server running (stdio)" banner. Started by an MCP client, it stays quiet, which is normal.</p>
+    </section>
+
+    <!-- Security -->
+    <section class="doc-section" id="security">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-shield"></use></svg></span>Security</h2>
+      <p>Out of the box, data is encrypted in transit but anyone who knows your room name can join. Add layers as the work gets more sensitive.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Control</th><th>How it works</th><th>Turn it on</th></tr></thead>
+          <tbody>
+            <tr><td>Room password</td><td>Hashes the room name and encrypts the handshake. Peers without it can't find you.</td><td><code>password</code></td></tr>
+            <tr><td>Join tokens</td><td>HMAC-SHA256-signed token naming the room and stream, with an expiry. Checked during the sync handshake.</td><td><code>join_token_secret</code> + <code>enforce_join_token</code></td></tr>
+            <tr><td>Peer allowlist</td><td>Ignores room and file actions from stream IDs not on the list.</td><td><code>allow_peer_stream_ids</code></td></tr>
+            <tr><td>Session MAC</td><td>Each pair of peers agrees on a key (X25519). Control and file messages carry an HMAC-SHA256 signature.</td><td><code>require_session_mac</code></td></tr>
+            <tr><td>Tool profile</td><td>Hides tools an agent doesn't need. Calls to hidden tools fail.</td><td><code>--tool-profile</code></td></tr>
+            <tr><td>Relay only</td><td>Routes through TURN so peers don't see your IP.</td><td><code>force_turn</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>A locked-down room</h3>
+<pre><code class="lang-json">{ "name": "vdo_connect",
+  "arguments": {
+    "room": "acme_release_q3",
+    "stream_id": "planner",
+    "password": "a-long-random-string",
+    "join_token_secret": "shared-secret-from-your-vault",
+    "enforce_join_token": true,
+    "allow_peer_stream_ids": ["reviewer", "decider"],
+    "require_session_mac": true } }</code></pre>
+      <div class="note-box">
+        <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"></use></svg>
+        <div>Secrets passed as tool arguments pass through your agent's context. To keep them out, set <code>VDON_MCP_JOIN_TOKEN_SECRET</code> in the server's environment instead.</div>
+      </div>
+    </section>
+
+    <!-- Network -->
+    <section class="doc-section" id="network">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-globe"></use></svg></span>Networking</h2>
+      <ul>
+        <li><strong>Direct first.</strong> WebRTC tries a direct path, which is fastest on a LAN and often works across the internet through NAT.</li>
+        <li><strong>TURN fallback.</strong> If direct fails, traffic relays through VDO.Ninja TURN servers. Still end-to-end encrypted; a little more latency.</li>
+        <li><strong>Privacy mode.</strong> <code>force_turn: true</code> always relays, so peers never see your IP. Some networks connect less reliably this way.</li>
+        <li><strong>Hard blocks.</strong> Some corporate firewalls and WSL network setups block WebRTC's UDP traffic. TURN helps but isn't a guaranteed bypass.</li>
+        <li><strong>No WebRTC at all?</strong> Use the <a href="#relay">HTTP relay</a>: plain HTTPS POST and long polling through a server you run.</li>
+        <li><strong>Not a tunnel.</strong> Only tool payloads cross the channel. No TCP, SSH, or port forwarding.</li>
+        <li><strong>Reconnects.</strong> Heartbeats every 15 s. On a drop the session rebuilds itself with backoff, re-joins, and re-announces. Make your message handlers safe to run twice.</li>
+      </ul>
+    </section>
+
+
+    <!-- Relay -->
+    <section class="doc-section" id="relay">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-server"></use></svg></span>HTTP relay</h2>
+      <p>For machines that can't run the native WebRTC library, or networks that block it. Both agents join the same encrypted room through a relay you operate. Messages, files, and shared state use the same tools.</p>
+      <div class="note-box">
+        <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"></use></svg>
+        <div>WebRTC stays the default. Both participants must choose <code>transport: "http"</code> with the same relay settings; sessions on different transports don't see each other. There's no automatic switching yet.</div>
+      </div>
+
+      <h3>1. Run the relay</h3>
+      <p>Node 18+, no native dependencies. Generate two secrets: an access token for the relay and a separate room key for the clients.</p>
+<pre><code class="lang-sh"># run twice: once for the token, once for the room key
+node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+VDON_RELAY_TOKEN=&lt;token&gt; npx vdon-mcp-relay
+# listens on 127.0.0.1:8790 (VDON_RELAY_HOST / VDON_RELAY_PORT to change)</code></pre>
+      <p>For other computers, put it behind an HTTPS reverse proxy: forward <code>/v1/rooms/</code> unchanged, keep the <code>Authorization</code> header, disable caching, allow 768 KiB request bodies and 30-second responses. Remote clients must use HTTPS; plain HTTP is only accepted on loopback.</p>
+
+      <h3>2. Point each MCP server at it</h3>
+      <p>Machines that only use the relay can install without WebRTC: <code>npm install @vdoninja/mcp --omit=optional</code>.</p>
+<pre><code class="lang-json">{
+  "command": "node",
+  "args": ["/absolute/path/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+  "env": {
+    "VDON_MCP_RELAY_URL": "https://relay.example.com",
+    "VDON_MCP_RELAY_TOKEN": "&lt;relay access token&gt;",
+    "VDON_MCP_RELAY_KEY": "&lt;64 hex characters&gt;"
+  }
+}</code></pre>
+      <p>The relay only ever gets the access token. Keep the room key on the clients. <code>vdo_connect</code> also takes <code>relay_url</code>, <code>relay_token</code>, and <code>relay_key</code>, but environment variables keep secrets out of the agent's context.</p>
+
+      <h3>3. Join and send</h3>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "transport": "http", "room": "project_room", "stream_id": "planner" } }
+{ "name": "vdo_connect", "arguments": { "transport": "http", "room": "project_room", "stream_id": "reviewer" } }
+{ "name": "vdo_send", "arguments": { "session_id": "&lt;planner-session&gt;", "target": "reviewer", "data": { "text": "Please review the plan." } } }</code></pre>
+
+      <h3>What the results mean</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>You see</th><th>It means</th></tr></thead>
+          <tbody>
+            <tr><td><code>delivery_stage: "queued"</code></td><td>Your local transport accepted the message. Keep the <code>message_id</code> to track it.</td></tr>
+            <tr><td><code>relay_receipt</code> · <code>relay_accepted</code></td><td>The relay has it. Not proof the other agent read it; ask for a reply.</td></tr>
+            <tr><td><code>relay_receipt</code> · <code>delivery_unknown</code></td><td>Retries failed; the relay may or may not have it. Check before repeating anything consequential.</td></tr>
+            <tr><td><code>relay_connection</code></td><td>The reader lost or regained the relay. <code>vdo_status</code> shows the current state.</td></tr>
+            <tr><td><code>relay_history_lost</code></td><td>Your cursor fell out of the replay window. Reconcile tasks, re-sync state, check unfinished transfers.</td></tr>
+            <tr><td><code>relay_message_rejected</code></td><td>An event failed decryption or validation. Check room keys match and clocks are in sync.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Limits and privacy</h3>
+      <ul>
+        <li><strong>Encryption</strong>: AES-256-GCM, key derived from the shared room key. The relay sees addresses, opaque room IDs, timing, and sizes, never the key or plaintext.</li>
+        <li><strong>Shared key, shared access</strong>: anyone with the room key can read all of that room's traffic and claim any identity in it. A <code>target</code> picks delivery; it isn't a private channel. Use separate rooms for separate trust groups.</li>
+        <li><strong>No forward secrecy</strong>: a leaked key decrypts previously captured traffic. Rotate keys when membership changes. Prefer WebRTC when that matters.</li>
+        <li><strong>Replay, not storage</strong>: up to 512 events or 8 MiB per room for 5 minutes, 16 rooms per relay, memory only. Long polls return within 25 seconds.</li>
+      </ul>
+    </section>
+
+    <!-- MCP over HTTP -->
+    <section class="doc-section" id="mcp-http">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-cloud"></use></svg></span>MCP over HTTP</h2>
+      <p>For AI clients that connect to remote MCP servers over HTTP instead of launching a local process. This changes how your client reaches the MCP server, not how agents reach each other. It's a different service from the <a href="#relay">HTTP relay</a>.</p>
+<pre><code class="lang-sh">VDON_MCP_HTTP_BEARER_TOKEN=change-me npx vdon-mcp-http
+# listens on http://127.0.0.1:8787/mcp</code></pre>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Variable</th><th>Default</th></tr></thead>
+          <tbody>
+            <tr><td><code>VDON_MCP_HTTP_HOST</code></td><td><code>127.0.0.1</code></td></tr>
+            <tr><td><code>VDON_MCP_HTTP_PORT</code></td><td>8787</td></tr>
+            <tr><td><code>VDON_MCP_HTTP_PATH</code></td><td><code>/mcp</code></td></tr>
+            <tr><td><code>VDON_MCP_HTTP_BEARER_TOKEN</code></td><td>none. Set it before exposing the port.</td></tr>
+            <tr><td><code>VDON_MCP_HTTP_ALLOW_ORIGIN</code></td><td>none (no CORS)</td></tr>
+            <tr><td><code>VDON_MCP_HTTP_MAX_BODY_BYTES</code></td><td>1048576</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The package also ships a Cloudflare Worker template (<code>assets/cloudflare/worker-proxy.js</code>) that forwards MCP requests to an upstream HTTP server. It doesn't run WebRTC itself.</p>
+    </section>
+
+    <!-- Troubleshooting -->
+    <section class="doc-section" id="troubleshooting">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-alert"></use></svg></span>Troubleshooting</h2>
+      <div class="faq">
+        <details>
+          <summary><span>My agent doesn't see any <code>vdo_</code> tools</span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Restart the client after installing. Check the registration with <code>claude mcp get vdo-ninja-mcp</code> or <code>codex mcp get vdo-ninja-mcp</code>. For JSON-configured clients, make sure the script path is absolute and exists. If you moved the install folder, run <code>npx vdon-mcp-install</code> again.</p></div>
+        </details>
+        <details>
+          <summary><span>The installer says a CLI wasn't found</span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>It only registers with CLIs on your <code>PATH</code>. Install the missing one, use <code>--codex-only</code> or <code>--claude-only</code>, or configure the client by hand.</p></div>
+        </details>
+        <details>
+          <summary><span>Both agents connected, but nothing arrives</span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Check both used the same <code>room</code> and <code>password</code>. Have one side set <code>target_stream_id</code> to the other's <code>stream_id</code>. Call <code>vdo_receive</code> with <code>wait_ms: 1000</code> and look for <code>data_channel_open</code>. A <code>send_rejected</code> event with <code>no_open_data_channel</code> means the channel isn't up yet: wait and retry.</p></div>
+        </details>
+        <details>
+          <summary><span><code>connection_failed</code>, or it never connects</span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>The network is probably blocking direct WebRTC. Try <code>force_turn: true</code>. Run <code>MCP_DEMO_FAKE=0 npx vdon-mcp-demo-message</code> on the same machine to separate network problems from agent problems.</p></div>
+        </details>
+        <details>
+          <summary><span><code>sync_peer_rejected</code> or <code>protocol_auth_failed</code></span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>A security check failed. Common causes: different join token secrets, an expired token, a stream ID missing from the allowlist, or one side requiring session MAC while the other can't provide it. <code>vdo_sync_peers</code> shows the reason per peer.</p></div>
+        </details>
+        <details>
+          <summary><span>One agent is on the relay and the other isn't</span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Sessions on different transports never discover each other. Disconnect both and reconnect with the same <code>transport</code>, room, relay URL, token, and room key.</p></div>
+        </details>
+        <details>
+          <summary><span><code>relay_history_lost</code> or <code>relay_message_rejected</code></span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>History lost: you were away longer than the relay's replay window. Check unfinished work with your peers, run <code>vdo_state_sync</code>, and look at <code>vdo_file_transfers</code>. Rejected: room keys differ, or a clock is far off. Sync clocks and compare keys.</p></div>
+        </details>
+        <details>
+          <summary><span><code>validation_error</code> on a tool call</span><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>An argument is missing or misspelled (unknown keys are rejected), or the tool isn't in the active profile. <code>vdo_capabilities</code> lists what's enabled.</p></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Testing -->
+    <section class="doc-section" id="testing">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-check"></use></svg></span>Testing</h2>
+<pre><code class="lang-sh"># fast product checks: conformance, server smoke, sync security
+npm run test:mcp
+# full engineering suite
+npm run test:mcp:all
+# live network diagnostics
+node tests/live-turn-smoke.js
+node tests/live-turn-soak.js
+node tests/live-turn-matrix.js</code></pre>
+      <p>Soak, matrix, and tuning knobs are covered in <a href="https://github.com/steveseguin/ninjamcp/blob/main/references/advanced-diagnostics.md">advanced diagnostics</a>. The machine-level contract lives in <a href="https://github.com/steveseguin/ninjamcp/blob/main/references/mcp-tool-contract.md">mcp-tool-contract.md</a>.</p>
+
+      <p class="muted" style="margin-top:40px;font-size:14px"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/docs/guide.html">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
+      <nav class="pager" aria-label="More">
+        <a href="./#faq"><small>Still curious?</small><b>Read the FAQ</b></a>
+        <a href="https://discord.vdo.ninja"><small>Stuck?</small><b>Ask on Discord</b></a>
+      </nav>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

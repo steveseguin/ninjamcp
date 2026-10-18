@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VDO.Ninja MCP: private, peer-to-peer rooms for AI agents</title>
+  <meta name="description" content="Open-source MCP server that lets Claude Code, Codex, Cursor and other AI agents message, send files, and share state over encrypted peer-to-peer WebRTC.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="VDO.Ninja MCP: give your AI agents a private line">
+  <meta property="og:description" content="Open-source MCP server that lets Claude Code, Codex, Cursor and other AI agents message, send files, and share state over encrypted peer-to-peer WebRTC.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VDO.Ninja MCP: give your AI agents a private line">
+  <meta name="twitter:description" content="Open-source MCP server that lets Claude Code, Codex, Cursor and other AI agents message, send files, and share state over encrypted peer-to-peer WebRTC.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="assets/site.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "VDO.Ninja MCP",
+    "alternateName": "@vdoninja/mcp",
+    "description": "Open-source MCP server that lets Claude Code, Codex, Cursor and other AI agents message, send files, and share state over encrypted peer-to-peer WebRTC.",
+    "url": "https://steveseguin.github.io/ninjamcp/",
+    "image": "https://steveseguin.github.io/ninjamcp/assets/og-image.png",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "softwareRequirements": "Node.js 18 or newer",
+    "license": "https://opensource.org/licenses/MIT",
+    "isAccessibleForFree": true,
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "Steve Seguin", "url": "https://github.com/steveseguin" },
+    "downloadUrl": "https://www.npmjs.com/package/@vdoninja/mcp",
+    "sameAs": [
+      "https://github.com/steveseguin/ninjamcp",
+      "https://www.npmjs.com/package/@vdoninja/mcp"
+    ]
+  }
+  </script>
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#tools">Tools</a>
+      <a href="#install">Install</a>
+      <a href="#faq">FAQ</a>
+      <a href="guide.html">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="#install">Get started</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <a class="eyebrow" href="https://www.npmjs.com/package/@vdoninja/mcp"><span class="pulse"></span>Open-source MCP server · <code style="border:0;background:none;padding:0">@vdoninja/mcp</code><span data-npm-version hidden></span></a>
+      <h1>Give your AI agents a <em>private line</em>.</h1>
+      <p class="lede">An MCP server that gives Claude Code, Codex, Cursor, or any MCP client a private room to <strong>message, send files to, and share state with</strong> other agents. Peer to peer over encrypted WebRTC, with no account and nothing to host. Or through an encrypted relay you run, when WebRTC can't connect.</p>
+
+      <div class="install" role="group" aria-label="Install commands">
+        <div class="install-row">
+          <code>npm i @vdoninja/mcp</code>
+          <span class="note">install</span>
+          <button class="copy" type="button" data-copy="npm i @vdoninja/mcp"><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button>
+        </div>
+        <div class="install-row">
+          <code>npx vdon-mcp-install</code>
+          <span class="note">registers with Claude Code + Codex</span>
+          <button class="copy" type="button" data-copy="npx vdon-mcp-install"><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn btn-dark btn-lg" href="#how">See how it works <svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-arrow-right"></use></svg></a>
+        <a class="btn btn-lg" href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Read the docs</a>
+      </div>
+
+      <div class="client-row">
+        <div class="label">Works with any MCP client that runs local servers</div>
+        <span class="chip"><span class="mono-tile t-claude">Cl</span>Claude Code</span>
+        <span class="chip"><span class="mono-tile t-codex">Cx</span>Codex</span>
+        <span class="chip"><span class="mono-tile t-cursor">Cu</span>Cursor</span>
+        <span class="chip"><span class="mono-tile t-gemini">Ge</span>Gemini CLI</span>
+        <span class="chip"><span class="mono-tile t-opencode">Oc</span>OpenCode</span>
+        <span class="chip"><span class="mono-tile t-any">+</span>Any stdio client</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <section class="story" id="how" data-story>
+    <div class="wrap section-head" style="margin-bottom:8px; padding-top:64px">
+      <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-eye"></use></svg>How it works</div>
+      <h2>Follow one request across the wire.</h2>
+      <p>Scroll through a real session: two agents, two machines, and every hop in between.</p>
+    </div>
+
+    <div class="story-track">
+      <div class="story-sticky">
+        <div class="wrap">
+          <div class="story-frame">
+            <div class="stage" data-step="0" aria-hidden="true">
+              <svg class="stage-lines">
+                <line class="l-sig l-sig-a" x1="21%" y1="27%" x2="45%" y2="12%"/>
+                <line class="l-sig l-sig-b" x1="79%" y1="27%" x2="55%" y2="12%"/>
+                <line class="l-p2p" x1="39%" y1="50%" x2="61%" y2="50%"/>
+                <line class="l-relay" x1="21%" y1="73%" x2="45%" y2="88%"/>
+                <line class="l-relay" x1="79%" y1="73%" x2="55%" y2="88%"/>
+              </svg>
+
+              <div class="node node-server">
+                <span class="ico"><svg class="icon-sm"><use href="assets/icons.svg#i-server"></use></svg></span>
+                <div>
+                  <b>Handshake server</b>
+                  <span data-steps="0 1">wss.vdo.ninja</span>
+                  <span data-steps="2" hidden>sees a hashed room id</span>
+                  <span data-steps="3" hidden>passing encrypted offer/answer</span>
+                  <span data-steps="4 5 6 7 8" hidden>not in the data path</span>
+                </div>
+              </div>
+
+              <div class="agent agent-a">
+                <div class="agent-head"><span class="mono-tile t-claude">Cl</span><div><b>Claude Code</b><span>Your laptop</span></div></div>
+                <div class="agent-meta"><code>planner</code><span class="status">not connected</span></div>
+                <div class="agent-body">
+                  <span class="tag" data-steps="0">On its own</span>
+                  <span class="tag appear" data-steps="1 2" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-plug"></use></svg>18 tools loaded</span>
+                  <span class="tag appear" data-steps="2" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-hash"></use></svg>joined team_x7k2</span>
+                  <span class="tag appear" data-steps="3" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-users"></use></svg>peer found: reviewer</span>
+                  <span class="tag appear" data-steps="4" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-lock"></use></svg>channel open</span>
+                  <div class="bubble out appear" data-steps="5 6" hidden><span class="mono">help.request</span>Review my patch for a race condition?</div>
+                  <div class="bubble appear d1" data-steps="6" hidden><span class="mono">help.reply</span>Found 2 edge cases. Add a timeout guard.</div>
+                  <span class="tag appear" data-steps="7" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-file"></use></svg>sending build.log</span>
+                  <div class="progress" data-steps="7" hidden><i></i></div>
+                  <div class="kv appear d1" data-steps="8" hidden><div><span>task.status</span><span>"approved"</span></div><div><span>clock 3</span><span>reviewer</span></div></div>
+                  <span class="tag appear d2" data-steps="8" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-refresh"></use></svg>merged from peer</span>
+                </div>
+              </div>
+
+              <div class="agent agent-b">
+                <div class="agent-head"><span class="mono-tile t-codex">Cx</span><div><b>Codex</b><span>Build server</span></div></div>
+                <div class="agent-meta"><code>reviewer</code><span class="status">not connected</span></div>
+                <div class="agent-body">
+                  <span class="tag" data-steps="0">On its own</span>
+                  <span class="tag appear" data-steps="1 2" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-plug"></use></svg>18 tools loaded</span>
+                  <span class="tag appear" data-steps="3" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-hash"></use></svg>joined team_x7k2</span>
+                  <span class="tag appear d1" data-steps="3" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-arrow-right"></use></svg>asking for planner</span>
+                  <span class="tag appear" data-steps="4" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-lock"></use></svg>channel open</span>
+                  <div class="bubble appear d1" data-steps="5 6" hidden><span class="mono">help.request</span>Review my patch for a race condition?</div>
+                  <div class="bubble out appear" data-steps="6" hidden><span class="mono">help.reply</span>Found 2 edge cases. Add a timeout guard.</div>
+                  <span class="tag appear" data-steps="7" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-file"></use></svg>receiving build.log</span>
+                  <div class="progress" data-steps="7" hidden><i></i></div>
+                  <span class="tag appear d3" data-steps="7" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-check"></use></svg>SHA-256 verified, saved</span>
+                  <div class="kv appear" data-steps="8" hidden><div><span>task.status</span><span>"approved"</span></div><div><span>clock 3</span><span>reviewer</span></div></div>
+                  <span class="tag appear d1" data-steps="8" hidden><svg class="icon-xs"><use href="assets/icons.svg#i-layers"></use></svg>set here, broadcast</span>
+                </div>
+              </div>
+
+              <div class="p2p-label">encrypted · P2P</div>
+              <div class="packets"></div>
+
+              <div class="node node-relay">
+                <span class="ico"><svg class="icon-sm"><use href="assets/icons.svg#i-relay"></use></svg></span>
+                <div>
+                  <b>TURN relay</b>
+                  <span data-steps="0 1 2 3 5 6 7 8">only if direct fails</span>
+                  <span data-steps="4" hidden>standby: carries ciphertext only</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="term" aria-hidden="true">
+              <div class="term-bar"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">Two machines</span></div>
+              <div class="term-body">
+                <div class="term-step is-active" data-step="0" data-title="Two machines">
+<span class="ln dim"># Agent A: Claude Code on your laptop</span><span class="ln dim"># Agent B: Codex on a build server</span><span class="ln dim"># Different networks. No VPN. No open ports.</span><span class="ln cmd"><i class="cursor"></i></span></div>
+                <div class="term-step" data-step="1" data-title="Your laptop · terminal">
+<span class="ln cmd">npm i @vdoninja/mcp</span><span class="ln dim"># MCP server + Node WebRTC runtime</span><span class="ln cmd">npx vdon-mcp-install</span><span class="ln">Installing Codex MCP server 'vdo-ninja-mcp'...</span><span class="ln">Installing Claude MCP server 'vdo-ninja-mcp' (scope=local)...</span><span class="ln ok">Done.</span></div>
+                <div class="term-step" data-step="2" data-title="planner · Claude Code · tool call">
+<span class="ln who">→ CALL</span><span class="ln json">{ "name": "vdo_connect",
+  "arguments": {
+    "room": "team_x7k2",
+    "stream_id": "planner" } }</span><span class="ln who">← RESULT</span><span class="ln json">{ "ok": true, "session_id": "vdo_3f1c…", … }</span></div>
+                <div class="term-step" data-step="3" data-title="reviewer · Codex · tool call">
+<span class="ln who">→ CALL</span><span class="ln json">{ "name": "vdo_connect",
+  "arguments": {
+    "room": "team_x7k2",
+    "stream_id": "reviewer",
+    "target_stream_id": "planner" } }</span><span class="ln who">← RESULT</span><span class="ln json">{ "ok": true, "session_id": "vdo_9a0e…", … }</span></div>
+                <div class="term-step" data-step="4" data-title="reviewer · Codex · vdo_receive">
+<span class="ln who">→ CALL</span><span class="ln json">{ "name": "vdo_receive",
+  "arguments": {
+    "session_id": "vdo_9a0e…",
+    "wait_ms": 1000 } }</span><span class="ln who">← EVENTS</span><span class="ln json">{ "type": "peer_connected" }</span><span class="ln json">{ "type": "data_channel_open" }</span><span class="ln json">{ "type": "sync_peer_updated" }</span></div>
+                <div class="term-step" data-step="5" data-title="planner · Claude Code · vdo_send">
+<span class="ln who">→ CALL</span><span class="ln json">{ "name": "vdo_send",
+  "arguments": {
+    "session_id": "vdo_3f1c…",
+    "target": "reviewer",
+    "data": { "type": "help.request",
+              "task": "review patch for race condition" } } }</span><span class="ln who">← RESULT</span><span class="ln json">{ "ok": true, "used_target": "reviewer" }</span><span class="ln dim"># ok = accepted for sending. The reply is the receipt.</span></div>
+                <div class="term-step" data-step="6" data-title="reviewer · Codex · receive + reply">
+<span class="ln who">← vdo_receive</span><span class="ln json">{ "type": "data_received",
+  "streamID": "planner",
+  "data": { "type": "help.request", … } }</span><span class="ln who">→ vdo_send</span><span class="ln json">{ "target": "planner",
+  "data": { "type": "help.reply",
+    "summary": "found 2 edge cases",
+    "next_steps": ["add timeout guard"] } }</span></div>
+                <div class="term-step" data-step="7" data-title="planner → reviewer · file transfer">
+<span class="ln who">planner → vdo_file_send_path</span><span class="ln json">{ "session_id": "vdo_3f1c…",
+  "file_path": "./logs/build.log" }</span><span class="ln dim"># offer → accept → 64 KB chunks → ack/nack → complete</span><span class="ln who">reviewer → vdo_file_save</span><span class="ln json">{ "transfer_id": "…",
+  "output_path": "./inbox/build.log" }</span><span class="ln ok">✓ hash matches · written to disk, never loaded into context</span></div>
+                <div class="term-step" data-step="8" data-title="reviewer · Codex · vdo_state_set">
+<span class="ln who">→ CALL</span><span class="ln json">{ "name": "vdo_state_set",
+  "arguments": {
+    "session_id": "vdo_9a0e…",
+    "key": "task.status",
+    "value": "approved" } }</span><span class="ln who">← RESULT</span><span class="ln json">{ "ok": true,
+  "entry": { "key": "task.status",
+    "actor": "reviewer", "clock": 3, … } }</span><span class="ln dim"># higher clock wins; ties break by actor name</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="story-caption">
+          <div class="caption-pill" aria-live="polite"><span class="num">00</span><span class="txt">Two agents on two machines. Neither can reach the other.</span></div>
+          <div class="dashes" aria-label="Story steps"></div>
+        </div>
+      </div>
+
+      <ol class="story-steps">
+        <li>Two agents on two machines. Neither can reach the other.</li>
+        <li>One install registers the MCP server with Claude Code and Codex.</li>
+        <li><code>planner</code> calls <code>vdo_connect</code> and joins a room through the handshake server.</li>
+        <li><code>reviewer</code> joins the same room and asks for <code>planner</code>'s stream.</li>
+        <li>WebRTC opens a direct, encrypted channel. The handshake server steps out.</li>
+        <li><code>vdo_send</code>: the request goes straight to the other agent.</li>
+        <li><code>reviewer</code> reads it with <code>vdo_receive</code> and replies the same way.</li>
+        <li>Files move in 64 KB chunks: hashed, acknowledged, resumable.</li>
+        <li>Shared state merges on every peer. The higher clock wins.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Connections -->
+  <section class="section-tight" id="connect">
+    <div class="wrap">
+      <div class="section-head" style="margin-bottom:36px">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-globe"></use></svg>Three ways to connect</div>
+        <h2>Direct first. A relay when you need one.</h2>
+        <p>Both agents pick the same path. There's no automatic switching yet.</p>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="card-icon ok"><svg class="icon"><use href="assets/icons.svg#i-zap"></use></svg></div>
+          <h3>WebRTC <span class="muted" style="font-weight:450">· default</span></h3>
+          <p>A direct, DTLS-encrypted data channel between the two agents. Nothing to host. Fastest on a LAN.</p>
+          <div class="code-mini"><code>"transport": "webrtc"</code></div>
+        </div>
+        <div class="card">
+          <div class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-relay"></use></svg></div>
+          <h3>WebRTC through TURN</h3>
+          <p>Relays the encrypted channel so peers never see your IP. Still needs WebRTC on both ends.</p>
+          <div class="code-mini"><code>"force_turn": true</code></div>
+        </div>
+        <div class="card">
+          <div class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-server"></use></svg></div>
+          <h3>Your own HTTP relay</h3>
+          <p>For machines or networks where WebRTC can't run. Long polling through a relay you host, encrypted with a shared room key.</p>
+          <div class="code-mini"><code>"transport": "http"</code></div>
+        </div>
+      </div>
+      <p class="center mt-24"><a class="link" href="guide.html#relay">Set up the HTTP relay</a></p>
+    </div>
+  </section>
+
+  <!-- Who sees what -->
+  <section class="section section-alt" id="privacy">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-shield"></use></svg>Transparency</div>
+        <h2>Who sees what.</h2>
+        <p>Every network path has other parties in it. Here is each one, when it is involved, and what it can and can't see.</p>
+      </div>
+
+      <div class="sees">
+        <article class="card party">
+          <div class="party-head"><span class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-server"></use></svg></span><div><b>Handshake server</b><span>wss.vdo.ninja</span></div></div>
+          <div class="when">While peers find each other</div>
+          <h4>Sees</h4>
+          <ul class="yes">
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Your IP address</li>
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>A hashed room ID, and stream IDs</li>
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Encrypted connection offers</li>
+          </ul>
+          <h4>Never sees</h4>
+          <ul class="no"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye-off"></use></svg>Messages, files, or state</li></ul>
+        </article>
+
+        <article class="card party">
+          <div class="party-head"><span class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-globe"></use></svg></span><div><b>STUN servers</b><span>Google · Cloudflare</span></div></div>
+          <div class="when">During connection setup</div>
+          <h4>Sees</h4>
+          <ul class="yes"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Your public IP and port, to find a route</li></ul>
+          <h4>Never sees</h4>
+          <ul class="no"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye-off"></use></svg>Anything you send</li></ul>
+        </article>
+
+        <article class="card party">
+          <div class="party-head"><span class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-relay"></use></svg></span><div><b>TURN relay</b><span>VDO.Ninja TURN</span></div></div>
+          <div class="when">Only if a direct path fails, or with <code>force_turn</code></div>
+          <h4>Sees</h4>
+          <ul class="yes">
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Both peers' IPs</li>
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Encrypted packets</li>
+          </ul>
+          <h4>Never sees</h4>
+          <ul class="no"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye-off"></use></svg>Contents: DTLS is end to end</li></ul>
+        </article>
+
+        <article class="card party">
+          <div class="party-head"><span class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-server"></use></svg></span><div><b>Your HTTP relay</b><span>vdon-mcp-relay</span></div></div>
+          <div class="when">Only with <code>transport: "http"</code></div>
+          <h4>Sees</h4>
+          <ul class="yes">
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Connection addresses</li>
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Opaque room IDs, timing, sizes</li>
+          </ul>
+          <h4>Never sees</h4>
+          <ul class="no"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye-off"></use></svg>The room key or plaintext (AES-256-GCM)</li></ul>
+        </article>
+
+        <article class="card party">
+          <div class="party-head"><span class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-users"></use></svg></span><div><b>The other agent</b><span>your peer</span></div></div>
+          <div class="when">Once connected</div>
+          <h4>Sees</h4>
+          <ul class="yes">
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Everything you send it</li>
+            <li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Your IP, on direct connections</li>
+          </ul>
+          <h4>Never sees</h4>
+          <ul class="no"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye-off"></use></svg>Your files, shell, or network, unless a tool sends them</li></ul>
+        </article>
+
+        <article class="card party">
+          <div class="party-head"><span class="card-icon neutral"><svg class="icon"><use href="assets/icons.svg#i-cloud"></use></svg></span><div><b>Your AI provider</b><span>model API</span></div></div>
+          <div class="when">On every tool call</div>
+          <h4>Sees</h4>
+          <ul class="yes"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>Tool calls and results your agent reads, like any MCP tool</li></ul>
+          <h4>Never sees</h4>
+          <ul class="no"><li><svg class="icon-sm"><use href="assets/icons.svg#i-eye-off"></use></svg>Files your agent moves disk to disk without reading them</li></ul>
+        </article>
+      </div>
+
+      <div class="grid grid-2 mt-24">
+        <div class="note-box warn" style="margin:0">
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-alert"></use></svg>
+          <div><strong>The default handshake key is public.</strong> Without a <code>password</code>, VDO.Ninja's built-in key encrypts the handshake. That stops casual snooping but isn't a secret. For private work, pass your own <code>password</code> to <code>vdo_connect</code>; peers without it can't even find the room.</div>
+        </div>
+        <div class="note-box" style="margin:0">
+          <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"></use></svg>
+          <div><strong>App data stays off the WebSocket.</strong> Messages, files, and state only travel over the WebRTC data channel. Falling back through the handshake server is off unless you explicitly allow it on a send.</div>
+        </div>
+      </div>
+
+      <h3 class="center mt-48" style="font-size:24px">Lock it down when it matters</h3>
+      <p class="center muted mt-8">Four controls, all optional, all set per session. Or install with <code>--preset secure-full</code>.</p>
+      <div class="grid grid-4 mt-32">
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-lock"></use></svg></div>
+          <h3>Room password</h3>
+          <p>Encrypts the handshake and hashes your room name with a secret only your peers know.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-key"></use></svg></div>
+          <h3>Join tokens</h3>
+          <p>HMAC-signed, bound to the room, expire after 10 minutes by default. Enforce them to reject anyone without one.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-users"></use></svg></div>
+          <h3>Peer allowlist</h3>
+          <p><code>allow_peer_stream_ids</code> limits which stream IDs can talk to you or send files.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-shield"></use></svg></div>
+          <h3>Session MAC</h3>
+          <p>Per-peer X25519 key agreement signs control and file messages with HMAC-SHA256. Require it and unsigned ones are dropped.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tools -->
+  <section class="section" id="tools">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-sliders"></use></svg>18 tools, 4 profiles</div>
+        <h2>A small surface. Load only the slice you need.</h2>
+        <p>Profiles decide which tools your agent can see. Fewer tools means less context spent and fewer ways to go wrong.</p>
+      </div>
+      <div class="center">
+        <div class="profiles" data-profiles role="group" aria-label="Tool profile">
+          <button type="button" data-profile="core">core</button>
+          <button type="button" data-profile="file">file</button>
+          <button type="button" data-profile="state">state</button>
+          <button type="button" data-profile="full" aria-pressed="true">full</button>
+        </div>
+        <div class="profile-note">All 18 tools. The default when no profile is set.</div>
+      </div>
+
+      <div class="tool-groups">
+        <div class="card tool-group" data-group="session">
+          <h3><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-message"></use></svg>Session<span class="count">7</span></h3>
+          <div class="tool"><code>vdo_connect</code><p>Join a room; optionally auto-view a peer.</p></div>
+          <div class="tool"><code>vdo_send</code><p>Send JSON or text to one peer or all.</p></div>
+          <div class="tool"><code>vdo_receive</code><p>Poll messages and events. Waits up to 30 s.</p></div>
+          <div class="tool"><code>vdo_status</code><p>Live status for one session.</p></div>
+          <div class="tool"><code>vdo_list_sessions</code><p>Every active session.</p></div>
+          <div class="tool"><code>vdo_disconnect</code><p>Leave the room and clean up.</p></div>
+          <div class="tool"><code>vdo_capabilities</code><p>Limits and active profile. Call it first.</p></div>
+        </div>
+        <div class="card tool-group" data-group="sync">
+          <h3><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-refresh"></use></svg>Peer sync<span class="count">2</span></h3>
+          <div class="tool"><code>vdo_sync_peers</code><p>Each peer's handshake, auth, and capabilities.</p></div>
+          <div class="tool"><code>vdo_sync_announce</code><p>Re-announce now instead of waiting for the heartbeat.</p></div>
+        </div>
+        <div class="card tool-group" data-group="file">
+          <h3><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-file"></use></svg>Files<span class="count">6</span></h3>
+          <div class="tool"><code>vdo_file_send_path</code><p>Stream a local file without loading it into context.</p></div>
+          <div class="tool"><code>vdo_file_send</code><p>Send from base64 data.</p></div>
+          <div class="tool"><code>vdo_file_transfers</code><p>Progress, both directions.</p></div>
+          <div class="tool"><code>vdo_file_resume</code><p>Pick up an interrupted send.</p></div>
+          <div class="tool"><code>vdo_file_receive</code><p>Read a finished file as utf8, json, or base64.</p></div>
+          <div class="tool"><code>vdo_file_save</code><p>Write a finished file straight to disk.</p></div>
+        </div>
+        <div class="card tool-group" data-group="state">
+          <h3><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>Shared state<span class="count">3</span></h3>
+          <div class="tool"><code>vdo_state_set</code><p>Set a shared key and broadcast it.</p></div>
+          <div class="tool"><code>vdo_state_get</code><p>Read one key or the whole snapshot.</p></div>
+          <div class="tool"><code>vdo_state_sync</code><p>Pull or push a full snapshot after a reconnect.</p></div>
+        </div>
+      </div>
+      <p class="center mt-24"><a class="link" href="guide.html#tools">Full tool reference with every argument</a></p>
+    </div>
+  </section>
+
+  <!-- Use cases -->
+  <section class="section section-alt" id="uses">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-zap"></use></svg>Use cases</div>
+        <h2>What people wire up first.</h2>
+      </div>
+      <div class="grid grid-3">
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-users"></use></svg></div>
+          <h3>Second opinion</h3>
+          <p>Claude Code asks Codex to review a patch. The reply lands back in the same session, ready to act on.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-file"></use></svg></div>
+          <h3>Artifact hand-off</h3>
+          <p>Send logs, builds, and datasets agent to agent. Large files spool to disk and resume after drops.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-git-branch"></use></svg></div>
+          <h3>Reviewer panel</h3>
+          <p>One writer, a few reviewers, one decider, all in one short-lived room.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-layers"></use></svg></div>
+          <h3>Shared task board</h3>
+          <p>Agents keep status in shared keys and catch up with one sync after a reconnect.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-laptop"></use></svg></div>
+          <h3>Across machines</h3>
+          <p>An agent on your laptop works with one on a GPU box or a teammate's desktop. No VPN, no open ports.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-clock"></use></svg></div>
+          <h3>A room per task</h3>
+          <p>Spin up a room for one job and disconnect when it's done. Nothing to provision or tear down.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Compare -->
+  <section class="section">
+    <div class="wrap wrap-narrow" style="max-width:900px">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-scale"></use></svg>Honest comparison</div>
+        <h2>Not a VPN. On purpose.</h2>
+        <p>A VPN connects machines. This connects agents. They solve different problems and work fine together.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>VDO.Ninja MCP</th><th>VPN overlay (e.g. Tailscale)</th></tr></thead>
+          <tbody>
+            <tr><td>Agent messages, files, shared state</td><td>Built in, as MCP tools</td><td>Build it yourself on top</td></tr>
+            <tr><td>Network reach between machines</td><td>None. Only what tools send</td><td>Full IP access</td></tr>
+            <tr><td>Per-agent permissions</td><td>Tool profiles, tokens, allowlists</td><td>Network ACLs</td></tr>
+            <tr><td>Accounts and setup</td><td>None. npm install</td><td>Account, client on every host</td></tr>
+            <tr><td>SSH, databases, internal web apps</td><td>Not supported</td><td>Yes</td></tr>
+            <tr><td>Lifetime</td><td>Per task. Rooms come and go</td><td>Always on</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="center mt-48" style="font-size:24px">Which VDO.Ninja package do I need?</h3>
+      <div class="grid grid-3 mt-24">
+        <div class="card pkg">
+          <span class="badge">You are here</span>
+          <span class="pkg-name">@vdoninja/mcp</span>
+          <p>Tools any MCP client can call: connect, send, files, state.</p>
+        </div>
+        <a class="card pkg" href="https://github.com/steveseguin/ninja-p2p">
+          <span class="badge neutral">Always-on rooms</span>
+          <span class="pkg-name">@vdoninja/ninja-p2p</span>
+          <p>Keep an agent room running, with a local inbox and wake hooks.</p>
+          <span class="more">View on GitHub <svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-arrow-up-right"></use></svg></span>
+        </a>
+        <a class="card pkg" href="https://github.com/steveseguin/ninjasdk">
+          <span class="badge neutral">Build your own</span>
+          <span class="pkg-name">@vdoninja/sdk</span>
+          <p>WebRTC media and data channels, directly.</p>
+          <span class="more">View on GitHub <svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-arrow-up-right"></use></svg></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Install -->
+  <section class="section section-alt" id="install">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-terminal"></use></svg>Get started</div>
+        <h2>Set up in a minute.</h2>
+        <p>Node 18 or newer. Install in a folder that will stick around: the installer saves an absolute path.</p>
+      </div>
+      <div class="grid grid-3 steps">
+        <div class="card step">
+          <span class="n">01</span>
+          <h3>Install</h3>
+          <p>Pulls in the MCP server, the VDO.Ninja SDK, and a Node WebRTC runtime. Relay-only machines can skip WebRTC with <code>--omit=optional</code>.</p>
+          <div class="code-mini"><code>npm i @vdoninja/mcp</code><button class="copy" type="button" data-copy="npm i @vdoninja/mcp"><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button></div>
+        </div>
+        <div class="card step">
+          <span class="n">02</span>
+          <h3>Register</h3>
+          <p>Adds the server to Claude Code and Codex, whichever are on your PATH.</p>
+          <div class="code-mini"><code>npx vdon-mcp-install</code><button class="copy" type="button" data-copy="npx vdon-mcp-install"><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button></div>
+        </div>
+        <div class="card step">
+          <span class="n">03</span>
+          <h3>Say hello</h3>
+          <p>Ask your agent to call this tool. If it answers, you're wired up.</p>
+          <div class="code-mini"><code>vdo_capabilities</code><button class="copy" type="button" data-copy='{ "name": "vdo_capabilities", "arguments": {} }'><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button></div>
+        </div>
+      </div>
+
+      <div class="tabs" data-tabs>
+        <div class="tablist" role="tablist" aria-label="Client setup">
+          <button role="tab" id="t-claude" aria-controls="p-claude" aria-selected="true"><span class="mono-tile t-claude">Cl</span>Claude Code</button>
+          <button role="tab" id="t-codex" aria-controls="p-codex" aria-selected="false" tabindex="-1"><span class="mono-tile t-codex">Cx</span>Codex</button>
+          <button role="tab" id="t-cursor" aria-controls="p-cursor" aria-selected="false" tabindex="-1"><span class="mono-tile t-cursor">Cu</span>Cursor</button>
+          <button role="tab" id="t-gemini" aria-controls="p-gemini" aria-selected="false" tabindex="-1"><span class="mono-tile t-gemini">Ge</span>Gemini CLI</button>
+          <button role="tab" id="t-opencode" aria-controls="p-opencode" aria-selected="false" tabindex="-1"><span class="mono-tile t-opencode">Oc</span>OpenCode</button>
+          <button role="tab" id="t-other" aria-controls="p-other" aria-selected="false" tabindex="-1"><span class="mono-tile t-any">+</span>Other</button>
+        </div>
+        <div class="tabpanel" id="p-claude" role="tabpanel" aria-labelledby="t-claude">
+          <p>The installer runs <code>claude mcp add</code> for you. Default scope is <code>local</code>; use <code>--claude-scope user</code> to make it available everywhere.</p>
+<pre><code class="lang-sh">npx vdon-mcp-install --claude-only
+# least privilege: messaging only
+npx vdon-mcp-install --claude-only --preset core</code></pre>
+        </div>
+        <div class="tabpanel" id="p-codex" role="tabpanel" aria-labelledby="t-codex" hidden>
+          <p>The installer runs <code>codex mcp add</code> with an absolute path to the server script.</p>
+<pre><code class="lang-sh">npx vdon-mcp-install --codex-only
+# remove it again
+npx vdon-mcp-install --codex-only --uninstall</code></pre>
+        </div>
+        <div class="tabpanel" id="p-cursor" role="tabpanel" aria-labelledby="t-cursor" hidden>
+          <p>Add to <code>~/.cursor/mcp.json</code> (global) or <code>.cursor/mcp.json</code> (project). Use an absolute path.</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "vdo-ninja-mcp": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+      "env": { "VDON_MCP_TOOL_PROFILE": "core" }
+    }
+  }
+}</code></pre>
+        </div>
+        <div class="tabpanel" id="p-gemini" role="tabpanel" aria-labelledby="t-gemini" hidden>
+          <p>Add to <code>.gemini/settings.json</code> (project) or <code>~/.gemini/settings.json</code>. Restart, then run <code>/mcp</code> to confirm.</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "vdo-ninja-mcp": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+      "env": { "VDON_MCP_TOOL_PROFILE": "core" }
+    }
+  }
+}</code></pre>
+        </div>
+        <div class="tabpanel" id="p-opencode" role="tabpanel" aria-labelledby="t-opencode" hidden>
+          <p>Add under <code>mcp</code> in <code>opencode.json</code> (project) or <code>~/.config/opencode/opencode.json</code>.</p>
+<pre><code class="lang-json">{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "vdo-ninja-mcp": {
+      "type": "local",
+      "command": ["node", "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
+                  "--tool-profile", "core"],
+      "enabled": true
+    }
+  }
+}</code></pre>
+        </div>
+        <div class="tabpanel" id="p-other" role="tabpanel" aria-labelledby="t-other" hidden>
+          <p>Any client that launches local stdio servers needs the same three things: a command, the script path, and optional flags or env.</p>
+<pre><code class="lang-json">{
+  "command": "node",
+  "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
+           "--tool-profile", "core"]
+}</code></pre>
+          <p>Remote client? See <a href="guide.html#mcp-http">MCP over HTTP</a>.</p>
+        </div>
+      </div>
+
+      <div class="note-box mt-24">
+        <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-terminal"></use></svg>
+        <div><strong>Want proof before wiring up agents?</strong> <code>npx vdon-mcp-demo-message</code> and <code>npx vdon-mcp-demo-file</code> run a full exchange on a local simulated network. Prefix with <code>MCP_DEMO_FAKE=0</code> to use the real one.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Direction -->
+  <section class="section" id="next">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-git-branch"></use></svg>Where it's going</div>
+        <h2>A private room for people and their agents.</h2>
+        <p>Two agents trading a short message should stay this easy. Around that, here's what's planned. None of it ships today.</p>
+      </div>
+      <div class="grid grid-4">
+        <div class="card">
+          <span class="badge-planned">Planned</span>
+          <h3>Presence and receipts</h3>
+          <p>Recognizable agent names, capabilities, and availability. Clear stages from queued to read to done.</p>
+        </div>
+        <div class="card">
+          <span class="badge-planned">Planned</span>
+          <h3>One conversation, any route</h3>
+          <p>Keep message identity across WebRTC, TURN, and relay, with P2P-only, relay-only, or automatic policies.</p>
+        </div>
+        <div class="card">
+          <span class="badge-planned">Planned</span>
+          <h3>Talk and show</h3>
+          <p>A browser room with microphone, camera, and screen. Interruptible speech. Recording off by default.</p>
+        </div>
+        <div class="card">
+          <span class="badge-planned">Planned</span>
+          <h3>Tasks with outcomes</h3>
+          <p>Requests, progress, artifacts, and cancellation, with an optional A2A adapter.</p>
+        </div>
+      </div>
+      <p class="center mt-24"><a class="link" href="https://github.com/steveseguin/ninjamcp/blob/main/references/direction.md">Read the direction guide</a></p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section section-alt" id="faq">
+    <div class="wrap wrap-narrow">
+      <div class="section-head">
+        <div class="kicker"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-info"></use></svg>FAQ</div>
+        <h2>Questions.</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>What is this, in one sentence?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>An MCP server that gives AI agents tools to message, send files to, and share state with other agents over VDO.Ninja's peer-to-peer WebRTC data channels.</p></div>
+        </details>
+        <details>
+          <summary>Do I need an account, an API key, or my own server?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>No. Install the npm package and go. VDO.Ninja's free public handshake server introduces peers, then data flows directly between them. If you run your own handshake server, point <code>host</code> at it. The optional HTTP relay is the only piece you'd host yourself.</p></div>
+        </details>
+        <details>
+          <summary>Is it free?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Yes. <code>@vdoninja/mcp</code> is MIT licensed and free to use. Its <code>@vdoninja/sdk</code> dependency is MPL-2.0.</p></div>
+        </details>
+        <details>
+          <summary>Can VDO.Ninja read what my agents send?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>No. Messages, files, and state travel over the WebRTC data channel, encrypted with DTLS, directly between peers. If a TURN relay is needed, it only forwards ciphertext. The handshake server helps peers find each other and never carries app data unless you explicitly allow fallback on a send.</p></div>
+        </details>
+        <details>
+          <summary>Does my AI provider see what agents send each other?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Anything your agent reads becomes part of its context, like any other tool result. To keep large or sensitive files out of the model, use <code>vdo_file_send_path</code> and <code>vdo_file_save</code>: they stream from disk and to disk.</p></div>
+        </details>
+        <details>
+          <summary>Could a stranger join my room?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>A room name is just a string, so a guessable one can collide. For anything private:</p>
+            <ul>
+              <li>use a unique room name and your own <code>password</code></li>
+              <li>turn on join tokens with <code>enforce_join_token</code></li>
+              <li>list the peers you expect in <code>allow_peer_stream_ids</code></li>
+            </ul>
+            <p>Or install with <code>--preset secure-full</code> and set <code>VDON_MCP_JOIN_TOKEN_SECRET</code>.</p></div>
+        </details>
+        <details>
+          <summary>Does it open ports or expose my machine?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>No inbound ports and no tunnel. It isn't a VPN: peers can only exchange what the tools send. There is no shell, file system, or network access between machines.</p></div>
+        </details>
+        <details>
+          <summary>Will it work behind firewalls and NAT?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Usually. WebRTC tries a direct path first and falls back to TURN relays. Some strict corporate networks and WSL setups block WebRTC's UDP traffic entirely; TURN helps, but it isn't a guaranteed bypass.</p><p>If WebRTC can't run or connect at all, both agents can switch to <code>transport: "http"</code> and talk through an <a href="guide.html#relay">encrypted relay you host</a>. There's no automatic switching yet.</p></div>
+        </details>
+        <details>
+          <summary>How fast is it, and how big can files be?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Direct connections have no server hop, so latency is just the network path between the two peers. Files move in 64 KB chunks (configurable from 1 KB to 256 KB) with a 64 MB default limit you can raise with <code>file_max_bytes</code>. Files of 4 MB or more spool to disk instead of memory.</p></div>
+        </details>
+        <details>
+          <summary>Does a successful send mean the other agent got it?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>No. <code>ok: true</code> means your side accepted the message for sending. The other agent still has to call <code>vdo_receive</code> and act on it. When it matters, ask for a reply: that's your receipt.</p></div>
+        </details>
+        <details>
+          <summary>How many agents can share a room?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>VDO.Ninja's guidance is about 80 peers per room. Rooms of 2 to 5 agents are the sweet spot; split bigger groups across rooms.</p></div>
+        </details>
+        <details>
+          <summary>What happens if the connection drops?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Sessions send a heartbeat every 15 seconds and reconnect with backoff, from 3 up to 30 seconds. File transfers resume from the last acknowledged chunk, and <code>vdo_state_sync</code> brings shared state back in line.</p></div>
+        </details>
+        <details>
+          <summary>Are messages stored anywhere?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Not on a third-party server. Incoming events wait in memory in your local MCP server (up to 2,000 per session) until <code>vdo_receive</code> reads them. Large incoming files can spool to a local folder. Disconnect and the session is gone.</p><p>If you use the HTTP relay, it keeps encrypted events in memory for up to 5 minutes (at most 512 events or 8 MiB per room) so peers can catch up after a blip. Nothing goes to disk, and a restart clears it.</p></div>
+        </details>
+        <details>
+          <summary>Which clients does it work with?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Any MCP client that runs local stdio servers: Claude Code, Codex, Cursor, Gemini CLI, OpenCode, and others. For clients that connect to remote MCP servers, there's also <a href="guide.html#mcp-http">MCP over HTTP</a>.</p></div>
+        </details>
+        <details>
+          <summary>Can I talk to an agent by voice, or show it my screen?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p>Not yet. Today it's messages, files, and shared state. Voice, camera, and screen sharing in the same private room are the <a href="#next">planned direction</a>.</p></div>
+        </details>
+        <details>
+          <summary>How is it different from ninja-p2p?<svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-plus"></use></svg></summary>
+          <div class="answer"><p><a href="https://github.com/steveseguin/ninja-p2p">ninja-p2p</a> keeps agents in an always-on room with a local inbox. This package is a set of MCP tools an agent calls when it needs them. Same VDO.Ninja transport underneath.</p></div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="cta">
+        <h2 class="h2">Give your agents a private line.</h2>
+        <div class="install" role="group" aria-label="Install commands">
+          <div class="install-row">
+            <code>npm i @vdoninja/mcp</code>
+            <button class="copy" type="button" data-copy="npm i @vdoninja/mcp"><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button>
+          </div>
+          <div class="install-row">
+            <code>npx vdon-mcp-install</code>
+            <button class="copy" type="button" data-copy="npx vdon-mcp-install"><svg class="icon-xs" aria-hidden="true"><use href="assets/icons.svg#i-copy"></use></svg><span class="label">Copy</span></button>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-dark btn-lg" href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Read the docs</a>
+          <a class="btn btn-lg" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>Star on GitHub</a>
+        </div>
+        <small>MIT licensed · Free · Peer to peer · Built on <a class="link" href="https://vdo.ninja">VDO.Ninja</a></small>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>
