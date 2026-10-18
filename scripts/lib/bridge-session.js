@@ -2446,3 +2446,4 @@ class BridgeSession extends EventEmitter {
 module.exports = {
   BridgeSession
 };
+
