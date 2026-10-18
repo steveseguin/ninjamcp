@@ -8,11 +8,10 @@ The bridge forwards SSApp's `ssapp_*` tool schemas, structured results, and MCP 
 
 ## Set up remote access
 
-Use SSApp with **API 1.4.1 and MCP adapter 1.3.1 or newer**. Enable **File > Local AI / Automation**,
+Use [SSApp 0.4.38 or newer](https://github.com/steveseguin/social_stream/releases/tag/v0.4.38),
+with **API 1.4.1 and MCP adapter 1.3.1 or newer**. Enable **File > Local AI / Automation**,
 restart SSApp, and save **Copy MCP Setup** as a private JSON file on that computer.
-The bridge checks these versions when it connects. If an installed build lacks them,
-run SSApp from its [current source checkout](https://github.com/steveseguin/ssn_app)
-and copy that instance's MCP setup.
+The bridge checks these versions when it connects. Update older builds before setting up the bridge.
 Install Ninja MCP on the host and each agent computer. Node.js 18 or newer is required by the bridge.
 
 On the SSApp host:
