@@ -242,7 +242,7 @@ function uninstallCodex(config, options) {
 function installClaude(config, options) {
   process.stdout.write(`Installing Claude MCP server '${config.name}' (scope=${config.claudeScope})...\n`);
   if (claudeServerExists(config.name, options)) {
-    runCommand('claude', ['mcp', 'remove', config.name], options);
+    runCommand('claude', ['mcp', 'remove', config.name, '--scope', config.claudeScope], options);
   }
   const add = runCommand(
     'claude',
@@ -259,7 +259,7 @@ function uninstallClaude(config, options) {
     process.stdout.write('Claude MCP server not found; skipping.\n');
     return;
   }
-  const remove = runCommand('claude', ['mcp', 'remove', config.name], options);
+  const remove = runCommand('claude', ['mcp', 'remove', config.name, '--scope', config.claudeScope], options);
   if (!remove.ok) throw new Error(`Failed to remove Claude MCP server '${config.name}'.`);
 }
 

@@ -1,5 +1,7 @@
 # VDO.Ninja MCP Tool Contract
 
+[Read this guide in HTML](https://steveseguin.github.io/ninjamcp/mcp-tool-contract.html)
+
 Implemented by:
 
 - `scripts/vdo-mcp-server.js`
@@ -56,12 +58,18 @@ Enforcement:
 
 ### `vdo_connect` notable options
 
-- transport: `room`, `stream_id`, `target_stream_id`, `host`, `force_turn`
+- transport: `room`, `stream_id`, `target_stream_id`, `transport` (`webrtc` by default or `http`)
+- WebRTC: `host`, `password`, `force_turn`
+- HTTP relay: `relay_url`, `relay_token`, `relay_key`, with defaults from `VDON_MCP_RELAY_URL`, `VDON_MCP_RELAY_TOKEN`, `VDON_MCP_RELAY_KEY`; see [relay setup and delivery semantics](http-relay.md)
 - resiliency: `heartbeat_ms`, `reconnect_ms`, `max_reconnect_ms`
 - security: `join_token`, `join_token_secret`, `join_token_ttl_ms`, `enforce_join_token`, `allow_peer_stream_ids`, `require_session_mac`
 - file defaults: `file_chunk_bytes`, `file_max_bytes`, `file_ack_timeout_ms`, `file_max_retries`
 - file spooling: `file_spool_dir`, `file_spool_threshold_bytes`, `keep_spool_files`
 - state limits: `state_max_keys`, `state_max_snapshot_entries`
+
+`vdo_status` identifies the selected `transport`. HTTP is an explicit peer transport, independent of the HTTP endpoint used to expose MCP. Both participants must use the same transport. WebRTC-only options are rejected in HTTP mode; encryption cannot be disabled on the HTTP relay.
+
+In HTTP mode, `vdo_send` returns `message_id` and `delivery_stage` (`queued` or `rejected`). A later `relay_receipt` event reports `relay_accepted` or `delivery_unknown`. Acceptance does not confirm peer consumption. `data_received` includes the matching `message_id`. `relay_history_lost` means a replay gap requires application reconciliation. Ordinary message queues and relay history are in memory; file completion still requires the existing peer acknowledgement.
 
 ## Sync Tools
 
@@ -76,6 +84,8 @@ Enforcement:
 - `vdo_file_transfers`: inspect incoming/outgoing transfer state
 - `vdo_file_receive`: read completed incoming payload (`base64`/`utf8`/`json`)
 - `vdo_file_save`: save completed incoming transfer directly to disk
+
+A retained incoming `transfer_id` is bound to its originating peer UUID and offer metadata (content hash, byte count, chunk layout, name, and MIME type). Identical retries from that peer can resume or confirm completion. Reusing the ID for different content/metadata or from another peer is rejected; use a new ID for a new transfer. Reconnection with a new peer UUID does not transfer ownership of an existing retained ID. Completion acknowledgements must match the sender's content hash and byte count.
 
 ## State Sync Tools (CRDT-lite)
 

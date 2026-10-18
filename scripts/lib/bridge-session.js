@@ -9,6 +9,7 @@ const EventEmitter = require('node:events');
 const os = require('node:os');
 const path = require('node:path');
 const { loadVDONinjaSDK } = require('./load-vdo-sdk');
+const { HttpRelayTransport, validateRelayConfig } = require('./http-relay-transport');
 const {
   intFromValue,
   nonNegativeIntFromValue,
@@ -22,8 +23,6 @@ const {
   safeJsonParse,
   generateShortId
 } = require('./bridge-utils');
-
-const VDONinjaSDK = loadVDONinjaSDK();
 
 const PROTOCOL_MAGIC = 'vdo_mcp_bridge_v1';
 const MAX_PROTOCOL_EVENTS = 4000;
@@ -106,6 +105,10 @@ class BridgeSession extends EventEmitter {
   constructor(config, options = {}) {
     super();
     this.config = {
+      transport: config.transport || 'webrtc',
+      relayUrl: config.relayUrl,
+      relayToken: config.relayToken,
+      relayKey: config.relayKey,
       host: config.host || 'wss://wss.vdo.ninja',
       room: config.room,
       streamID: config.streamID,
@@ -141,7 +144,14 @@ class BridgeSession extends EventEmitter {
     };
 
     this.id = options.id || null;
-    this.sdkFactory = options.sdkFactory || ((sdkConfig) => new VDONinjaSDK(sdkConfig));
+    if (!['webrtc', 'http'].includes(this.config.transport)) throw new Error('invalid transport');
+    if (this.config.transport === 'http') validateRelayConfig(this.config);
+    this.sdkFactory = this.config.transport === 'http'
+      ? (() => new HttpRelayTransport(this.config))
+      : (options.sdkFactory || ((sdkConfig) => {
+        const VDONinjaSDK = loadVDONinjaSDK();
+        return new VDONinjaSDK(sdkConfig);
+      }));
 
     this.sdk = null;
     this.running = false;
@@ -289,6 +299,9 @@ class BridgeSession extends EventEmitter {
     if (parsed > current) {
       this.stateActorClock.set(safeActor, parsed);
     }
+    // The merge order compares clocks across actors, so local writes must
+    // advance beyond every observed clock, including snapshot metadata.
+    this.stateClock = Math.max(this.stateClock, parsed);
   }
 
   asStateEntry(key, value, actor, clock, updatedAt) {
@@ -331,8 +344,6 @@ class BridgeSession extends EventEmitter {
 
     this.roomState.set(incoming.key, incoming);
     this.markStateActorClock(incoming.actor, incoming.clock);
-    const localActorClock = intFromValue(this.stateActorClock.get(this.config.streamID), 0);
-    this.stateClock = Math.max(this.stateClock, localActorClock);
 
     this.queueEvent({
       type: 'state_updated',
@@ -512,7 +523,8 @@ class BridgeSession extends EventEmitter {
         room: this.config.room,
         streamID: this.config.streamID,
         targetStreamID: this.config.targetStreamID,
-        host: this.config.host,
+        host: this.config.transport === 'http' ? this.config.relayUrl : this.config.host,
+        transport: this.config.transport,
         forceTURN: this.config.forceTURN
       });
 
@@ -542,6 +554,8 @@ class BridgeSession extends EventEmitter {
     }
     this.boundListeners = [];
     this.connectedPeers.clear();
+    for (const uuid of this.peerState.keys()) this.invalidatePeer(uuid);
+    this.sharedKeys.clear();
 
     try {
       this.sdk.disconnect();
@@ -555,16 +569,36 @@ class BridgeSession extends EventEmitter {
   attachListeners() {
     if (!this.sdk) return;
 
+    const sdk = this.sdk;
+    let acceptingEvents = true;
     const bind = (eventName, handler) => {
-      this.sdk.addEventListener(eventName, handler);
-      this.boundListeners.push([eventName, handler]);
+      const onEvent = (event) => {
+        if (!this.running || this.sdk !== sdk || !acceptingEvents) return;
+        if (eventName === 'disconnected') acceptingEvents = false;
+        handler(event);
+      };
+      sdk.addEventListener(eventName, onEvent);
+      this.boundListeners.push([eventName, onEvent]);
     };
+
+    if (this.config.transport === 'http') {
+      bind('relayReceipt', (event) => this.queueEvent({ type: 'relay_receipt', ts: nowISO(), ...event.detail }));
+      bind('relayGap', (event) => this.queueEvent({ type: 'relay_history_lost', ts: nowISO(), ...event.detail }));
+      bind('relayRejected', (event) => this.queueEvent({ type: 'relay_message_rejected', ts: nowISO(), ...event.detail }));
+      bind('relayConnection', (event) => {
+        this.state = event.detail.connected ? 'connected' : 'reconnecting';
+        if (event.detail.connected) this.lastError = null;
+        this.queueEvent({ type: 'relay_connection', ts: nowISO(), ...event.detail });
+      });
+    }
 
     bind('connected', () => {
       this.queueEvent({ type: 'connected', ts: nowISO() });
     });
 
     bind('disconnected', () => {
+      for (const uuid of this.peerState.keys()) this.invalidatePeer(uuid);
+      this.sharedKeys.clear();
       this.lastDisconnectedAt = nowISO();
       this.state = 'disconnected';
       this.queueEvent({ type: 'disconnected', ts: this.lastDisconnectedAt });
@@ -600,7 +634,8 @@ class BridgeSession extends EventEmitter {
         detail: event.detail || null
       });
       if (uuid) {
-        this.touchPeer(uuid, null);
+        const peer = this.touchPeer(uuid, null);
+        if (peer.handshake_state === 'disconnected') peer.handshake_state = 'discovered';
         this.sendSyncHello(uuid);
       }
     });
@@ -614,11 +649,7 @@ class BridgeSession extends EventEmitter {
         uuid: uuid || null,
         detail: event.detail || null
       });
-      if (uuid && this.peerState.has(uuid)) {
-        const peer = this.peerState.get(uuid);
-        peer.connected = false;
-        peer.last_seen_at = nowISO();
-      }
+      if (uuid) this.invalidatePeer(uuid);
     });
 
     bind('dataChannelOpen', (event) => {
@@ -660,12 +691,15 @@ class BridgeSession extends EventEmitter {
         return;
       }
 
+      if (!this.authorizeIncomingData(detail.uuid, detail.streamID, 'data')) return;
+
       this.queueEvent({
         type: 'data_received',
         ts: nowISO(),
         uuid: detail.uuid || null,
         streamID: detail.streamID || null,
         fallback: !!detail.fallback,
+        ...(this.config.transport === 'http' ? { message_id: detail.message_id } : {}),
         data,
         binaryBase64
       });
@@ -779,6 +813,41 @@ class BridgeSession extends EventEmitter {
   isPeerAllowed(streamID) {
     if (!this.allowPeerStreamIDs.size) return true;
     return !!streamID && this.allowPeerStreamIDs.has(streamID);
+  }
+
+  invalidatePeer(uuid) {
+    const peer = this.peerState.get(uuid);
+    if (peer) {
+      peer.connected = false;
+      peer.auth_ok = false;
+      peer.handshake_state = 'disconnected';
+      peer.shared_key_ready = false;
+      peer.last_seen_at = nowISO();
+    }
+    this.sharedKeys.delete(uuid);
+  }
+
+  authorizeIncomingData(uuid, streamID, kind) {
+    const peer = uuid ? this.peerState.get(uuid) : null;
+    const peerStreamID = streamID || (peer && peer.stream_id) || null;
+    const allowlisted = this.isPeerAllowed(peerStreamID);
+    const authenticated = !this.config.enforceJoinToken || !!(
+      peer && peer.auth_ok &&
+      (peer.handshake_state === 'hello_received' || peer.handshake_state === 'ready')
+    );
+    const revoked = (this.config.enforceJoinToken || this.allowPeerStreamIDs.size > 0) && peer &&
+      (peer.handshake_state === 'rejected' || peer.handshake_state === 'disconnected');
+    if (allowlisted && authenticated && !revoked) return true;
+
+    this.queueEvent({
+      type: 'protocol_auth_failed',
+      ts: nowISO(),
+      kind,
+      uuid: uuid || null,
+      stream_id: peerStreamID,
+      reason: allowlisted ? 'join_token_required' : 'peer_not_allowed'
+    });
+    return false;
   }
 
   maybeDeriveSharedKey(uuid, remotePubKeyBase64) {
@@ -997,7 +1066,7 @@ class BridgeSession extends EventEmitter {
 
   handleSyncMessage(fromUuid, fromStreamID, kind, payload) {
     const peer = this.touchPeer(fromUuid, fromStreamID);
-    if (fromStreamID && !this.isPeerAllowed(fromStreamID)) {
+    if (!this.isPeerAllowed(fromStreamID || (peer && peer.stream_id))) {
       if (peer) {
         peer.handshake_state = 'rejected';
         peer.auth_ok = false;
@@ -1070,6 +1139,7 @@ class BridgeSession extends EventEmitter {
 
     if (peer) {
       peer.auth_ok = tokenCheck.ok;
+      peer.rejected_reason = null;
       peer.token_payload = tokenCheck.payload || null;
       peer.handshake_state = kind === 'sync.hello_ack' ? 'ready' : 'hello_received';
       peer.capabilities = payload && payload.capabilities ? payload.capabilities : null;
@@ -1203,6 +1273,8 @@ class BridgeSession extends EventEmitter {
     transfer.completed_at = nowISO();
     transfer.updated_at = transfer.completed_at;
 
+    // A retry completes the same transfer again; retain each ID only once.
+    this.completedIncomingOrder = this.completedIncomingOrder.filter((id) => id !== transfer.transfer_id);
     this.completedIncomingOrder.push(transfer.transfer_id);
     while (this.completedIncomingOrder.length > this.config.maxStoredFiles) {
       const oldestId = this.completedIncomingOrder.shift();
@@ -1251,8 +1323,27 @@ class BridgeSession extends EventEmitter {
       return;
     }
 
+    // A retained transfer belongs to one peer and one immutable offer.
+    const existing = this.incomingTransfers.get(transferId);
+    const incomingKinds = ['file.offer', 'file.chunk', 'file.complete', 'file.resume_req', 'file.cancel'];
+    const ownerConflict = existing && incomingKinds.includes(kind) && existing.from_uuid !== (fromUuid || null);
+    const offerConflict = existing && kind === 'file.offer' && (
+      existing.total_bytes !== intFromValue(payload.total_bytes, 0) ||
+      existing.total_chunks !== intFromValue(payload.total_chunks, 0) ||
+      existing.chunk_bytes !== clampInt(payload.chunk_bytes, this.config.fileChunkBytes, MIN_CHUNK_BYTES, MAX_CHUNK_BYTES) ||
+      existing.file_hash !== (payload.file_hash || null) ||
+      existing.name !== (payload.name || null) ||
+      existing.mime !== (payload.mime || 'application/octet-stream')
+    );
+    if (ownerConflict || offerConflict) {
+      const reason = ownerConflict ? 'transfer_owner_conflict' : 'transfer_metadata_conflict';
+      this.sendProtocol('file.nack', { transfer_id: transferId, reason }, fromUuid || null, { preferMac: true });
+      this.queueEvent({ type: 'file_offer_rejected', ts: nowISO(), transfer_id: transferId, reason });
+      return;
+    }
+
     if (kind === 'file.offer') {
-      let incoming = this.incomingTransfers.get(transferId);
+      let incoming = existing;
       if (!incoming) {
         try {
           incoming = this.createIncomingTransfer(fromUuid, fromStreamID, payload || {});
@@ -1456,7 +1547,7 @@ class BridgeSession extends EventEmitter {
 
     if (kind === 'file.accept' || kind === 'file.ack' || kind === 'file.nack' || kind === 'file.complete_ack' || kind === 'file.resume_state') {
       const outgoing = this.outgoingTransfers.get(transferId);
-      if (outgoing) {
+      if (outgoing && outgoing.target_uuid === fromUuid) {
         outgoing.updated_at = nowISO();
 
         if (kind === 'file.accept') {
@@ -1476,8 +1567,13 @@ class BridgeSession extends EventEmitter {
         }
 
         if (kind === 'file.complete_ack') {
-          outgoing.status = 'completed';
-          outgoing.completed_at = nowISO();
+          if (payload.file_hash !== outgoing.file_hash || payload.total_bytes !== outgoing.total_bytes) {
+            outgoing.status = 'failed';
+            outgoing.last_error = 'completion_metadata_mismatch';
+          } else {
+            outgoing.status = 'completed';
+            outgoing.completed_at = nowISO();
+          }
         }
 
         if (kind === 'file.resume_state') {
@@ -1562,6 +1658,7 @@ class BridgeSession extends EventEmitter {
 
     const isSync = kind.startsWith('sync.');
     if (!isSync) {
+      if (!this.authorizeIncomingData(fromUuid, fromStreamID, kind)) return;
       const macOk = this.verifyEnvelopeMac(fromUuid, envelope);
       if (!macOk) {
         this.queueEvent({
@@ -1875,7 +1972,7 @@ class BridgeSession extends EventEmitter {
     };
   }
 
-  async requestResumeState(transfer, timeoutMs) {
+  async requestResumeState(transfer, timeoutMs, requireCompleted = false) {
     const cursor = this.protocolCursor;
     this.sendProtocol('file.resume_req', {
       transfer_id: transfer.transfer_id
@@ -1887,7 +1984,7 @@ class BridgeSession extends EventEmitter {
       event.from_uuid === transfer.target_uuid
     ), timeoutMs, cursor);
 
-    if (!resume) return null;
+    if (!resume || (requireCompleted && resume.payload.status !== 'completed')) return null;
     return nonNegativeIntFromValue(resume.payload && resume.payload.next_seq, transfer.next_seq);
   }
 
@@ -1911,13 +2008,19 @@ class BridgeSession extends EventEmitter {
     }
 
     const accepted = await this.waitForProtocolEvent((event) => (
-      event.kind === 'file.accept' &&
+      (event.kind === 'file.accept' || event.kind === 'file.nack') &&
       event.transfer_id === transfer.transfer_id &&
       event.from_uuid === transfer.target_uuid
     ), Math.max(ackTimeoutMs, 1000), offerCursor);
 
     if (!accepted) {
       throw new Error('timed out waiting for file.accept');
+    }
+
+    if (accepted.kind === 'file.nack') {
+      transfer.status = 'failed';
+      transfer.last_error = accepted.payload.reason || 'file_offer_rejected';
+      throw new Error(transfer.last_error);
     }
 
     transfer.status = 'transferring';
@@ -1968,7 +2071,9 @@ class BridgeSession extends EventEmitter {
           const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs);
           if (Number.isFinite(resumeSeq)) {
             seq = Math.min(Math.max(resumeSeq, 0), transfer.total_chunks);
+            // Restart the outer loop so the chunk and its hash match the resumed sequence.
             transfer.next_seq = seq;
+            break;
           }
           continue;
         }
@@ -2003,8 +2108,14 @@ class BridgeSession extends EventEmitter {
       event.from_uuid === transfer.target_uuid
     ), Math.max(ackTimeoutMs * 2, 1000), completeCursor);
 
+    if (completeAck && (completeAck.payload.file_hash !== transfer.file_hash || completeAck.payload.total_bytes !== transfer.total_bytes)) {
+      transfer.status = 'failed';
+      transfer.last_error = 'completion_metadata_mismatch';
+      throw new Error(transfer.last_error);
+    }
+
     if (!completeAck) {
-      const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs);
+      const resumeSeq = await this.requestResumeState(transfer, ackTimeoutMs, true);
       if (Number.isFinite(resumeSeq) && resumeSeq >= transfer.total_chunks) {
         transfer.status = 'completed';
         transfer.completed_at = nowISO();
@@ -2019,6 +2130,8 @@ class BridgeSession extends EventEmitter {
     }
 
     transfer.updated_at = nowISO();
+    // A retry completes the same transfer again; retain each ID only once.
+    this.completedOutgoingOrder = this.completedOutgoingOrder.filter((id) => id !== transfer.transfer_id);
     this.completedOutgoingOrder.push(transfer.transfer_id);
     while (this.completedOutgoingOrder.length > this.config.maxStoredFiles) {
       const oldestId = this.completedOutgoingOrder.shift();
@@ -2252,13 +2365,13 @@ class BridgeSession extends EventEmitter {
     fs.mkdirSync(path.dirname(resolvedPath), { recursive: true });
 
     if (transfer.spooled && transfer.spool_path) {
-      fs.copyFileSync(transfer.spool_path, resolvedPath);
+      fs.copyFileSync(transfer.spool_path, resolvedPath, overwrite ? 0 : fs.constants.COPYFILE_EXCL);
     } else {
       const data = this.getIncomingTransferBuffer(transfer);
       if (!data) {
         throw new Error(`transfer payload unavailable: ${transferId}`);
       }
-      fs.writeFileSync(resolvedPath, data);
+      fs.writeFileSync(resolvedPath, data, { flag: overwrite ? 'w' : 'wx' });
     }
 
     const stat = fs.statSync(resolvedPath);
@@ -2307,10 +2420,11 @@ class BridgeSession extends EventEmitter {
       session_id: this.id,
       state: this.state,
       connected: this.state === 'connected',
+      transport: this.config.transport,
       room: this.config.room,
       stream_id: this.config.streamID,
       target_stream_id: this.config.targetStreamID,
-      host: this.config.host,
+      host: this.config.transport === 'http' ? this.config.relayUrl : this.config.host,
       force_turn: this.config.forceTURN,
       peers: Array.from(this.connectedPeers),
       peer_count: this.connectedPeers.size,

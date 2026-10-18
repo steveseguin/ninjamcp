@@ -1,5 +1,7 @@
 # VDO.Ninja MCP Quickstart
 
+[Read this guide in HTML](https://steveseguin.github.io/ninjamcp/quickstart-and-compat.html)
+
 This is the fast path for users and AI agents.
 
 ## Transport Truth

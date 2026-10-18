@@ -12,6 +12,10 @@ permissions:
 jobs:
   test-and-publish:
     runs-on: ubuntu-latest
+    env:
+      UV_THREADPOOL_SIZE: "1"
+      NODE_OPTIONS: "--v8-pool-size=1"
+      npm_config_jobs: "1"
     steps:
       - uses: actions/checkout@v4
 

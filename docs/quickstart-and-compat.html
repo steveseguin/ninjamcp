@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quickstart · VDO.Ninja MCP</title>
+  <meta name="description" content="Connect two MCP clients and exchange your first message.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/quickstart-and-compat.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#transport-truth">Transport Truth</a><a href="#60-second-setup">60-Second Setup</a><a href="#workflow-a-bot-to-bot-message">Workflow A: Bot-to-Bot Message</a><a href="#workflow-b-file-sendreceive">Workflow B: File Send/Receive</a><a href="#security-baseline">Security Baseline</a><a href="#minimal-test-bar">Minimal Test Bar</a><a href="#compatibility-notes">Compatibility Notes</a><a href="#optional-advanced-diagnostics">Optional Advanced Diagnostics</a><h5>More guides</h5><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Quickstart</p>
+      <h1 id="vdoninja-mcp-quickstart">VDO.Ninja MCP Quickstart</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/quickstart-and-compat.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>This is the fast path for users and AI agents.</p>
+</section><section class="doc-section" id="transport-truth"><h2>Transport Truth</h2>
+<ul>
+<li>This bridge uses <strong>WebRTC data channels</strong>.</li>
+<li>It is <strong>not</strong> a generic TCP/SSH tunnel.</li>
+<li>TURN improves connectivity on restrictive networks, but it is <strong>not</strong> a guaranteed firewall bypass.</li>
+</ul>
+</section><section class="doc-section" id="60-second-setup"><h2>60-Second Setup</h2>
+<p>Install locally (no clone), including a Node WebRTC implementation:</p>
+<pre><code class="lang-sh">npm i @vdoninja/mcp
+</code></pre>
+<p>Register MCP for Codex/Claude:</p>
+<pre><code class="lang-sh">npx vdon-mcp-install
+</code></pre>
+<p>Start the local MCP server:</p>
+<pre><code class="lang-sh">npx vdon-mcp-server
+</code></pre>
+<p>If started directly in a terminal, it prints a short <code>Server running (stdio)</code> banner and a first-call hint.
+If started by an MCP client, no interactive banner may appear, which is normal.</p>
+<p>Optional least-privilege profile:</p>
+<pre><code class="lang-sh">VDON_MCP_TOOL_PROFILE=core npx vdon-mcp-server
+</code></pre>
+<p>Repo-local equivalents still work when developing in this repo:</p>
+<pre><code class="lang-sh">npm run mcp:install
+node scripts/vdo-mcp-server.js
+</code></pre>
+<p>AI-first sanity check (recommended first call):</p>
+<pre><code class="lang-json">{ "name": "vdo_capabilities", "arguments": {} }
+</code></pre>
+</section><section class="doc-section" id="workflow-a-bot-to-bot-message"><h2>Workflow A: Bot-to-Bot Message</h2>
+<ol>
+<li>Connect peer A:</li>
+</ol>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "room": "lab_1", "stream_id": "agent_a" } }
+</code></pre>
+<ol start="2">
+<li>Connect peer B:</li>
+</ol>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "room": "lab_1", "stream_id": "agent_b", "target_stream_id": "agent_a" } }
+</code></pre>
+<ol start="3">
+<li>Send:</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_send",
+  "arguments": {
+    "session_id": "&lt;agent_a_session_id&gt;",
+    "data": { "type": "chat.message", "text": "hello from agent_a" }
+  }
+}
+</code></pre>
+<ol start="4">
+<li>Receive:</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_receive",
+  "arguments": {
+    "session_id": "&lt;agent_b_session_id&gt;",
+    "max_events": 100,
+    "wait_ms": 1000
+  }
+}
+</code></pre>
+<p>Runnable demo script:</p>
+<pre><code class="lang-sh">npx vdon-mcp-demo-message
+</code></pre>
+<p>For live network mode instead of fake/local demo mode:</p>
+<pre><code class="lang-sh">MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-message
+</code></pre>
+</section><section class="doc-section" id="workflow-b-file-sendreceive"><h2>Workflow B: File Send/Receive</h2>
+<ol>
+<li>
+<p>Reuse two connected peers from Workflow A.</p>
+</li>
+<li>
+<p>Send file payload from agent A:</p>
+</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_file_send",
+  "arguments": {
+    "session_id": "&lt;agent_a_session_id&gt;",
+    "name": "notes.txt",
+    "mime": "text/plain",
+    "data_base64": "&lt;base64&gt;"
+  }
+}
+</code></pre>
+<ol start="3">
+<li>On agent B, watch transfers:</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_file_transfers",
+  "arguments": {
+    "session_id": "&lt;agent_b_session_id&gt;",
+    "direction": "incoming"
+  }
+}
+</code></pre>
+<ol start="4">
+<li>Read completed file:</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_file_receive",
+  "arguments": {
+    "session_id": "&lt;agent_b_session_id&gt;",
+    "transfer_id": "&lt;transfer_id&gt;",
+    "encoding": "utf8"
+  }
+}
+</code></pre>
+<p>Runnable demo script:</p>
+<pre><code class="lang-sh">npx vdon-mcp-demo-file
+</code></pre>
+<p>For live network mode:</p>
+<pre><code class="lang-sh">MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file
+</code></pre>
+</section><section class="doc-section" id="security-baseline"><h2>Security Baseline</h2>
+<p>Use secure mode when needed:</p>
+<ul>
+<li><code>join_token</code> + <code>join_token_secret</code></li>
+<li><code>enforce_join_token: true</code></li>
+<li><code>allow_peer_stream_ids: [...]</code></li>
+<li><code>require_session_mac: true</code></li>
+</ul>
+<p>For secure preset installs, set <code>VDON_MCP_JOIN_TOKEN_SECRET</code> first.</p>
+</section><section class="doc-section" id="minimal-test-bar"><h2>Minimal Test Bar</h2>
+<p>Default MCP test run (fast, product-focused):</p>
+<pre><code class="lang-sh">npm run test:mcp
+</code></pre>
+<p>This runs:</p>
+<ul>
+<li>conformance</li>
+<li>server smoke</li>
+<li>sync security smoke</li>
+</ul>
+<p>Full engineering suite (advanced):</p>
+<pre><code class="lang-sh">npm run test:mcp:all
+</code></pre>
+</section><section class="doc-section" id="compatibility-notes"><h2>Compatibility Notes</h2>
+<ul>
+<li>Works with any MCP client that supports local <code>stdio</code> transport (Codex CLI, Claude Code, Cursor, and other MCP-compatible CLIs).</li>
+<li>Codex and Claude can be auto-registered via <code>npx vdon-mcp-install</code>.</li>
+<li>Cursor and other GUI tools typically need manual MCP JSON config using:</li>
+<li><code>command</code>: your Node executable</li>
+<li><code>args</code>: path to <code>.../node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js</code> plus optional flags</li>
+<li>Ready-to-paste per-client examples are in <code>references/client-config-examples.md</code>.</li>
+<li>Registry metadata is in <code>server.json</code>.</li>
+<li>Tool contracts are in <code>references/mcp-tool-contract.md</code>.</li>
+<li><code>@vdoninja/mcp</code> depends on <code>@vdoninja/sdk</code>, so SDK is installed transitively.</li>
+<li><code>@vdoninja/mcp</code> is MIT licensed. Its SDK dependency is separately licensed
+  under MPL-2.0, with some separately marked wrappers and adapters under MIT.</li>
+</ul>
+</section><section class="doc-section" id="optional-advanced-diagnostics"><h2>Optional Advanced Diagnostics</h2>
+<p>For soak/matrix/preset-matrix/sweep tuning and all reliability knobs, use:</p>
+<ul>
+<li><code>references/advanced-diagnostics.md</code></li>
+</ul></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

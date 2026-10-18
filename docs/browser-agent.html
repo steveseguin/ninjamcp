@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voice companion · VDO.Ninja MCP</title>
+  <meta name="description" content="Talk to an agent while sharing selected browser views and controls.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/browser-agent.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#start-a-conversation">Start a conversation</a><a href="#control-what-is-shared">Control what is shared</a><a href="#watch-the-browser">Watch the browser</a><a href="#resolve-connection-problems">Resolve connection problems</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Voice companion</p>
+      <h1 id="talk-to-an-agent-while-sharing-a-browser">Talk to an agent while sharing a browser</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/browser-agent.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>The browser companion lets you speak or type to an OpenAI Realtime agent, share selected views of your remote Chrome tab, and let it use the browser tools. You can also watch and hear the tab through VDO.Ninja. The browser host can be on another computer; the companion runs locally beside your microphone and speakers.</p>
+</section><section class="doc-section" id="start-a-conversation"><h2>Start a conversation</h2>
+<p>First <a href="browser-worker.html">start a browser worker</a> and copy one controller credential file to your computer. Use a separate credential for each agent or companion running at the same time.</p>
+<p>Set <code>OPENAI_API_KEY</code> in the local companion process, then launch:</p>
+<pre><code class="lang-sh">npx vdon-mcp-browser-agent --config /private/agent1.json
+</code></pre>
+<p>From a checkout, run <code>node scripts/vdo-mcp-browser-agent.js --config /private/agent1.json</code>. Open the private loopback URL printed in the terminal on that same computer. Keep the terminal running. The API key stays in the local server process; it is not sent to the remote browser host or the operator page.</p>
+<ol>
+<li>Select <strong>Check worker</strong> to confirm authenticated access.</li>
+<li>Select <strong>Start agent</strong>, then choose <strong>Share my microphone</strong> to speak. You can also type a message.</li>
+<li>Enable <strong>Share browser frames</strong> when you want the agent to see the tab. Frames update about every three seconds; the agent can also read page snapshots.</li>
+<li>Enable <strong>Allow browser control</strong> when you want the agent to navigate, click, or type. This also enables browser sharing. The worker's controller role and tab lease still apply.</li>
+</ol>
+<p>The default model is <code>gpt-realtime-2.1</code>. Set <code>VDON_BROWSER_MODEL</code> to select another Realtime model that supports audio, images, and function calls. Model usage is billed to your OpenAI account. Each conversation ends after 15 minutes; start a new one to continue.</p>
+</section><section class="doc-section" id="control-what-is-shared"><h2>Control what is shared</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Control</th>
+<th scope="col">Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Share my microphone</td>
+<td>Sends microphone audio to OpenAI while the agent session is connected. Turning it off stops microphone capture and clears pending input audio.</td>
+</tr>
+<tr>
+<td>Share browser frames</td>
+<td>Sends browser images and requested page content to OpenAI. Turning it off stops new image and tool requests and releases held control. Content already sent remains part of that model conversation.</td>
+</tr>
+<tr>
+<td>Allow browser control</td>
+<td>Allows the agent to claim the shared tab and use input tools. Turning it off releases held leases and prevents queued control requests from starting.</td>
+</tr>
+<tr>
+<td>Interrupt</td>
+<td>Stops queued speech and agent actions. An action already sent to the worker may finish; inspect its result before repeating it.</td>
+</tr>
+<tr>
+<td>End session</td>
+<td>Closes the model connection, stops microphone capture and frame sharing, and releases held control.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The sharing indicator identifies the selected inputs and OpenAI as their recipient. The application does not record locally. OpenAI processes the microphone audio, selected browser images, typed messages, and tool results sent during the session. The voice you hear is AI generated.</p>
+<p>Other authorized observers can still see the worker's tab. To revoke another controller, use <code>revoke 1</code> in the host terminal. Stop the worker to close the browser and end access for everyone.</p>
+</section><section class="doc-section" id="watch-the-browser"><h2>Watch the browser</h2>
+<p>Enable <code>"media": { "enabled": true }</code> in the host's <code>worker.json</code>, or add <code>--media</code> during setup. Select <strong>Watch live browser</strong> in the companion and <strong>Hear browser audio</strong> to unmute. This uses the SDK stream directly and does not require an OpenAI key. Watching alone does not share that stream with the model.</p>
+<p>The model receives selected browser frames and your shared microphone; captured tab audio is for the human viewer. Live viewing requires WebRTC. With an HTTP connection, keep using text, microphone conversation, page snapshots, screenshots, and browser controls even when the live view cannot connect. The companion's connection to OpenAI uses an outbound secure WebSocket.</p>
+</section><section class="doc-section" id="resolve-connection-problems"><h2>Resolve connection problems</h2>
+<ul>
+<li>If <strong>Check worker</strong> fails, run <code>vdon-mcp-browser --doctor --config /private/agent1.json</code>. Confirm that the host is running with matching credentials and a common route.</li>
+<li>If the model will not connect, set the API key in the companion process, check model access, and restart the companion. Viewing and worker diagnostics remain available without a key.</li>
+<li>If another agent holds the tab, let it release control or wait for its lease to expire. Sharing a browser does not bypass that ownership.</li>
+<li>If a tool reports an uncertain outcome, have the agent use <code>browser_result</code> and inspect the page before repeating an action. A returned tool result and completion of your requested task are separate outcomes.</li>
+</ul>
+<p>The page accepts one local operator connection. Reopen the original private URL after a reload or disconnect; its access token is removed from the address bar after connection. Keep that URL and the agent credential file private.</p></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

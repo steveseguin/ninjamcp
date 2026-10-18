@@ -1,7 +1,7 @@
 {
   "name": "@vdoninja/mcp",
   "version": "0.4.2",
-  "description": "VDO.Ninja MCP bridge for WebRTC data-channel messaging, file transfer, and room sync.",
+  "description": "Private agent rooms with messages, files, and shared state over WebRTC or a self-hosted HTTP relay.",
   "author": "Steve Seguin",
   "license": "MIT",
   "homepage": "https://github.com/steveseguin/ninjamcp",
@@ -25,8 +25,12 @@
     "vdon-mcp-install": "scripts/install-mcp.js",
     "vdon-mcp-server": "scripts/vdo-mcp-server.js",
     "vdon-mcp-http": "scripts/vdo-mcp-streamable-http.js",
+    "vdon-mcp-relay": "scripts/vdo-mcp-relay.js",
     "vdon-mcp-demo-message": "scripts/demo-message-workflow.js",
-    "vdon-mcp-demo-file": "scripts/demo-file-workflow.js"
+    "vdon-mcp-demo-file": "scripts/demo-file-workflow.js",
+    "vdon-mcp-browser": "scripts/vdo-mcp-browser.js",
+    "vdon-mcp-browser-agent": "scripts/vdo-mcp-browser-agent.js",
+    "vdon-mcp-ssapp": "scripts/vdo-mcp-ssapp.js"
   },
   "scripts": {
     "test": "node tests/run-mcp-tests-minimal.js",
@@ -42,12 +46,17 @@
     "mcp:install": "node scripts/install-mcp.js",
     "mcp:server": "node scripts/vdo-mcp-server.js",
     "mcp:http": "node scripts/vdo-mcp-streamable-http.js",
+    "mcp:relay": "node scripts/vdo-mcp-relay.js",
     "demo:message": "node scripts/demo-message-workflow.js",
     "demo:file": "node scripts/demo-file-workflow.js",
-    "prepublishOnly": "npm run test:all"
+    "prepublishOnly": "npm run test:all",
+    "mcp:browser": "node scripts/vdo-mcp-browser.js",
+    "mcp:browser:agent": "node scripts/vdo-mcp-browser-agent.js",
+    "mcp:ssapp": "node scripts/vdo-mcp-ssapp.js"
   },
   "files": [
     "LICENSE",
+    "docs",
     "SKILL.md",
     "server.json",
     "assets/cloudflare/worker-proxy.js",
@@ -55,6 +64,8 @@
     "references/advanced-diagnostics.md",
     "references/client-config-examples.md",
     "references/mcp-tool-contract.md",
+    "references/http-relay.md",
+    "references/direction.md",
     "references/quickstart-and-compat.md",
     "references/vdo-ninja-p2p-data-notes.md",
     "scripts/demo-file-workflow.js",
@@ -63,18 +74,49 @@
     "scripts/vdo-data-bridge.js",
     "scripts/vdo-mcp-server.js",
     "scripts/vdo-mcp-streamable-http.js",
+    "scripts/vdo-mcp-relay.js",
     "scripts/lib/bridge-session.js",
     "scripts/lib/bridge-utils.js",
     "scripts/lib/fake-network-sdk.js",
     "scripts/lib/load-vdo-sdk.js",
+    "scripts/lib/http-relay-transport.js",
     "scripts/lib/mcp-stdio-parser.js",
-    "scripts/lib/tool-profiles.js"
+    "scripts/lib/tool-profiles.js",
+    "scripts/vdo-mcp-browser.js",
+    "scripts/lib/browser-rpc.js",
+    "scripts/lib/browser-worker.js",
+    "scripts/lib/browser-media.js",
+    "references/browser-worker.md",
+    "scripts/lib/browser-routes.js",
+    "scripts/lib/browser-setup.js",
+    "scripts/lib/browser-agent.js",
+    "scripts/vdo-mcp-browser-agent.js",
+    "assets/browser-agent",
+    "references/browser-agent.md",
+    "scripts/vdo-mcp-ssapp.js",
+    "scripts/lib/ssapp-worker.js",
+    "references/ssapp-integration.md"
   ],
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "@roamhq/wrtc": "^0.9.1",
-    "@vdoninja/sdk": "^1.5.4"
+    "@vdoninja/sdk": "^1.5.4",
+    "ws": "^8.21.1"
+  },
+  "optionalDependencies": {
+    "@roamhq/wrtc": "^0.9.1"
+  },
+  "peerDependencies": {
+    "chrome-devtools-mcp": "1.11.0",
+    "puppeteer-core": "24.37.5"
+  },
+  "peerDependenciesMeta": {
+    "chrome-devtools-mcp": {
+      "optional": true
+    },
+    "puppeteer-core": {
+      "optional": true
+    }
   }
 }

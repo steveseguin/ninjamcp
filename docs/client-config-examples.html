@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Client configuration · VDO.Ninja MCP</title>
+  <meta name="description" content="Configure Ninja MCP in your preferred AI client.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/client-config-examples.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#prereqs-no-clone">Prereqs (No Clone)</a><a href="#onboarding-pattern-what-works-best">Onboarding Pattern (What Works Best)</a><a href="#generic-stdio-mcp-template">Generic stdio MCP Template</a><a href="#cursor">Cursor</a><a href="#gemini-cli">Gemini CLI</a><a href="#opencode">OpenCode</a><a href="#codex-cli-and-claude-code-cli-automation">Codex CLI and Claude Code (CLI Automation)</a><a href="#sanity-check-all-clients">Sanity Check (All Clients)</a><a href="#context-budget-note">Context Budget Note</a><a href="#first-functional-workflows-clear-result">First Functional Workflows (Clear Result)</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Client configuration</p>
+      <h1 id="vdoninja-mcp-client-config-examples">VDO.Ninja MCP Client Config Examples</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/client-config-examples.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>Ready-to-paste config for popular MCP clients.</p>
+</section><section class="doc-section" id="prereqs-no-clone"><h2>Prereqs (No Clone)</h2>
+<p>Install in the project/folder where you want to use the MCP:</p>
+<pre><code class="lang-sh">npm i @vdoninja/mcp
+</code></pre>
+<p>Server script path used below:</p>
+<ul>
+<li>Linux/macOS: <code>./node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js</code></li>
+<li>Windows: <code>.\node_modules\@vdoninja\mcp\scripts\vdo-mcp-server.js</code></li>
+</ul>
+<p>Use an absolute path if your client launches from another working directory.</p>
+</section><section class="doc-section" id="onboarding-pattern-what-works-best"><h2>Onboarding Pattern (What Works Best)</h2>
+<p>Popular MCP servers with strong onboarding docs generally do these things:</p>
+<ol>
+<li>Give one copy/paste install path.</li>
+<li>Provide per-client config snippets.</li>
+<li>Tell users the first tool call to run.</li>
+<li>Show one deterministic "it works" workflow with expected output.</li>
+</ol>
+<p>This file follows that same pattern.</p>
+</section><section class="doc-section" id="generic-stdio-mcp-template"><h2>Generic <code>stdio</code> MCP Template</h2>
+<p>Most MCP clients need the same three things:</p>
+<ol>
+<li><code>command</code> (usually <code>node</code>)</li>
+<li><code>args</code> (script path + optional flags)</li>
+<li><code>env</code> (optional)</li>
+</ol>
+<p>Example:</p>
+<pre><code class="lang-json">{
+  "command": "node",
+  "args": [
+    "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
+    "--tool-profile",
+    "core"
+  ],
+  "env": {
+    "VDON_MCP_TOOL_PROFILE": "core"
+  }
+}
+</code></pre>
+</section><section class="doc-section" id="cursor"><h2>Cursor</h2>
+<p>Cursor reads MCP config from:</p>
+<ul>
+<li>Global: <code>~/.cursor/mcp.json</code></li>
+<li>Project: <code>.cursor/mcp.json</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "vdo-ninja-mcp": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"
+      ],
+      "env": {
+        "VDON_MCP_TOOL_PROFILE": "core"
+      }
+    }
+  }
+}
+</code></pre>
+</section><section class="doc-section" id="gemini-cli"><h2>Gemini CLI</h2>
+<p>Gemini CLI supports MCP via <code>mcpServers</code> in <code>settings.json</code>.</p>
+<p>Common config file locations:</p>
+<ul>
+<li>Project: <code>.gemini/settings.json</code></li>
+<li>Linux/macOS: <code>~/.gemini/settings.json</code></li>
+<li>Windows: <code>%USERPROFILE%\\.gemini\\settings.json</code></li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "vdo-ninja-mcp": {
+      "command": "node",
+      "args": [
+        "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"
+      ],
+      "env": {
+        "VDON_MCP_TOOL_PROFILE": "core"
+      }
+    }
+  }
+}
+</code></pre>
+<p>After restarting Gemini CLI, use <code>/mcp</code> to confirm server status.</p>
+</section><section class="doc-section" id="opencode"><h2>OpenCode</h2>
+<p>OpenCode MCP config lives under <code>mcp</code> in OpenCode config.</p>
+<p>Common config file locations:</p>
+<ul>
+<li>Global: <code>~/.config/opencode/opencode.json</code></li>
+<li>Project: <code>opencode.json</code> (project root)</li>
+</ul>
+<p>Example:</p>
+<pre><code class="lang-json">{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "vdo-ninja-mcp": {
+      "type": "local",
+      "command": [
+        "node",
+        "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
+        "--tool-profile",
+        "core"
+      ],
+      "enabled": true,
+      "environment": {
+        "VDON_MCP_TOOL_PROFILE": "core"
+      }
+    }
+  }
+}
+</code></pre>
+</section><section class="doc-section" id="codex-cli-and-claude-code-cli-automation"><h2>Codex CLI and Claude Code (CLI Automation)</h2>
+<p>Auto-register if either/both CLIs are installed:</p>
+<pre><code class="lang-sh">npx vdon-mcp-install
+</code></pre>
+<p>If only one CLI is installed:</p>
+<pre><code class="lang-sh">npx vdon-mcp-install --codex-only
+npx vdon-mcp-install --claude-only
+</code></pre>
+</section><section class="doc-section" id="sanity-check-all-clients"><h2>Sanity Check (All Clients)</h2>
+<p>First tool call should be:</p>
+<pre><code class="lang-json">{ "name": "vdo_capabilities", "arguments": {} }
+</code></pre>
+<p>Then connect:</p>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "room": "lab_1" } }
+</code></pre>
+<p>If <code>vdo_capabilities</code> works, your MCP wiring is correct.</p>
+</section><section class="doc-section" id="context-budget-note"><h2>Context Budget Note</h2>
+<p>Adding MCP servers increases tool/context footprint. Start with one MCP and least-privilege profile (<code>core</code>) first, then add more only as needed.</p>
+</section><section class="doc-section" id="first-functional-workflows-clear-result"><h2>First Functional Workflows (Clear Result)</h2>
+<p>Use unique room names to avoid collisions.</p>
+<h3 id="codex-to-codex-two-terminals">Codex to Codex (Two Terminals)</h3>
+<ol>
+<li>Install/register once:</li>
+</ol>
+<pre><code class="lang-sh">npm i @vdoninja/mcp
+npx vdon-mcp-install --codex-only
+</code></pre>
+<ol start="2">
+<li>Open two Codex sessions (<code>A</code> and <code>B</code>) with MCP enabled.</li>
+<li>In session <code>A</code>, call:</li>
+</ol>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "room": "codex_lab_001", "stream_id": "codex_a" } }
+</code></pre>
+<ol start="4">
+<li>In session <code>B</code>, call:</li>
+</ol>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "room": "codex_lab_001", "stream_id": "codex_b", "target_stream_id": "codex_a" } }
+</code></pre>
+<ol start="5">
+<li>In session <code>A</code>, send:</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_send",
+  "arguments": {
+    "session_id": "&lt;codex_a_session_id&gt;",
+    "data": { "type": "chat.message", "text": "hello from codex_a" }
+  }
+}
+</code></pre>
+<ol start="6">
+<li>In session <code>B</code>, receive:</li>
+</ol>
+<pre><code class="lang-json">{
+  "name": "vdo_receive",
+  "arguments": {
+    "session_id": "&lt;codex_b_session_id&gt;",
+    "wait_ms": 1000
+  }
+}
+</code></pre>
+<p>Expected result: a <code>data_received</code> event containing <code>"hello from codex_a"</code>.</p>
+<h3 id="claude-to-claude-two-terminals">Claude to Claude (Two Terminals)</h3>
+<ol>
+<li>Install/register once:</li>
+</ol>
+<pre><code class="lang-sh">npm i @vdoninja/mcp
+npx vdon-mcp-install --claude-only
+</code></pre>
+<ol start="2">
+<li>Repeat the same tool flow as above with a new room name, e.g. <code>claude_lab_001</code>.</li>
+</ol>
+<p>Expected result: the second Claude session receives the message in <code>vdo_receive</code> with <code>event.type = "data_received"</code>.</p>
+<h3 id="fast-scripted-proof-no-manual-tool-calls">Fast Scripted Proof (No Manual Tool Calls)</h3>
+<p>If you just want a quick pass/fail:</p>
+<pre><code class="lang-sh">npx vdon-mcp-demo-message
+npx vdon-mcp-demo-file
+</code></pre>
+<p>Expected result: each script exits successfully and reports message/file workflow completion.</p></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

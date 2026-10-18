@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.steveseguin/vdo-ninja-mcp",
   "title": "VDO.Ninja MCP Bridge",
-  "description": "WebRTC data-channel MCP bridge for VDO.Ninja with reliable messages, files, and room sync.",
+  "description": "Private agent rooms with messages, files, and shared state over WebRTC or a self-hosted HTTP relay.",
   "version": "0.4.2",
   "websiteUrl": "https://github.com/steveseguin/ninjamcp",
   "repository": {
@@ -25,6 +25,23 @@
         "type": "stdio"
       },
       "environmentVariables": [
+        {
+          "name": "VDON_MCP_RELAY_URL",
+          "description": "HTTPS origin of an optional peer relay, used with transport: http.",
+          "isRequired": false
+        },
+        {
+          "name": "VDON_MCP_RELAY_TOKEN",
+          "description": "Access token for the optional peer relay.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "VDON_MCP_RELAY_KEY",
+          "description": "Shared room encryption key: 32 random bytes encoded as 64 hex characters.",
+          "isRequired": false,
+          "isSecret": true
+        },
         {
           "name": "VDON_MCP_TOOL_PROFILE",
           "description": "Least-privilege tool set for this server process.",
@@ -123,7 +140,8 @@
           "full": "Core + file + state tool surface."
         },
         "transportNotes": [
-          "WebRTC data channels are the transport (not generic TCP tunneling).",
+          "WebRTC data channels are the default peer transport; HTTP relay mode is explicit and works without WebRTC.",
+          "The optional peer relay uses shared room encryption keys and bounded in-memory replay.",
           "TURN improves reachability but cannot bypass every enterprise policy."
         ]
       }

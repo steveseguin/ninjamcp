@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Remote Chrome · VDO.Ninja MCP</title>
+  <meta name="description" content="Share a remote Chrome tab, with separate agent credentials and control handoff.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/browser-worker.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#start-the-host">Start the host</a><a href="#connect-an-agent">Connect an agent</a><a href="#share-control-and-recover-a-connection">Share control and recover a connection</a><a href="#keep-working-when-webrtc-is-unavailable">Keep working when WebRTC is unavailable</a><a href="#watch-live-tab-audio-and-video">Watch live tab audio and video</a><a href="#choose-the-hosts-access-deliberately">Choose the host&#x27;s access deliberately</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Remote Chrome</p>
+      <h1 id="share-a-remote-chrome-browser">Share a remote Chrome browser</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/browser-worker.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>Run an isolated, headless Chrome tab on one computer and let agents use it through Ninja MCP. The host connects outward using WebRTC or your HTTP relay. Chrome's debugging endpoint stays on loopback; agents need no VPN or desktop streaming software.</p>
+<p>Each agent gets its own credential. Controllers take turns using a tab lease; observers can read snapshots, request screenshots, and watch optional live tab audio/video.</p>
+</section><section class="doc-section" id="start-the-host"><h2>Start the host</h2>
+<p>Install Chrome and Node.js 22.12 or later. In your Ninja MCP installation folder, install the optional browser packages:</p>
+<pre><code class="lang-sh">npm install @vdoninja/mcp chrome-devtools-mcp@1.11.0 puppeteer-core@24.37.5
+npx vdon-mcp-browser --setup ./private-browser
+npx vdon-mcp-browser --worker --config ./private-browser/worker.json
+</code></pre>
+<p>The setup prompts for a connection and optional live media. For a direct connection without prompts, add <code>--transport webrtc</code>. From a checkout, use <code>node scripts/vdo-mcp-browser.js</code> in place of <code>npx vdon-mcp-browser</code>. Keep the generated directory outside source control and accessible only to the host account. It contains four credential files:</p>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">File</th>
+<th scope="col">Give it to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>worker.json</code></td>
+<td>The browser host only; it contains every client key.</td>
+</tr>
+<tr>
+<td><code>agent1.json</code>, <code>agent2.json</code></td>
+<td>One controller each.</td>
+</tr>
+<tr>
+<td><code>viewer.json</code></td>
+<td>An observer who may see the shared tab but cannot control it.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Copy each client file privately to its intended agent's machine. Give additional clients distinct random 32-byte hex keys and add their IDs, keys, and <code>controller</code> or <code>observer</code> roles to <code>worker.json</code>. Restart the worker to apply credential changes. Use one client credential per active agent process.</p>
+<p>Setup also writes <code>mcp-client.json</code> with the local agent registration. Adjust its absolute paths when copying it to another computer. <code>--init</code> remains available for creating WebRTC credentials without prompts.</p>
+<p>The worker starts with one empty shared tab and an ephemeral Chrome profile. Your ordinary Chrome windows and logged-in profile are separate. To select a Chrome executable, add an absolute <code>executable</code> path to <code>worker.json</code>. When browser packages live elsewhere, set <code>dependencies</code> to their installation directory.</p>
+</section><section class="doc-section" id="connect-an-agent"><h2>Connect an agent</h2>
+<p>The agent machine needs Ninja MCP, but does not need Chrome or the optional browser packages. Add this separate server to the agent's MCP configuration, using absolute paths:</p>
+<pre><code class="lang-json">{
+  "mcpServers": {
+    "ninja-browser": {
+      "command": "node",
+      "args": [
+        "/absolute/path/node_modules/@vdoninja/mcp/scripts/vdo-mcp-browser.js",
+        "--config",
+        "/absolute/private/path/agent1.json"
+      ]
+    }
+  }
+}
+</code></pre>
+<p>On Windows, use paths such as <code>C:/Ninja/node_modules/@vdoninja/mcp/scripts/vdo-mcp-browser.js</code>. Existing message, file, and state tools remain available through the ordinary Ninja MCP server.</p>
+<p>Check the host packages or authenticate to the running worker from a client:</p>
+<pre><code class="lang-sh">npx vdon-mcp-browser --doctor --config ./private-browser/worker.json
+npx vdon-mcp-browser --doctor --config ./private-browser/agent1.json
+</code></pre>
+<p>The client check lists tabs without taking control. Its output distinguishes relay access from an authenticated worker response and names the route that returned the result.</p>
+<p>Ask the agent to list tabs, claim the shared tab, navigate, and take a snapshot:</p>
+<pre><code class="lang-json">{ "name": "browser_tabs", "arguments": {} }
+{ "name": "browser_claim", "arguments": { "pageId": 1 } }
+{ "name": "browser_call", "arguments": { "pageId": 1, "lease": "&lt;returned lease&gt;", "action": "navigate", "url": "https://example.com" } }
+{ "name": "browser_observe", "arguments": { "pageId": 1 } }
+</code></pre>
+<p>Use the returned snapshot token and element UID for input:</p>
+<pre><code class="lang-json">{ "name": "browser_call", "arguments": { "pageId": 1, "lease": "&lt;returned lease&gt;", "snapshot": "&lt;snapshot token&gt;", "action": "click", "uid": "&lt;element uid&gt;" } }
+{ "name": "browser_observe", "arguments": { "pageId": 1, "screenshot": true } }
+{ "name": "browser_release", "arguments": { "pageId": 1, "lease": "&lt;returned lease&gt;" } }
+</code></pre>
+<p><code>fill</code> takes <code>uid</code> and <code>value</code>; <code>key</code> takes a page key such as <code>Enter</code>, <code>Tab</code>, or an arrow key. Navigation accepts HTTP and HTTPS URLs. Remote tools do not expose script evaluation, local file uploads, browser shortcuts, or the media publisher's private page. They share the initial tab; newly opened tabs are not exposed. Continue work in the shared tab by navigating it to the desired URL.</p>
+</section><section class="doc-section" id="share-control-and-recover-a-connection"><h2>Share control and recover a connection</h2>
+<p>A lease lasts 60 seconds by default. Set <code>ttl_ms</code> between 1,000 and 120,000 when claiming; renew by passing the same lease to <code>browser_claim</code>. Another controller can claim after release or expiry. A disconnected agent's lease expires on that same deadline.</p>
+<p>Take a fresh accessibility snapshot after claiming, navigating, or acting. Snapshot tokens expire after 30 seconds. Another agent's accessibility snapshot replaces the current element references; take a fresh one if an input call returns <code>fresh_snapshot_required</code>. Screenshots do not replace those references.</p>
+<p>The host can enter <code>revoke 1</code> in its worker terminal to invalidate the current lease immediately. An action already executing may finish. Stop the worker to close the browser and end all access.</p>
+<p>Requests have IDs, deadlines, and bounded retries. A lost response is retried with the same ID; the running worker returns its cached result instead of repeating the action. Recent results remain available for at least two minutes after their request deadline:</p>
+<pre><code class="lang-json">{ "name": "browser_result", "arguments": { "request_id": "&lt;uncertain request ID&gt;" } }
+</code></pre>
+<p>An <code>outcome_unknown</code> response or an unknown result does not mean the action failed to execute. Inspect the page before deciding whether to repeat a click or submission. Results are held in memory; restarting the worker creates a new browser and invalidates old commands. Results are limited to 2 MiB; screenshots cover the viewport and use JPEG compression.</p>
+</section><section class="doc-section" id="keep-working-when-webrtc-is-unavailable"><h2>Keep working when WebRTC is unavailable</h2>
+<p>For automatic browser routing, create a new group with a private relay configuration:</p>
+<pre><code class="lang-sh">npx vdon-mcp-browser --setup ./private-browser --transport auto --relay-config /private/relay.json
+</code></pre>
+<p>The relay file uses <code>{ "url": "https://relay.example.com", "token": "&lt;access token&gt;" }</code>. You can reuse a ninja-p2p relay configuration and the same hosted relay service; setup creates a separate browser room and encryption key. Mailbox credentials and OAuth connections are separate and are not used here.</p>
+<p><code>auto</code> prefers an available WebRTC data channel. If a request needs retrying, it tries the other available route with the same encrypted request and ID. One worker owns the result cache and control leases across both routes. After a WebRTC timeout, new requests prefer HTTP for 30 seconds while the direct connection recovers. Tool results report which route replied.</p>
+<p>Use <code>--transport http</code> for HTTP only, or <code>--transport webrtc</code> for direct connections only. An automatic participant can reach a participant using either one of those routes, provided their connection and browser credentials match. Both routes carry commands, results, and screenshots; live media still needs WebRTC.</p>
+<p>For an existing group, set <code>connection.transport</code> to <code>"auto"</code> or <code>"http"</code> in its files, and supply the same relay settings to each participating process. These environment variables override the generated settings:</p>
+<ul>
+<li><code>VDON_MCP_RELAY_URL</code>: your HTTPS relay origin.</li>
+<li><code>VDON_MCP_RELAY_TOKEN</code>: relay access token.</li>
+<li><code>VDON_MCP_RELAY_KEY</code>: room encryption key.</li>
+</ul>
+<p>Follow the <a href="http-relay.html">relay setup guide</a> to host a compatible relay. Browser credentials remain separate from relay credentials; sharing a room key does not grant browser access. Automatic routing applies to this browser adapter; ordinary Ninja MCP room sessions select their transport explicitly.</p>
+</section><section class="doc-section" id="watch-live-tab-audio-and-video"><h2>Watch live tab audio and video</h2>
+<p>Add this option to <code>worker.json</code>, then restart:</p>
+<pre><code class="lang-json">"media": { "enabled": true }
+</code></pre>
+<p>Call <code>browser_media</code> to get track status and a private VDO.Ninja viewing link. The host captures only the shared tab, including its audio, through Chrome tab capture and publishes it using the VDO.Ninja SDK. The publisher uses a separate browser context and fresh media credentials on every worker start. Microphone and desktop capture are not enabled. Recording is off.</p>
+<p>Anyone holding the viewing link can watch and hear that stream. Share it only with intended viewers; restart the worker to replace the link. Media access does not grant control. The capture persists when the shared tab navigates, so stop the worker before opening content you do not want viewers to see.</p>
+<p>Live media requires WebRTC even when commands use HTTP. If <code>browser_media</code> reports unavailable media or an ended track, use <code>browser_observe</code> screenshots and restart after restoring capture or connectivity. An optional <code>media.host</code> selects a different SDK signaling endpoint; clients then receive connection settings instead of a default VDO.Ninja link.</p>
+<p>For a speaking agent that sees selected browser frames and uses these tools, open the optional <a href="browser-agent.html">browser companion</a>. Live viewing and model sharing have separate controls.</p>
+</section><section class="doc-section" id="choose-the-hosts-access-deliberately"><h2>Choose the host's access deliberately</h2>
+<p>All configured viewers can see the shared tab, and controllers can interact with sites using the host's network access. Run the worker under an account or container with only the network and filesystem access you intend to share. A separate Chrome profile is not an operating-system sandbox. Avoid signing into personal accounts in this shared tab.</p>
+<p>Browser requests and results use a separate AES-GCM key for each client over either transport. Keep credential files private. Removing a client requires updating the host configuration and restarting; possession of that client's file grants its configured role until then.</p>
+<p>The adapter uses the pinned <a href="https://github.com/ChromeDevTools/chrome-devtools-mcp">Chrome DevTools MCP</a> release and <a href="https://sdk.vdo.ninja/">VDO.Ninja SDK</a>. Chrome runs with its sandbox enabled. The worker binds no public browser-control port and changes no ordinary Ninja MCP transport defaults.</p></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

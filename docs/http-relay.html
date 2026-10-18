@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTTP relay · VDO.Ninja MCP</title>
+  <meta name="description" content="Connect through an encrypted relay when WebRTC is unavailable.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/http-relay.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#run-the-relay">Run the relay</a><a href="#configure-each-mcp-client">Configure each MCP client</a><a href="#join-and-send">Join and send</a><a href="#delivery-and-recovery">Delivery and recovery</a><a href="#trust-and-privacy">Trust and privacy</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / HTTP relay</p>
+      <h1 id="connect-without-webrtc">Connect without WebRTC</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/http-relay.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>Use the HTTP relay when a machine cannot run the native WebRTC library or its network blocks WebRTC. Two MCP sessions join the same encrypted room through a relay you operate. Messages, file transfers, and shared state use the existing MCP tools.</p>
+<p>WebRTC remains the default. Select <code>transport: "http"</code> on both participants to use the relay. Sessions using different transports do not discover each other; reconnect both with matching settings when switching.</p>
+</section><section class="doc-section" id="run-the-relay"><h2>Run the relay</h2>
+<p>The relay needs Node.js 18 or newer and no native dependencies. From a checkout:</p>
+<pre><code class="lang-sh">$env:VDON_RELAY_TOKEN = '&lt;a random access token, at least 32 characters&gt;'
+node scripts/vdo-mcp-relay.js
+</code></pre>
+<p>From an installed package, use <code>npx vdon-mcp-relay</code>. The default listener is <code>127.0.0.1:8790</code>. Set <code>VDON_RELAY_HOST</code> and <code>VDON_RELAY_PORT</code> to change it.</p>
+<p>Generate the access token and a separate room key by running this command twice:</p>
+<pre><code class="lang-sh">node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
+</code></pre>
+<p>Keep the room key on the participating clients. The relay receives only the access token. Give each private group its own relay instance and token, and use a different encryption key for each room.</p>
+<p>For other computers to connect, put the relay behind an HTTPS reverse proxy on your server. Forward <code>/v1/rooms/</code> unchanged, preserve the <code>Authorization</code> header, disable caching, allow request bodies up to 768 KiB, and allow responses to wait at least 30 seconds. Keep the Node listener private to the proxy. Remote clients require HTTPS; plain HTTP is accepted only for loopback addresses.</p>
+</section><section class="doc-section" id="configure-each-mcp-client"><h2>Configure each MCP client</h2>
+<p>Install without the optional native WebRTC library if needed:</p>
+<pre><code class="lang-sh">npm install @vdoninja/mcp --omit=optional
+</code></pre>
+<p>Set these variables in the environment of each MCP server process. In a client that supports a JSON server configuration:</p>
+<pre><code class="lang-json">{
+  "command": "node",
+  "args": ["/absolute/path/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+  "env": {
+    "VDON_MCP_RELAY_URL": "https://relay.example.com",
+    "VDON_MCP_RELAY_TOKEN": "&lt;relay access token&gt;",
+    "VDON_MCP_RELAY_KEY": "&lt;64 hex characters from the second command&gt;"
+  }
+}
+</code></pre>
+<p>For two clients on the relay computer, use <code>http://127.0.0.1:8790</code>. Both clients need the same relay URL, access token, room key, and room name. Each needs a different <code>stream_id</code>.</p>
+<p>Keep secrets in the server environment where possible. <code>vdo_connect</code> also accepts <code>relay_url</code>, <code>relay_token</code>, and <code>relay_key</code> for clients that need separate settings per session. These secrets are omitted from status and connection results.</p>
+</section><section class="doc-section" id="join-and-send"><h2>Join and send</h2>
+<p>Connect the first agent:</p>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "transport": "http", "room": "project_room", "stream_id": "planner" } }
+</code></pre>
+<p>Connect the second agent:</p>
+<pre><code class="lang-json">{ "name": "vdo_connect", "arguments": { "transport": "http", "room": "project_room", "stream_id": "reviewer" } }
+</code></pre>
+<p>Use <code>vdo_sync_peers</code> to wait for discovery, then address a peer by its stream ID:</p>
+<pre><code class="lang-json">{ "name": "vdo_send", "arguments": { "session_id": "&lt;planner-session&gt;", "target": "reviewer", "data": { "text": "Please review the plan." } } }
+{ "name": "vdo_receive", "arguments": { "session_id": "&lt;reviewer-session&gt;", "wait_ms": 1000 } }
+</code></pre>
+<p>File tools use the same target and retain chunk hashes, acknowledgements, retries, and completion checks. For shared state with <code>require_session_mac: true</code>, use the peer UUID from <code>vdo_sync_peers</code> as the state operation's <code>target</code>; the MAC belongs to that peer connection.</p>
+</section><section class="doc-section" id="delivery-and-recovery"><h2>Delivery and recovery</h2>
+<p>The relay accepts encrypted events through POST. Clients receive them through long polling with a cursor. Each request returns as soon as an event is available, or after 25 seconds. This path does not need SSE or WebSockets.</p>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Result or event</th>
+<th scope="col">Meaning and action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>vdo_send</code>: <code>delivery_stage: "queued"</code></td>
+<td>The local transport accepted the message. Save its <code>message_id</code> if you need to track it.</td>
+</tr>
+<tr>
+<td><code>relay_receipt</code>: <code>stage: "relay_accepted"</code></td>
+<td>The relay accepted the event. This does not confirm peer receipt or task completion; have the other agent reply when those matter.</td>
+</tr>
+<tr>
+<td><code>relay_receipt</code>: <code>stage: "delivery_unknown"</code></td>
+<td>POST retries failed. The relay may have accepted a request whose response was lost. Check with the peer before repeating a consequential task.</td>
+</tr>
+<tr>
+<td><code>data_received</code></td>
+<td>The receiving bridge accepted a message. Its <code>message_id</code> matches the sender's ID. The AI client still needs to poll and act on it.</td>
+</tr>
+<tr>
+<td><code>relay_connection</code></td>
+<td>The reader lost or regained connectivity. Use <code>vdo_status</code> to inspect the current connection.</td>
+</tr>
+<tr>
+<td><code>relay_history_lost</code></td>
+<td>The cursor is no longer available. Reconcile outstanding tasks with peers, request a state snapshot, and inspect unfinished file transfers before resuming.</td>
+</tr>
+<tr>
+<td><code>relay_message_rejected</code></td>
+<td>An event failed decryption or validation. Check matching room keys and synchronized clocks.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Retries within the retained history reuse the same encrypted event ID. Distinct messages with identical text keep distinct IDs. Reconnection resumes a running session's cursor; process restarts start a new session. New sessions begin with current traffic rather than retrieving past conversations.</p>
+<p>The relay keeps at most 512 events or 8 MiB per room for up to five minutes, across at most 16 rooms. It has no disk archive. A restart clears its history. Use the relay for live collaboration; use an application inbox for durable offline work. A busy room or large transfer can exhaust replay before five minutes.</p>
+<p>Queues and request sizes are bounded. <code>vdo_send</code> can return <code>ok: false</code> when the transport has no known peer, is disconnected, or its queue is full. Wait for discovery or recovery before retrying. File tools already split payloads into chunks; avoid sending whole large files as ordinary messages.</p>
+</section><section class="doc-section" id="trust-and-privacy"><h2>Trust and privacy</h2>
+<p>Room payloads use AES-256-GCM with a fresh random nonce and a key derived from the shared room key. The room identifier and event ID are authenticated with each encrypted message. The relay sees connection addresses, opaque room identifiers, timing, and sizes, but does not receive the room key or plaintext payloads.</p>
+<p>Every holder of a room key can decrypt that room's traffic, including messages addressed to another participant, and can claim a participant identity. A target selects delivery; it is not a private subchannel within the room. Share keys only with trusted participants and use separate rooms for separate trust groups. Use the existing join-token and allowlist controls to restrict application delivery; an allowlist alone does not establish a cryptographic identity. Rotate shared keys and reconnect participants when access changes.</p>
+<p>This group-key mode has no forward secrecy: a disclosed key can decrypt previously captured room traffic. Use WebRTC when its connection-level privacy is required. Keep clocks synchronized; expired or far-future events are rejected.</p>
+<p>The HTTP relay carries data. The optional <a href="browser-worker.html">browser adapter</a> supports automatic WebRTC/HTTP routing for its commands and images; live browser audio/video still uses WebRTC. Ordinary room sessions choose their transport explicitly. The <code>vdon-mcp-http</code> command exposes MCP itself over HTTP; <code>vdon-mcp-relay</code> carries encrypted events between peers. They are different services.</p></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

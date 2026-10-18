@@ -1,5 +1,7 @@
 # VDO.Ninja MCP Advanced Diagnostics
 
+[Read this guide in HTML](https://steveseguin.github.io/ninjamcp/advanced-diagnostics.html)
+
 This page is optional. Use it when you are debugging reliability or network edge cases.
 
 ## Live Test Commands

@@ -85,6 +85,7 @@
     <a href="#install"><svg class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>Install</a>
     <a href="#clients"><svg class="icon-sm"><use href="assets/icons.svg#i-plug"></use></svg>Connect a client</a>
     <a href="#first-run"><svg class="icon-sm"><use href="assets/icons.svg#i-message"></use></svg>First conversation</a>
+    <a href="#guides"><svg class="icon-sm"><use href="assets/icons.svg#i-book"></use></svg>All guides</a>
     <h5>Concepts</h5>
     <a href="#how"><svg class="icon-sm"><use href="assets/icons.svg#i-eye"></use></svg>How it works</a>
     <a href="#rooms"><svg class="icon-sm"><use href="assets/icons.svg#i-hash"></use></svg>Rooms and sessions</a>
@@ -101,9 +102,13 @@
     <a href="#mcp-http"><svg class="icon-sm"><use href="assets/icons.svg#i-cloud"></use></svg>MCP over HTTP</a>
     <a href="#troubleshooting"><svg class="icon-sm"><use href="assets/icons.svg#i-alert"></use></svg>Troubleshooting</a>
     <a href="#testing"><svg class="icon-sm"><use href="assets/icons.svg#i-check"></use></svg>Testing</a>
+    <h5>Optional integrations</h5>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="browser-agent.html">Voice companion</a>
+    <a href="ssapp-integration.html">Remote SSApp</a>
     <h5>More</h5>
     <a href="./#faq"><svg class="icon-sm"><use href="assets/icons.svg#i-info"></use></svg>FAQ</a>
-    <a href="https://github.com/steveseguin/ninjamcp/blob/main/references/direction.md"><svg class="icon-sm"><use href="assets/icons.svg#i-git-branch"></use></svg>Direction</a>
+    <a href="direction.html"><svg class="icon-sm"><use href="assets/icons.svg#i-git-branch"></use></svg>Direction</a>
     <a href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>Source</a>
     <a href="https://discord.vdo.ninja"><svg class="icon-sm"><use href="assets/icons.svg#i-users"></use></svg>Support</a>
   </aside>
@@ -802,6 +807,30 @@ VDON_RELAY_TOKEN=&lt;token&gt; npx vdon-mcp-relay
       </div>
     </section>
 
+    <section class="doc-section" id="guides">
+      <h2>Guides</h2>
+      <p>Choose the task you want to complete. Each guide is also available in Markdown.</p>
+      <h3>Setup and connections</h3>
+      <div class="guide-list">
+        <a href="quickstart-and-compat.html"><strong>Quickstart</strong><span>Connect two clients and exchange a first message.</span></a>
+        <a href="client-config-examples.html"><strong>Client configuration</strong><span>Ready-to-copy setup for your MCP client.</span></a>
+        <a href="http-relay.html"><strong>Connect without WebRTC</strong><span>Run and use an encrypted HTTP relay.</span></a>
+      </div>
+      <h3>Optional remote tools</h3>
+      <div class="guide-list">
+        <a href="browser-worker.html"><strong>Remote Chrome</strong><span>Share a browser with agent control handoff and optional live media.</span></a>
+        <a href="browser-agent.html"><strong>Voice companion</strong><span>Speak to an agent and share selected browser views.</span></a>
+        <a href="ssapp-integration.html"><strong>Remote SSApp</strong><span>Use Social Stream Ninja screenshots, input, and app controls remotely.</span></a>
+      </div>
+      <h3>Reference and direction</h3>
+      <div class="guide-list">
+        <a href="mcp-tool-contract.html"><strong>Tool contract</strong><span>Arguments, permissions, and transport limits.</span></a>
+        <a href="advanced-diagnostics.html"><strong>Advanced diagnostics</strong><span>Check connectivity and troubleshoot reliability.</span></a>
+        <a href="vdo-ninja-p2p-data-notes.html"><strong>WebRTC data notes</strong><span>SDK constraints for peer data connections.</span></a>
+        <a href="direction.html"><strong>Project direction</strong><span>How Ninja MCP, ninja-p2p, and the SDK fit together.</span></a>
+      </div>
+    </section>
+
     <!-- Testing -->
     <section class="doc-section" id="testing">
       <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-check"></use></svg></span>Testing</h2>
@@ -813,7 +842,7 @@ npm run test:mcp:all
 node tests/live-turn-smoke.js
 node tests/live-turn-soak.js
 node tests/live-turn-matrix.js</code></pre>
-      <p>Soak, matrix, and tuning knobs are covered in <a href="https://github.com/steveseguin/ninjamcp/blob/main/references/advanced-diagnostics.md">advanced diagnostics</a>. The machine-level contract lives in <a href="https://github.com/steveseguin/ninjamcp/blob/main/references/mcp-tool-contract.md">mcp-tool-contract.md</a>.</p>
+      <p>Soak, matrix, and tuning knobs are covered in <a href="advanced-diagnostics.html">advanced diagnostics</a>. See the <a href="mcp-tool-contract.html">tool contract</a> for arguments and protocol limits.</p>
 
       <p class="muted" style="margin-top:40px;font-size:14px"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/docs/guide.html">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
       <nav class="pager" aria-label="More">

@@ -1,5 +1,7 @@
 # VDO.Ninja P2P Data Notes for MCP Workflows
 
+[Read this guide in HTML](https://steveseguin.github.io/ninjamcp/vdo-ninja-p2p-data-notes.html)
+
 This file captures operational constraints from this repository's SDK docs.
 
 ## Hard Platform Constraints

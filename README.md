@@ -1,327 +1,111 @@
 # VDO.Ninja MCP (`@vdoninja/mcp`)
 
-## TL;DR
+Give an MCP client live tools for exchanging messages, files, and small shared-state updates with peers on other computers. The MCP server manages active connections while your AI client calls the tools and consumes incoming events.
 
-This package gives an AI app a small set of tools for talking to another AI app. Two Codex, Claude, Cursor, or other MCP sessions can join the same VDO.Ninja room, send messages, exchange files, and keep shared task state without you building a new messaging server.
+WebRTC is the default peer transport. An optional [self-hosted HTTP relay](https://steveseguin.github.io/ninjamcp/http-relay.html) works when WebRTC is unavailable.
 
-If your AI client supports MCP and you want **tools it can call**, use this package. If you want an **always-on agent room with a local inbox**, use [`ninja-p2p`](https://github.com/steveseguin/ninja-p2p) instead.
+[Package](https://www.npmjs.com/package/@vdoninja/mcp) | [HTML guides](https://steveseguin.github.io/ninjamcp/guide.html#guides) | [Client setup](https://steveseguin.github.io/ninjamcp/client-config-examples.html) | [Tool reference](https://steveseguin.github.io/ninjamcp/mcp-tool-contract.html) | [Support](https://discord.vdo.ninja)
 
-**Best for:** MCP-native agent handoffs, file delivery, and small shared-state workflows.
+HTML guides are also included in the package's `docs/` folder for offline reading.
 
-**Not for:** a general VPN, permanent storage, or a large public chat network.
+## Get started
 
-Package: [`@vdoninja/mcp`](https://www.npmjs.com/package/@vdoninja/mcp) | [Quickstart](references/quickstart-and-compat.md) | [Client setup examples](references/client-config-examples.md) | [Support](https://discord.vdo.ninja)
+Install from a stable folder; the installer registers an absolute script path with your MCP client.
 
-## What It Looks Like
-
-One agent joins a room:
-
-```json
-{ "name": "vdo_connect", "arguments": { "room": "family_calendar", "stream_id": "planner" } }
+```bash
+npm install @vdoninja/mcp
+npx vdon-mcp-install
 ```
 
-A second agent joins the same room, then sends it a message:
+The installer supports Codex and Claude Code. Use `--codex-only` or `--claude-only` to choose one, or follow the [manual setup examples](https://steveseguin.github.io/ninjamcp/client-config-examples.html) for other MCP clients. Your client launches the server; `npx vdon-mcp-server` starts it directly for manual use.
+
+Ask the first agent to connect:
 
 ```json
-{ "name": "vdo_connect", "arguments": { "room": "family_calendar", "stream_id": "reviewer", "target_stream_id": "planner" } }
-{ "name": "vdo_send", "arguments": { "session_id": "<reviewer-session>", "data": { "text": "I checked the plan. Tuesday has a conflict." } } }
+{ "name": "vdo_connect", "arguments": { "room": "project_room", "stream_id": "planner" } }
 ```
 
-Those are normal MCP tool calls. This server translates them into VDO.Ninja SDK operations over WebRTC data channels.
+Ask the second agent to join and connect to the first:
 
-## Which VDO.Ninja Package Do I Need?
+```json
+{ "name": "vdo_connect", "arguments": { "room": "project_room", "stream_id": "reviewer", "target_stream_id": "planner" } }
+```
+
+Wait for the peer to appear in `vdo_sync_peers`, then send a message using the returned session ID:
+
+```json
+{ "name": "vdo_send", "arguments": { "session_id": "<reviewer-session>", "target": "planner", "data": { "text": "Please send me the plan to review." } } }
+{ "name": "vdo_receive", "arguments": { "session_id": "<planner-session>", "wait_ms": 1000 } }
+```
+
+These are MCP tool calls made by your AI client. A successful send means the transport accepted the payload; ask the recipient to reply when you need confirmation. Clients use `vdo_receive` to retrieve incoming events.
+
+See the [quickstart](https://steveseguin.github.io/ninjamcp/quickstart-and-compat.html) for connection troubleshooting and secure presets.
+
+## What you can do
+
+| Goal | Tools |
+| --- | --- |
+| Connect, discover peers, and inspect a room | `vdo_connect`, `vdo_sync_peers`, `vdo_status` |
+| Exchange messages and hand off work | `vdo_send`, `vdo_receive` |
+| Send and save artifacts with integrity checks and retries | `vdo_file_send_path`, `vdo_file_receive`, `vdo_file_save` |
+| Share small task state and recover a snapshot | `vdo_state_set`, `vdo_state_get`, `vdo_state_sync` |
+| Inspect available tools and transport behavior | `vdo_capabilities` |
+| End a session | `vdo_disconnect` |
+
+Choose a tool profile with `npx vdon-mcp-install --preset core`, `file`, or `state`. The `full` profile includes all tools. Use `secure-core` or `secure-full` with a configured `VDON_MCP_JOIN_TOKEN_SECRET` for join-token enforcement and session MACs. The [tool reference](https://steveseguin.github.io/ninjamcp/mcp-tool-contract.html) describes peer allowlists and other connection controls.
+
+## Choose a connection
+
+| Path | When to use it |
+| --- | --- |
+| WebRTC | Default for direct peer messaging and files. Payloads travel over encrypted data channels. |
+| WebRTC with `force_turn: true` | Route through TURN when you need it. TURN still requires a WebRTC runtime and network support. |
+| HTTP relay with `transport: "http"` | Use a relay you operate when WebRTC cannot run or connect. Follow the [relay setup guide](https://steveseguin.github.io/ninjamcp/http-relay.html). |
+
+The HTTP relay uses encrypted room messages, POST, and long polling. Both peers must select HTTP and share the relay settings. It has bounded in-memory replay, with visible events for lost history; use an application inbox when work must survive process restarts or long periods offline. Room-key holders can decrypt the room's traffic, so use separate rooms for separate trust groups.
+
+The native WebRTC dependency installs by default. For HTTP-only machines, install with `npm install @vdoninja/mcp --omit=optional` and configure a relay. Ordinary room sessions select their transport explicitly; the optional browser adapter also supports automatic routing.
+
+## Where this fits
 
 | Your goal | Use |
 | --- | --- |
-| Add connect/send/file/state tools to an MCP client | **`@vdoninja/mcp`** |
-| Give agents a persistent room and local inbox | [`@vdoninja/ninja-p2p`](https://github.com/steveseguin/ninja-p2p) |
-| Build directly with WebRTC media or data channels | [`@vdoninja/sdk`](https://github.com/steveseguin/ninjasdk) |
+| Connect an MCP client to live peers and exchange messages, files, and state | **This package** |
+| Keep a team connected between agent turns, with local inboxes, handoffs, wake hooks, and a dashboard | [ninja-p2p](https://github.com/steveseguin/ninja-p2p) |
+| Build directly with WebRTC audio, video, or data | [VDO.Ninja SDK](https://github.com/steveseguin/ninjasdk) |
 
-This package uses VDO.Ninja's existing room, discovery, and WebRTC behavior. It does not add signaling-server commands. `@vdoninja/sdk` and the Node WebRTC runtime install as package dependencies.
+Choose Ninja MCP when your client should manage an active interaction through MCP tools. Choose ninja-p2p when a background sidecar should retain incoming work and notify an agent between turns. Ninja MCP's ordinary event queues and shared state live in the server process; use ninja-p2p for persistent agent inbox workflows.
 
-## Why This MCP
+Both use the VDO.Ninja SDK, but their message and file protocols differ. A common room name alone does not connect their higher-level workflows. A dedicated adapter is planned; until then, use matching packages on both ends of each workflow.
 
-- Open source under the MIT license and free to use.
-- Peer-to-peer first: no central relay required for normal data flow.
-- End-to-end encrypted WebRTC data transport (DTLS + SCTP data channels).
-- Reliable data channel mode available for ordered/loss-recovered delivery.
-- Low infrastructure overhead for bot-to-bot messaging and file sync.
-- Works for local LAN, remote internet peers, and hybrid topologies.
-- TURN support improves connectivity when direct P2P is blocked.
-- Good fit for multi-agent coordination without exposing plaintext payloads to a middlebox.
+Ninja MCP's direction is live access to remote peers, tools, and perception through MCP. ninja-p2p's direction is the continuing team workspace and its handoffs. See [Ninja MCP's direction](https://steveseguin.github.io/ninjamcp/direction.html) and [ninja-p2p's direction](https://github.com/steveseguin/ninja-p2p/blob/main/docs/north-star.md).
 
-## Common and Interesting Use Cases
+## Optional remote Chrome
 
-- AI swarm coordination: multiple agents in a private room exchanging tasks, state, and results.
-- Bot-to-bot handoff: one agent collects context, another executes, another validates, all over P2P.
-- Private file exchange: send logs, artifacts, prompts, and generated outputs directly between agents.
-- Human + AI war room: operator plus several bots sharing near-real-time status updates.
-- Edge + cloud hybrid: local on-device agent syncs with remote agents without standing up a custom tunnel.
-- Temporary secure collaboration spaces: ad-hoc rooms with join tokens and peer allowlists.
-- Cross-tool interop: Codex and Claude instances sharing updates through the same bridge contract.
+The [browser worker](https://steveseguin.github.io/ninjamcp/browser-worker.html) lets agents share an isolated, headless Chrome tab over WebRTC or your HTTP relay. Each agent has a separate credential; one controller holds the tab while others observe. Tools return page snapshots and screenshots. Hosts can also enable live tab audio/video through the VDO.Ninja SDK.
 
-## Fun Agent-to-Agent Rooms
+Install the optional browser packages on the host, run `vdon-mcp-browser --setup`, and register it as a separate MCP server. The [setup guide](https://steveseguin.github.io/ninjamcp/browser-worker.html) covers connection checks, automatic WebRTC/HTTP routing, control handoff, and private viewing links.
 
-These are real patterns teams are starting to use:
+The optional [browser companion](https://steveseguin.github.io/ninjamcp/browser-agent.html) adds a speaking agent with microphone, browser-frame sharing, interruption, and control permissions. It uses an OpenAI API key; ordinary MCP tools and live browser viewing do not require a model account.
 
-- Claude Code to Codex CLI pair mode where one agent asks for a second opinion and gets patch/test feedback.
-- OpenClaw-to-OpenClaw specialist rooms where one local assistant asks another for tool-specific help.
-- Small LLM idea circles (3-5 agents) sharing proposals, critiques, and final votes.
-- Private "night shift" automation where bots sync status/events/files without broad network exposure.
+## Optional remote SSApp
 
-OpenClaw project link:
+For an existing Social Stream Ninja Standalone instance, the optional [SSApp bridge](https://steveseguin.github.io/ninjamcp/ssapp-integration.html)
+forwards its MCP tools, screenshots, and input over WebRTC or the HTTP relay. Agents use separate credentials
+and take turns controlling the app; SSApp keeps its existing sessions and windows.
 
-- https://github.com/openclaw/openclaw
-
-## Quick Example: Claude + Codex Helper Loop
-
-1. Claude-side session:
-```json
-{
-  "name": "vdo_connect",
-  "arguments": {
-    "room": "agent_help_room",
-    "stream_id": "claude_agent"
-  }
-}
-```
-
-2. Codex-side session:
-```json
-{
-  "name": "vdo_connect",
-  "arguments": {
-    "room": "agent_help_room",
-    "stream_id": "codex_agent",
-    "target_stream_id": "claude_agent"
-  }
-}
-```
-
-3. Claude sends task:
-```json
-{
-  "name": "vdo_send",
-  "arguments": {
-    "session_id": "<claude_session>",
-    "data": {
-      "type": "help.request",
-      "task": "review patch for race condition"
-    }
-  }
-}
-```
-
-4. Codex replies:
-```json
-{
-  "name": "vdo_send",
-  "arguments": {
-    "session_id": "<codex_session>",
-    "data": {
-      "type": "help.reply",
-      "summary": "found 2 edge cases",
-      "next_steps": ["add timeout guard", "add retry test"]
-    }
-  }
-}
-```
-
-## High-Value AI Advantages
-
-- Agents share messages/files/state directly, without opening broad machine-to-machine network access.
-- You can limit tool access with profiles (`core|file|state|full`) so each agent only gets what it needs.
-- Rooms can be short-lived: create for a task, then close when done.
-- Easy to start: no private subnet setup, no custom tunnel setup.
-- Works between browser peers and Node peers.
-- Data channels can be reliable and ordered, which is good for control messages.
-- Security options are built in: join tokens, stream allowlists, and session MAC checks.
-
-## Clever Real-World Patterns
-
-- Reviewer team: one writer agent, several reviewer agents, and one decider agent sharing feedback in the same room.
-- State recovery: agents can re-sync shared state with `vdo_state_sync` after reconnects.
-- File pipeline: one agent sends artifacts, another indexes them, another summarizes them.
-- Human override: a person can join the room to inspect progress and step in when needed.
-- Local-first flow: keep sensitive work local and only send required outputs to remote agents.
-- Burst jobs: create short-lived agent groups per task instead of running a permanent private network.
-
-## Compared with VPN Overlays (e.g., Tailscale)
-
-Where this MCP is often better for AI workflows:
-
-- You need agent-to-agent messaging/file/state, not full network access between hosts.
-- You want tool-level permissions instead of giving every machine broad private-network reach.
-- You want browser and Node agents working together quickly.
-- You want temporary collaboration sessions without managing a permanent virtual network.
-
-Where overlays are often better:
-
-- You need always-on private IP connectivity across many services.
-- You need many protocols (databases, SSH, internal web apps) over one virtual network.
-- You need centralized network policy and audit at the infrastructure layer.
-
-Practical framing:
-
-- This MCP is not a full replacement for Tailscale.
-- It is a strong complement for AI-native, data-channel-first collaboration.
-
-## Transport Truth
-
-- This is **WebRTC data transport**, not a generic TCP/SSH tunnel.
-- Data channels can run in reliable/ordered mode (SCTP over DTLS).
-- Default behavior is direct P2P when possible (great for LAN/local-network speed and low latency).
-- Privacy mode is opt-in via `force_turn=true`: this can reduce direct IP exposure between peers, but may reduce connection success in some environments.
-- TURN improves success on restrictive networks, but it is not a guaranteed firewall bypass for every enterprise policy.
-
-## Quickstart (No Clone)
-
-Install from a stable folder. The installer stores an absolute script path in Codex/Claude config.
+## Run from a checkout
 
 ```bash
-npm i @vdoninja/mcp
-npx vdon-mcp-install
-npx vdon-mcp-server
-```
-
-When started directly in a terminal, `vdon-mcp-server` now prints a short "server running" banner and a first-call hint.
-
-First MCP call (recommended):
-
-```json
-{ "name": "vdo_capabilities", "arguments": {} }
-```
-
-Useful install variants:
-
-- `npx vdon-mcp-install --codex-only`
-- `npx vdon-mcp-install --claude-only`
-- `npx vdon-mcp-install --preset core|file|state|secure-core|secure-full`
-- `npx vdon-mcp-install --uninstall`
-
-## Onboarding Guides
-
-- Operator quickstart: `references/quickstart-and-compat.md`
-- Client setup examples (Cursor, Gemini CLI, OpenCode): `references/client-config-examples.md`
-- First functional workflows (Codex-to-Codex and Claude-to-Claude): `references/client-config-examples.md`
-
-## Typical Workflows
-
-Message demo:
-
-```bash
-npx vdon-mcp-demo-message
-```
-
-Purpose: prove end-to-end room connect + message send/receive over data channels.
-
-File demo:
-
-```bash
-npx vdon-mcp-demo-file
-```
-
-Purpose: prove reliable chunked file transfer and receive path.
-
-Live network mode (instead of local fake mode):
-
-```bash
-MCP_DEMO_FAKE=0 npx vdon-mcp-demo-message
-MCP_DEMO_FAKE=0 npx vdon-mcp-demo-file
-```
-
-Privacy-first relay mode (opt-in):
-
-```bash
-MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-message
-MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file
-```
-
-## Security and Least Privilege
-
-Use secure controls where needed:
-
-- `join_token` and `join_token_secret`
-- `enforce_join_token: true`
-- `allow_peer_stream_ids: [...]`
-- `require_session_mac: true`
-
-Server profile scoping:
-
-```bash
-VDON_MCP_TOOL_PROFILE=core npx vdon-mcp-server
-```
-
-Set `VDON_MCP_JOIN_TOKEN_SECRET` before secure preset installs/runtime.
-
-## Compatibility
-
-- Codex MCP CLI
-- Claude Code MCP CLI
-- Other MCP clients that support stdio command servers
-
-Manual command wiring example:
-
-```json
-{
-  "name": "vdo-ninja-mcp",
-  "command": "node",
-  "args": ["node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
-}
-```
-
-## Local Development (This Repo)
-
-Start server:
-
-```bash
+npm install
 node scripts/vdo-mcp-server.js
 ```
 
-Install registration from local checkout:
-
-```bash
-node scripts/install-mcp.js
-```
-
-## Testing
-
-Fast product-focused suite:
-
-```bash
-node tests/run-mcp-tests-minimal.js
-```
-
-Full suite:
-
-```bash
-node tests/run-mcp-tests.js
-```
-
-Live diagnostics:
-
-```bash
-node tests/live-turn-smoke.js
-node tests/live-turn-soak.js
-node tests/live-turn-matrix.js
-node tests/live-turn-preset-matrix.js
-```
-
-## Key Files
-
-- `scripts/vdo-mcp-server.js` (stdio MCP server)
-- `scripts/vdo-mcp-streamable-http.js` (streamable HTTP bridge)
-- `scripts/install-mcp.js` (Codex/Claude installer automation)
-- `references/quickstart-and-compat.md` (operator quickstart)
-- `references/mcp-tool-contract.md` (tool semantics and contracts)
-- `server.json` (MCP discovery manifest metadata)
+`npm run check` runs the existing suite. `npm run demo:message` and `npm run demo:file` run local simulated workflows; set `MCP_DEMO_FAKE=0` to use live WebRTC peers. See [advanced diagnostics](https://steveseguin.github.io/ninjamcp/advanced-diagnostics.html) for live network checks.
 
 ## License
 
-`@vdoninja/mcp` is MIT licensed. Copyright (c) 2026 Steve Seguin.
+MIT. Copyright (c) 2026 Steve Seguin.
 
-Its `@vdoninja/sdk` dependency has its own terms. The SDK package is
-MPL-2.0, with some separately marked wrappers and adapters under MIT. Anyone
-bundling or redistributing the SDK should preserve its copyright and license
-notices and comply with the MPL-2.0 for covered SDK files. Those terms do not
-require the rest of an application to use the MPL-2.0.
+The `@vdoninja/sdk` dependency has its own terms: MPL-2.0, with some separately marked wrappers and adapters under MIT. Preserve its copyright and license notices when redistributing it and comply with the MPL-2.0 for covered SDK files. Those terms do not require the rest of an application to use the MPL-2.0.

@@ -1,5 +1,7 @@
 # VDO.Ninja MCP Client Config Examples
 
+[Read this guide in HTML](https://steveseguin.github.io/ninjamcp/client-config-examples.html)
+
 Ready-to-paste config for popular MCP clients.
 
 ## Prereqs (No Clone)

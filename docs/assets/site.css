@@ -1,4 +1,4 @@
-/* VDO.Ninja MCP site styles. No build step; plain CSS shared by index.html and guide.html. */
+/* VDO.Ninja MCP site styles. No build step; shared by the landing page and guides. */
 
 :root {
   --bg: #fafaf8;
@@ -675,6 +675,33 @@ td { color: var(--ink-2); }
 .pager a:hover { border-color: var(--line-2); }
 .pager small { display: block; color: var(--ink-3); font-size: 12.5px; }
 .pager b { font-weight: 580; }
+
+/* Static reference guides share the main documentation layout. */
+.reference-page .docs-main { overflow-wrap: anywhere; }
+.reference-page .guide-intro { padding-top: 14px; }
+.reference-page .docs-main > header .guide-breadcrumb { font-size: 14px; margin: 0 0 16px; }
+.reference-page .docs-main > header .guide-format { font-size: 14px; }
+.reference-page .doc-section h4 { margin-top: 24px; font-size: 17px; }
+.reference-page .table-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.reference-page .doc-section td code, .reference-page .doc-section th code { white-space: normal; }
+.reference-page .doc-section table { min-width: 560px; }
+.reference-page .doc-section pre { overflow-wrap: normal; }
+.reference-page .guide-intro:empty { display: none; }
+.guide-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.guide-list a { padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.guide-list a:hover { border-color: var(--accent); }
+.guide-list strong { display: block; color: var(--ink); }
+.guide-list span { display: block; color: var(--ink-2); margin-top: 6px; font-size: 14px; }
+@media (max-width: 640px) { .guide-list { grid-template-columns: 1fr; } }
+@media print {
+  .reference-page .nav, .reference-page .sidebar, .reference-page .docs-toggle,
+  .reference-page .footer, .reference-page .pager, .reference-page .copy { display: none; }
+  .reference-page .docs { display: block; padding: 0; }
+  .reference-page .docs-main { max-width: none; padding: 0; }
+  .reference-page .table-wrap, .reference-page pre { overflow: visible; }
+  .reference-page .doc-section table { min-width: 0; }
+  .reference-page pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+}
 
 @media (max-width: 960px) {
   .docs { grid-template-columns: 1fr; gap: 0; padding: 0 16px; }

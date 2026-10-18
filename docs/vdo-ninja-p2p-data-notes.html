@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebRTC data notes · VDO.Ninja MCP</title>
+  <meta name="description" content="Understand the SDK data-channel constraints behind MCP peer connections.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/vdo-ninja-p2p-data-notes.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#hard-platform-constraints">Hard Platform Constraints</a><a href="#topologies-that-work">Topologies That Work</a><a href="#delivery-semantics">Delivery Semantics</a><a href="#firewallnat-guidance">Firewall/NAT Guidance</a><a href="#keep-alive-and-session-continuity">Keep-Alive and Session Continuity</a><a href="#bridge-runtime-knobs">Bridge Runtime Knobs</a><a href="#app-envelope-suggestions">App Envelope Suggestions</a><a href="#file-transfer-envelope-pattern-used-here">File Transfer Envelope Pattern Used Here</a><a href="#disk-spooling-and-large-files">Disk Spooling And Large Files</a><a href="#room-state-sync-crdt-lite">Room State Sync (CRDT-lite)</a><a href="#local-source-pointers">Local Source Pointers</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / WebRTC data notes</p>
+      <h1 id="vdoninja-p2p-data-notes-for-mcp-workflows">VDO.Ninja P2P Data Notes for MCP Workflows</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/vdo-ninja-p2p-data-notes.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>This file captures operational constraints from this repository's SDK docs.</p>
+</section><section class="doc-section" id="hard-platform-constraints"><h2>Hard Platform Constraints</h2>
+<ol>
+<li>
+<p>Signaling is not an app-data tunnel.
+- Only handshake/signaling data should traverse WebSocket.
+- Application payloads are expected over WebRTC data channels.</p>
+</li>
+<li>
+<p>Room scale is bounded.
+- Documented guidance is about 80 peers per room (viewer limits can apply).
+- For higher fanout, split rooms or use server-mediated patterns.</p>
+</li>
+<li>
+<p>Serverless philosophy is enforced.
+- No server-side state relay for your app protocol.
+- Design as peer-to-peer first.</p>
+</li>
+</ol>
+</section><section class="doc-section" id="topologies-that-work"><h2>Topologies That Work</h2>
+<ol>
+<li>
+<p>Two-peer data link (recommended).
+- Peer A: <code>announce({ streamID })</code>
+- Peer B: <code>view(streamID, { audio:false, video:false })</code>
+- Result: one bidirectional data channel.</p>
+</li>
+<li>
+<p>Multi-peer data mesh.
+- Use <code>autoConnect(room)</code> half-mesh mode to avoid duplicate pair connections.
+- Move to full mesh only when media exchange actually needs two directional AV links.</p>
+</li>
+<li>
+<p>Targeted delivery.
+- Use <code>sendData(data, "uuid")</code> or advanced target objects.
+- Keep <code>preference: "any"</code> unless you explicitly need publisher-only/viewer-only/all-channel behavior.</p>
+</li>
+</ol>
+</section><section class="doc-section" id="delivery-semantics"><h2>Delivery Semantics</h2>
+<ul>
+<li>WebRTC data channels are typically configured for reliable, ordered delivery in SDK defaults.</li>
+<li>Reliability applies after channel establishment; it does not guarantee every network can establish the channel.</li>
+<li>TURN improves establishment success in restrictive NAT/firewall environments but does not guarantee universal reachability.</li>
+<li>This MCP skill layers app-level reliability for file transfer:</li>
+<li>chunk SHA-256 validation</li>
+<li>ACK/NACK feedback</li>
+<li>resume from <code>next_seq</code> after interruption</li>
+</ul>
+</section><section class="doc-section" id="firewallnat-guidance"><h2>Firewall/NAT Guidance</h2>
+<ol>
+<li>
+<p>Prefer TURN when needed.
+- <code>forceTURN: true</code> can push connections through relay infrastructure.
+- This helps restrictive networks but changes latency/cost characteristics.</p>
+</li>
+<li>
+<p>Treat fallback as last resort.
+- <code>allowFallback: true</code> allows <code>sendData</code> fallback through signaling when P2P is unavailable.
+- Use for control/survivability, not sustained throughput.</p>
+</li>
+<li>
+<p>Expect hard failure zones.
+- Some enterprise/WSL/network setups can still block WebRTC UDP.
+- Build retry and reconnection logic regardless of TURN.</p>
+</li>
+</ol>
+</section><section class="doc-section" id="keep-alive-and-session-continuity"><h2>Keep-Alive and Session Continuity</h2>
+<ol>
+<li>
+<p>Keep a heartbeat.
+- Send lightweight periodic app-level heartbeats.
+- Optionally send SDK pings (<code>sendPing</code>) to connected peers.</p>
+</li>
+<li>
+<p>Reconnect predictably.
+- On disconnect/error, recreate SDK instance, reconnect, re-join room, re-announce, and re-view targets.
+- Make handlers idempotent to tolerate duplicate or delayed messages around reconnection.</p>
+</li>
+<li>
+<p>Define canonical IDs.
+- Room and stream IDs should use alphanumeric + underscore.
+- Rely on sanitized IDs consistently across all peers.</p>
+</li>
+</ol>
+</section><section class="doc-section" id="bridge-runtime-knobs"><h2>Bridge Runtime Knobs</h2>
+<p><code>scripts/vdo-data-bridge.js</code> supports:</p>
+<ul>
+<li><code>VDON_ROOM</code> (required in real deployments)</li>
+<li><code>VDON_STREAM_ID</code> (optional; random if omitted)</li>
+<li><code>VDON_TARGET_STREAM_ID</code> (optional; auto-view peer stream for two-peer links)</li>
+<li><code>VDON_HOST</code> (default <code>wss://wss.vdo.ninja</code>)</li>
+<li><code>VDON_PASSWORD</code> (<code>false</code> to disable encryption; omitted uses SDK default)</li>
+<li><code>VDON_FORCE_TURN</code> (<code>true</code>/<code>false</code>)</li>
+<li><code>VDON_HEARTBEAT_MS</code> (default <code>15000</code>)</li>
+<li><code>VDON_RECONNECT_MS</code> (default <code>3000</code>)</li>
+<li><code>VDON_MAX_RECONNECT_MS</code> (default <code>30000</code>)</li>
+<li><code>VDON_DEBUG</code> (<code>true</code>/<code>false</code>)</li>
+</ul>
+</section><section class="doc-section" id="app-envelope-suggestions"><h2>App Envelope Suggestions</h2>
+<p>Use explicit envelope types and IDs over raw strings:</p>
+<pre><code class="lang-json">{
+  "type": "mcp.request",
+  "id": "req_123",
+  "method": "tool.call",
+  "payload": { "name": "lookup", "args": { "q": "abc" } }
+}
+</code></pre>
+<pre><code class="lang-json">{
+  "type": "mcp.response",
+  "id": "req_123",
+  "ok": true,
+  "payload": { "result": "..." }
+}
+</code></pre>
+<p>Avoid reserved SDK pub/sub types (<code>subscribe</code>, <code>unsubscribe</code>, <code>channelMessage</code>) for custom envelopes.</p>
+</section><section class="doc-section" id="file-transfer-envelope-pattern-used-here"><h2>File Transfer Envelope Pattern Used Here</h2>
+<p>This MCP implementation reserves protocol envelopes with:</p>
+<ul>
+<li><code>__vdo_mcp: \"vdo_mcp_bridge_v1\"</code></li>
+<li><code>kind: \"sync.*\" | \"file.*\"</code></li>
+</ul>
+<p>File transfer handshake:</p>
+<ol>
+<li><code>file.offer</code></li>
+<li><code>file.accept</code></li>
+<li><code>file.chunk</code> + <code>file.ack</code> / <code>file.nack</code></li>
+<li><code>file.complete</code></li>
+<li><code>file.complete_ack</code></li>
+</ol>
+<p>Resume flow:</p>
+<ol>
+<li><code>file.resume_req</code></li>
+<li><code>file.resume_state</code> (<code>next_seq</code>)</li>
+</ol>
+</section><section class="doc-section" id="disk-spooling-and-large-files"><h2>Disk Spooling And Large Files</h2>
+<ul>
+<li>This MCP implementation can spool large incoming transfers to disk.</li>
+<li>Tune via <code>vdo_connect</code>:</li>
+<li><code>file_spool_dir</code></li>
+<li><code>file_spool_threshold_bytes</code></li>
+<li><code>keep_spool_files</code></li>
+<li>Use <code>vdo_file_send_path</code> to avoid base64 memory overhead on large local files.</li>
+<li>Use <code>vdo_file_save</code> to persist completed incoming transfers directly.</li>
+</ul>
+</section><section class="doc-section" id="room-state-sync-crdt-lite"><h2>Room State Sync (CRDT-lite)</h2>
+<ul>
+<li>Shared state is replicated using <code>state.patch</code> and <code>state.snapshot</code>.</li>
+<li>Conflict resolution is tuple-based LWW:</li>
+<li>higher <code>clock</code> wins</li>
+<li>tie breaks by <code>actor</code> lexical order</li>
+<li>MCP surface:</li>
+<li><code>vdo_state_set</code></li>
+<li><code>vdo_state_get</code></li>
+<li><code>vdo_state_sync</code></li>
+</ul>
+</section><section class="doc-section" id="local-source-pointers"><h2>Local Source Pointers</h2>
+<ul>
+<li><code>README.md</code></li>
+<li><code>AI-INTEGRATION.md</code></li>
+<li><code>docs/api-reference.md</code></li>
+</ul></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

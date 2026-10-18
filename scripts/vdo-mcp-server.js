@@ -5,6 +5,7 @@
 'use strict';
 
 const { BridgeSession } = require('./lib/bridge-session');
+const { validateRelayConfig } = require('./lib/http-relay-transport');
 const { McpStdioParser, writeMcpMessage } = require('./lib/mcp-stdio-parser');
 const {
   DEFAULT_TOOL_PROFILE,
@@ -35,11 +36,15 @@ function buildTools() {
   return [
     {
       name: 'vdo_connect',
-      description: 'Start a VDO.Ninja data-channel session and optionally auto-view a target stream.',
+      description: 'Start a room session using WebRTC (default) or a configured encrypted HTTP relay.',
       inputSchema: {
         type: 'object',
         properties: {
           room: { type: 'string', description: 'Room name (alphanumeric/underscore recommended).' },
+          transport: { type: 'string', enum: ['webrtc', 'http'], description: 'Peer transport. HTTP requires a self-hosted relay; it works without WebRTC.' },
+          relay_url: { type: 'string', description: 'HTTPS relay origin; defaults to VDON_MCP_RELAY_URL. Loopback HTTP is allowed.' },
+          relay_token: { type: 'string', description: 'Relay access token; prefer VDON_MCP_RELAY_TOKEN in the server environment.' },
+          relay_key: { type: 'string', description: 'Shared room encryption key: 32 random bytes as 64 hex characters. Prefer VDON_MCP_RELAY_KEY.' },
           stream_id: { type: 'string', description: 'Local stream id. Randomized when omitted.' },
           target_stream_id: { type: 'string', description: 'Optional remote stream id to auto-view.' },
           host: { type: 'string', description: 'WebSocket endpoint. Defaults to wss://wss.vdo.ninja.' },
@@ -79,7 +84,7 @@ function buildTools() {
     },
     {
       name: 'vdo_send',
-      description: 'Send one payload over an active session data channel.',
+      description: 'Send one payload over an active session. Success means locally accepted; HTTP relay receipts arrive through vdo_receive.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -609,7 +614,8 @@ class VdoMcpServer {
         'join_token', 'join_token_secret', 'join_token_ttl_ms', 'enforce_join_token', 'allow_peer_stream_ids',
         'file_chunk_bytes', 'file_max_bytes', 'file_ack_timeout_ms', 'file_max_retries', 'require_session_mac',
         'file_spool_dir', 'file_spool_threshold_bytes', 'keep_spool_files',
-        'state_max_keys', 'state_max_snapshot_entries'
+        'state_max_keys', 'state_max_snapshot_entries',
+        'transport', 'relay_url', 'relay_token', 'relay_key'
       ],
       'vdo_connect'
     );
@@ -617,6 +623,22 @@ class VdoMcpServer {
     const room = sanitizeId(args.room, null);
     if (!room) {
       throw new Error('room is required');
+    }
+
+    const transport = args.transport === undefined ? 'webrtc' : args.transport;
+    if (!['webrtc', 'http'].includes(transport)) throw new Error('invalid transport: use webrtc or http');
+    const relayConfig = {
+      relayUrl: args.relay_url === undefined ? process.env.VDON_MCP_RELAY_URL : args.relay_url,
+      relayToken: args.relay_token === undefined ? process.env.VDON_MCP_RELAY_TOKEN : args.relay_token,
+      relayKey: args.relay_key === undefined ? process.env.VDON_MCP_RELAY_KEY : args.relay_key
+    };
+    if (transport === 'http') {
+      validateRelayConfig(relayConfig);
+      if (args.host !== undefined || args.password !== undefined || args.force_turn !== undefined) {
+        throw new Error('host, password, and force_turn are WebRTC-only fields; use relay_url and relay_key for HTTP');
+      }
+    } else if (['relay_url', 'relay_token', 'relay_key'].some((key) => args[key] !== undefined)) {
+      throw new Error('relay options require transport: http');
     }
 
     if (args.host !== undefined && typeof args.host !== 'string') {
@@ -668,6 +690,8 @@ class VdoMcpServer {
       : this.defaultAllowPeerStreamIDs;
 
     return {
+      transport,
+      ...(transport === 'http' ? relayConfig : {}),
       host: typeof args.host === 'string' && args.host.trim() ? args.host : 'wss://wss.vdo.ninja',
       room,
       streamID,
@@ -784,7 +808,8 @@ class VdoMcpServer {
       session_id: sessionId,
       ...session.getStatus(),
       effective_config: {
-        host: config.host,
+        transport: config.transport,
+        host: config.transport === 'http' ? config.relayUrl : config.host,
         room: config.room,
         stream_id: config.streamID,
         target_stream_id: config.targetStreamID,
@@ -826,7 +851,11 @@ class VdoMcpServer {
     return {
       ok,
       session_id: args.session_id,
-      used_target: target || null
+      used_target: target || null,
+      ...(session.config.transport === 'http' ? {
+        message_id: ok ? session.sdk.lastMessageId : null,
+        delivery_stage: ok ? 'queued' : 'rejected'
+      } : {})
     };
   }
 
@@ -904,10 +933,21 @@ class VdoMcpServer {
       features: {
         session_messaging: true,
         file_transfer: hasFileTools,
-        shared_state_sync: hasStateTools
+        shared_state_sync: hasStateTools,
+        live_audio_video: false
       },
       transport_truth: {
         type: 'webrtc_data_channel',
+        default_transport: 'webrtc',
+        supported_transports: ['webrtc', 'http'],
+        http_relay: {
+          independent_of_webrtc: true,
+          receive: 'long_poll',
+          encryption: 'AES-256-GCM with a shared room key',
+          retention: 'bounded in-memory replay; no offline inbox',
+          automatic_failover: false,
+          send_success: 'local_queue_acceptance; relay_receipt is not peer consumption'
+        },
         generic_tcp_tunnel: false,
         turn_relays_help_reachability: true,
         guaranteed_firewall_bypass: false,

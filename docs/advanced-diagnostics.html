@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Advanced diagnostics · VDO.Ninja MCP</title>
+  <meta name="description" content="Check network connectivity and diagnose connection reliability.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/advanced-diagnostics.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="nav">
+<div class="wrap">
+<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
+<img alt="" height="28" src="assets/logo.svg" width="28"/>
+<span>VDO.Ninja <small>MCP</small></span>
+</a>
+<nav aria-label="Primary" class="nav-links">
+<a href="./#how">How it works</a>
+<a href="./#privacy">Privacy</a>
+<a href="./#tools">Tools</a>
+<a href="./#faq">FAQ</a>
+<a aria-current="page" href="guide.html">Docs</a>
+</nav>
+<div class="nav-cta">
+<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+</div>
+<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
+</div>
+</header>
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#live-test-commands">Live Test Commands</a><a href="#preset-matrix-notes">Preset Matrix Notes</a><a href="#soak-matrix-knobs">Soak / Matrix Knobs</a><a href="#important">Important</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Advanced diagnostics</p>
+      <h1 id="vdoninja-mcp-advanced-diagnostics">VDO.Ninja MCP Advanced Diagnostics</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/advanced-diagnostics.md">Read in Markdown</a></p>
+    </header>
+    <section class="doc-section guide-intro" id="overview">
+<p>This page is optional. Use it when you are debugging reliability or network edge cases.</p>
+</section><section class="doc-section" id="live-test-commands"><h2>Live Test Commands</h2>
+<pre><code class="lang-sh">LIVE_VDO_TEST=1 npm run test:mcp:live
+LIVE_VDO_TEST=1 npm run test:mcp:soak
+LIVE_VDO_TEST=1 npm run test:mcp:matrix
+LIVE_VDO_TEST=1 npm run test:mcp:preset:matrix
+LIVE_VDO_TEST=1 SOAK_MATRIX_SWEEP_RUNS=20 npm run test:mcp:matrix:sweep
+</code></pre>
+<p>Secure preset matrix:</p>
+<pre><code class="lang-sh">LIVE_VDO_TEST=1 VDON_MCP_JOIN_TOKEN_SECRET=change_me npm run test:mcp:preset:matrix
+</code></pre>
+</section><section class="doc-section" id="preset-matrix-notes"><h2>Preset Matrix Notes</h2>
+<ul>
+<li><code>PRESET_MATRIX_ADAPTIVE_FALLBACK=1</code> enables candidate fallback.</li>
+<li><code>PRESET_MATRIX_ALLOW_DIRECT_FALLBACK=1</code> allows direct fallback after TURN candidates.</li>
+<li><code>PRESET_MATRIX_STRICT=1</code> fails process when any profile fails.</li>
+<li><code>PRESET_CONNECT_ATTEMPTS</code>, <code>PRESET_CONNECT_TIMEOUT_MS</code>, and <code>PRESET_CHANNEL_READY_TIMEOUT_MS</code> control connect behavior.</li>
+</ul>
+<p>Artifacts are written to:</p>
+<ul>
+<li><code>tests/artifacts/latest-preset-matrix-report.json</code></li>
+<li><code>tests/artifacts/latest-preset-matrix-summary.txt</code></li>
+<li><code>tests/artifacts/history/preset-matrix-*.json</code></li>
+<li><code>tests/artifacts/history/preset-matrix-*.txt</code></li>
+</ul>
+</section><section class="doc-section" id="soak-matrix-knobs"><h2>Soak / Matrix Knobs</h2>
+<ul>
+<li>Smoke: <code>LIVE_SMOKE_RETRIES</code>, <code>LIVE_SMOKE_TIMEOUT_MS</code></li>
+<li>Soak: <code>SOAK_RETRIES</code>, <code>SOAK_TIMEOUT_MS</code></li>
+<li>Matrix: <code>SOAK_MATRIX_PROFILE_RETRIES</code>, <code>SOAK_MATRIX_PROFILE_TIMEOUT_MS</code></li>
+<li>Sweep: <code>SOAK_MATRIX_SWEEP_RUNS</code>, <code>SOAK_MATRIX_SWEEP_TIMEOUT_MS</code>, <code>SOAK_MATRIX_SWEEP_MIN_SUCCESS_RATE</code></li>
+</ul>
+</section><section class="doc-section" id="important"><h2>Important</h2>
+<ul>
+<li>WebRTC data channels are the transport.</li>
+<li>TURN helps reachability but is not a universal bypass for all enterprise firewall policies.</li>
+</ul></section>
+    <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
+  </main>
+</div>
+<footer class="footer">
+<div class="wrap">
+<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
+<nav aria-label="Footer">
+<a href="./">Home</a>
+<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+<a href="https://discord.vdo.ninja">Discord</a>
+<a href="https://vdo.ninja">VDO.Ninja</a>
+</nav>
+<span>MIT · © 2026 Steve Seguin</span>
+</div>
+</footer>
+<script src="assets/site.js" defer></script>
+</body>
+</html>

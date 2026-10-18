@@ -252,8 +252,22 @@
   // ---------- Docs: sidebar toggle + scrollspy ----------
   const docsToggle = $('.docs-toggle');
   if (docsToggle) {
-    docsToggle.addEventListener('click', () => document.body.classList.toggle('sidebar-open'));
-    $$('.sidebar a').forEach((a) => a.addEventListener('click', () => document.body.classList.remove('sidebar-open')));
+    const closeSidebar = () => {
+      document.body.classList.remove('sidebar-open');
+      docsToggle.setAttribute('aria-expanded', 'false');
+    };
+    docsToggle.setAttribute('aria-expanded', 'false');
+    docsToggle.addEventListener('click', () => {
+      const expanded = document.body.classList.toggle('sidebar-open');
+      docsToggle.setAttribute('aria-expanded', String(expanded));
+    });
+    $$('.sidebar a').forEach((a) => a.addEventListener('click', closeSidebar));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
+        closeSidebar();
+        docsToggle.focus();
+      }
+    });
   }
   const sideLinks = $$('.sidebar a[href^="#"]');
   const sections = $$('.doc-section');
