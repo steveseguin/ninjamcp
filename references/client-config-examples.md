@@ -1,79 +1,53 @@
-# VDO.Ninja MCP Client Config Examples
+# Client configuration
 
 [Read this guide in HTML](https://steveseguin.github.io/ninjamcp/client-config-examples.html)
 
-Ready-to-paste config for popular MCP clients.
+Ready-to-paste setup for popular MCP clients. Every example launches the same local `stdio` server.
 
-## Prereqs (No Clone)
+## Install the package
 
-Install in the project/folder where you want to use the MCP:
+Install in a folder that will stay put:
 
 ```bash
 npm i @vdoninja/mcp
 ```
 
-Server script path used below:
+The examples point at the server script inside that folder:
 
-- Linux/macOS: `./node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js`
-- Windows: `.\node_modules\@vdoninja\mcp\scripts\vdo-mcp-server.js`
+- Linux and macOS: `/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js`
+- Windows: `C:\path\to\node_modules\@vdoninja\mcp\scripts\vdo-mcp-server.js`
 
-Use an absolute path if your client launches from another working directory.
+Replace the placeholder with the real folder. Clients often start in a different working directory, so use an absolute path. In JSON on Windows, write each backslash twice (`C:\\path\\to\\...`) or use forward slashes.
 
-## Onboarding Pattern (What Works Best)
+## Codex and Claude Code
 
-Popular MCP servers with strong onboarding docs generally do these things:
+The installer registers the server for you, with an absolute path:
 
-1. Give one copy/paste install path.
-2. Provide per-client config snippets.
-3. Tell users the first tool call to run.
-4. Show one deterministic "it works" workflow with expected output.
-
-This file follows that same pattern.
-
-## Generic `stdio` MCP Template
-
-Most MCP clients need the same three things:
-
-1. `command` (usually `node`)
-2. `args` (script path + optional flags)
-3. `env` (optional)
-
-Example:
-
-```json
-{
-  "command": "node",
-  "args": [
-    "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
-    "--tool-profile",
-    "core"
-  ],
-  "env": {
-    "VDON_MCP_TOOL_PROFILE": "core"
-  }
-}
+```bash
+npx vdon-mcp-install
 ```
+
+Register with one client, choose where Claude Code stores it, or pick a tool profile:
+
+```bash
+npx vdon-mcp-install --codex-only
+npx vdon-mcp-install --claude-only --claude-scope user
+npx vdon-mcp-install --preset core
+```
+
+Check the registration with `codex mcp get vdo-ninja-mcp` or `claude mcp get vdo-ninja-mcp`. Remove it with `npx vdon-mcp-install --uninstall`.
 
 ## Cursor
 
-Cursor reads MCP config from:
-
-- Global: `~/.cursor/mcp.json`
-- Project: `.cursor/mcp.json`
-
-Example:
+Add to `~/.cursor/mcp.json` for all projects, or `.cursor/mcp.json` for one project:
 
 ```json
 {
   "mcpServers": {
     "vdo-ninja-mcp": {
       "command": "node",
-      "args": [
-        "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"
-      ],
-      "env": {
-        "VDON_MCP_TOOL_PROFILE": "core"
-      }
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+      "env": { "VDON_MCP_TOOL_PROFILE": "core" }
     }
   }
 }
@@ -81,44 +55,25 @@ Example:
 
 ## Gemini CLI
 
-Gemini CLI supports MCP via `mcpServers` in `settings.json`.
-
-Common config file locations:
-
-- Project: `.gemini/settings.json`
-- Linux/macOS: `~/.gemini/settings.json`
-- Windows: `%USERPROFILE%\\.gemini\\settings.json`
-
-Example:
+Add to `.gemini/settings.json` in the project, or to `~/.gemini/settings.json` (`%USERPROFILE%\.gemini\settings.json` on Windows):
 
 ```json
 {
   "mcpServers": {
     "vdo-ninja-mcp": {
       "command": "node",
-      "args": [
-        "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"
-      ],
-      "env": {
-        "VDON_MCP_TOOL_PROFILE": "core"
-      }
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
+      "env": { "VDON_MCP_TOOL_PROFILE": "core" }
     }
   }
 }
 ```
 
-After restarting Gemini CLI, use `/mcp` to confirm server status.
+Restart Gemini CLI, then run `/mcp` to confirm the server is connected.
 
 ## OpenCode
 
-OpenCode MCP config lives under `mcp` in OpenCode config.
-
-Common config file locations:
-
-- Global: `~/.config/opencode/opencode.json`
-- Project: `opencode.json` (project root)
-
-Example:
+Add under `mcp` in `opencode.json` in the project root, or in `~/.config/opencode/opencode.json`:
 
 ```json
 {
@@ -126,128 +81,98 @@ Example:
   "mcp": {
     "vdo-ninja-mcp": {
       "type": "local",
-      "command": [
-        "node",
-        "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js",
-        "--tool-profile",
-        "core"
-      ],
+      "command": ["node", "/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"],
       "enabled": true,
-      "environment": {
-        "VDON_MCP_TOOL_PROFILE": "core"
-      }
+      "environment": { "VDON_MCP_TOOL_PROFILE": "core" }
     }
   }
 }
 ```
 
-## Codex CLI and Claude Code (CLI Automation)
+## Other clients
 
-Auto-register if either/both CLIs are installed:
+Any client that launches local `stdio` servers needs a command, the script path, and optional flags or environment variables:
 
-```bash
-npx vdon-mcp-install
+```json
+{
+  "command": "node",
+  "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js", "--tool-profile", "core"]
+}
 ```
 
-If only one CLI is installed:
+Server settings work as flags, such as `--tool-profile core`, or as environment variables, such as `VDON_MCP_TOOL_PROFILE=core`. A flag takes precedence. The [configuration reference](https://steveseguin.github.io/ninjamcp/guide.html#config) lists them all.
 
-```bash
-npx vdon-mcp-install --codex-only
-npx vdon-mcp-install --claude-only
-```
+For clients that connect to remote MCP servers over HTTP instead, see [MCP over HTTP](https://steveseguin.github.io/ninjamcp/guide.html#mcp-http).
 
-## Sanity Check (All Clients)
+## Check the connection
 
-First tool call should be:
+Restart the client and ask the agent to call:
 
 ```json
 { "name": "vdo_capabilities", "arguments": {} }
 ```
 
-Then connect:
+A result with the server version and active profile means the client is wired up. Then follow the [quickstart](quickstart-and-compat.md) to connect two agents.
 
-```json
-{ "name": "vdo_connect", "arguments": { "room": "lab_1" } }
-```
+## Keep the tool list small
 
-If `vdo_capabilities` works, your MCP wiring is correct.
+Every MCP server adds its tool descriptions to the agent's context. Start with the `core` profile, which has 9 tools, and move to `file`, `state`, or `full` only when you need file transfer or shared state.
 
-## Context Budget Note
+## Example: two Codex sessions
 
-Adding MCP servers increases tool/context footprint. Start with one MCP and least-privilege profile (`core`) first, then add more only as needed.
+Use a new room name for each test.
 
-## First Functional Workflows (Clear Result)
-
-Use unique room names to avoid collisions.
-
-### Codex to Codex (Two Terminals)
-
-1. Install/register once:
+1. Install and register once:
 
 ```bash
 npm i @vdoninja/mcp
 npx vdon-mcp-install --codex-only
 ```
 
-2. Open two Codex sessions (`A` and `B`) with MCP enabled.
-3. In session `A`, call:
+2. Open two Codex sessions, A and B.
+
+3. In session A, join the room:
 
 ```json
 { "name": "vdo_connect", "arguments": { "room": "codex_lab_001", "stream_id": "codex_a" } }
 ```
 
-4. In session `B`, call:
+4. In session B, join and connect to A:
 
 ```json
 { "name": "vdo_connect", "arguments": { "room": "codex_lab_001", "stream_id": "codex_b", "target_stream_id": "codex_a" } }
 ```
 
-5. In session `A`, send:
+5. In session A, send a message:
 
 ```json
 {
   "name": "vdo_send",
   "arguments": {
     "session_id": "<codex_a_session_id>",
+    "target": "codex_b",
     "data": { "type": "chat.message", "text": "hello from codex_a" }
   }
 }
 ```
 
-6. In session `B`, receive:
+6. In session B, read it:
 
 ```json
-{
-  "name": "vdo_receive",
-  "arguments": {
-    "session_id": "<codex_b_session_id>",
-    "wait_ms": 1000
-  }
-}
+{ "name": "vdo_receive", "arguments": { "session_id": "<codex_b_session_id>", "wait_ms": 1000 } }
 ```
 
 Expected result: a `data_received` event containing `"hello from codex_a"`.
 
-### Claude to Claude (Two Terminals)
+The same steps work for two Claude Code sessions (register with `--claude-only`) or for one of each.
 
-1. Install/register once:
+## Scripted check
 
-```bash
-npm i @vdoninja/mcp
-npx vdon-mcp-install --claude-only
-```
-
-2. Repeat the same tool flow as above with a new room name, e.g. `claude_lab_001`.
-
-Expected result: the second Claude session receives the message in `vdo_receive` with `event.type = "data_received"`.
-
-### Fast Scripted Proof (No Manual Tool Calls)
-
-If you just want a quick pass/fail:
+For a quick pass or fail without agents:
 
 ```bash
 npx vdon-mcp-demo-message
 npx vdon-mcp-demo-file
 ```
 
-Expected result: each script exits successfully and reports message/file workflow completion.
+Each script exits successfully when its message or file exchange completes.

@@ -4,68 +4,129 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tool contract · VDO.Ninja MCP</title>
-  <meta name="description" content="Tool arguments, transport behavior, permissions, and limits.">
+  <meta name="description" content="Every VDO.Ninja MCP tool, argument, profile, event, and limit.">
   <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/mcp-tool-contract.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Tool contract · VDO.Ninja MCP">
+  <meta property="og:description" content="Every VDO.Ninja MCP tool, argument, profile, event, and limit.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/mcp-tool-contract.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tool contract · VDO.Ninja MCP">
+  <meta name="twitter:description" content="Every VDO.Ninja MCP tool, argument, profile, event, and limit.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="assets/site.css">
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="reference-page">
 <a class="skip-link" href="#main">Skip to content</a>
+
 <header class="nav">
-<div class="wrap">
-<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
-<img alt="" height="28" src="assets/logo.svg" width="28"/>
-<span>VDO.Ninja <small>MCP</small></span>
-</a>
-<nav aria-label="Primary" class="nav-links">
-<a href="./#how">How it works</a>
-<a href="./#privacy">Privacy</a>
-<a href="./#tools">Tools</a>
-<a href="./#faq">FAQ</a>
-<a aria-current="page" href="guide.html">Docs</a>
-</nav>
-<div class="nav-cta">
-<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
-<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
-</div>
-<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
 </header>
+
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#transport">Transport</a><a href="#runtime-limit">Runtime Limit</a><a href="#server-cli-flags">Server CLI Flags</a><a href="#capability-profiles">Capability Profiles</a><a href="#core-session-tools">Core Session Tools</a><a href="#sync-tools">Sync Tools</a><a href="#file-transfer-tools">File Transfer Tools</a><a href="#state-sync-tools-crdt-lite">State Sync Tools (CRDT-lite)</a><a href="#protocol-envelope-family">Protocol Envelope Family</a><a href="#event-types-via-vdo_receive">Event Types via vdo_receive</a><a href="#error-shape">Error Shape</a><a href="#client-wiring">Client Wiring</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
+    <h5>Documentation</h5>
+    <a href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Documentation home</a>
+    <a href="guide.html#guides"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>All guides</a>
+    <h5>On this page</h5>
+    <a href="#overview">Overview</a>
+    <a href="#transport">Transport</a>
+    <a href="#runtime-limits">Runtime limits</a>
+    <a href="#server-cli-flags">Server CLI flags</a>
+    <a href="#tool-profiles">Tool profiles</a>
+    <a href="#session-tools">Session tools</a>
+    <a href="#sync-tools">Sync tools</a>
+    <a href="#file-transfer-tools">File transfer tools</a>
+    <a href="#shared-state-tools">Shared state tools</a>
+    <a href="#protocol-envelope">Protocol envelope</a>
+    <a href="#events-from-vdo_receive">Events from vdo_receive</a>
+    <a href="#error-shape">Error shape</a>
+    <a href="#client-wiring">Client wiring</a>
+    <h5>More guides</h5>
+    <a href="quickstart-and-compat.html">Quickstart</a>
+    <a href="client-config-examples.html">Client configuration</a>
+    <a href="http-relay.html">HTTP relay</a>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="browser-agent.html">Voice companion</a>
+    <a href="ssapp-integration.html">Remote SSApp</a>
+    <a href="ssapp-capability-matrix.html">SSApp capability matrix</a>
+    <a href="advanced-diagnostics.html">Advanced diagnostics</a>
+    <a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a>
+    <a href="direction.html">Project direction</a>
+  </aside>
+
   <main class="docs-main" id="main">
-    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
     <header>
       <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Tool contract</p>
-      <h1 id="vdoninja-mcp-tool-contract">VDO.Ninja MCP Tool Contract</h1>
+      <h1 id="tool-contract">Tool contract</h1>
       <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/mcp-tool-contract.md">Read in Markdown</a></p>
     </header>
-    <section class="doc-section guide-intro" id="overview">
-<p>Implemented by:</p>
+<section class="doc-section guide-intro" id="overview">
+<p>The tools, arguments, events, and limits of the Ninja MCP server. The server is <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/vdo-mcp-server.js"><code>scripts/vdo-mcp-server.js</code></a>, registration is handled by <a href="https://github.com/steveseguin/ninjamcp/blob/main/scripts/install-mcp.js"><code>scripts/install-mcp.js</code></a>, and the registry manifest is <a href="https://github.com/steveseguin/ninjamcp/blob/main/server.json"><code>server.json</code></a>.</p>
+</section>
+<section class="doc-section" id="transport"><h2>Transport</h2>
+<p>The server speaks JSON-RPC 2.0 over stdio.</p>
 <ul>
-<li><code>scripts/vdo-mcp-server.js</code></li>
-<li>Installer automation: <code>scripts/install-mcp.js</code></li>
-<li>Discovery manifest: <code>server.json</code></li>
-</ul>
-</section><section class="doc-section" id="transport"><h2>Transport</h2>
+<li>Input can be:
 <ul>
-<li>JSON-RPC 2.0 over stdio</li>
-<li>Input:</li>
 <li>newline-delimited JSON messages</li>
 <li><code>Content-Length</code> framed messages</li>
-<li>Output:</li>
-<li>framed when framed input is detected</li>
-<li>newline JSON otherwise</li>
 </ul>
-</section><section class="doc-section" id="runtime-limit"><h2>Runtime Limit</h2>
+</li>
+<li>Output is:
 <ul>
-<li><code>VDON_MCP_MAX_MESSAGE_BYTES</code> (default <code>1048576</code>)</li>
-<li><code>VDON_MCP_TOOL_PROFILE</code> (default <code>full</code>, values: <code>core|file|state|full</code>)</li>
+<li>framed when framed input is detected</li>
+<li>newline-delimited JSON otherwise</li>
 </ul>
-</section><section class="doc-section" id="server-cli-flags"><h2>Server CLI Flags</h2>
-<p>Supported by <code>scripts/vdo-mcp-server.js</code>:</p>
+</li>
+</ul>
+</section>
+<section class="doc-section" id="runtime-limits"><h2>Runtime limits</h2>
+<ul>
+<li><code>VDON_MCP_MAX_MESSAGE_BYTES</code> caps one JSON-RPC message. Default <code>1048576</code>.</li>
+<li><code>VDON_MCP_TOOL_PROFILE</code> selects the tool profile: <code>core</code>, <code>file</code>, <code>state</code>, or <code>full</code>. Default <code>full</code>.</li>
+</ul>
+</section>
+<section class="doc-section" id="server-cli-flags"><h2>Server CLI flags</h2>
+<p><code>scripts/vdo-mcp-server.js</code> accepts these flags. A flag takes precedence over the matching environment variable.</p>
 <ul>
 <li><code>--tool-profile &lt;core|file|state|full&gt;</code></li>
 <li><code>--max-message-bytes &lt;bytes&gt;</code></li>
@@ -74,96 +135,130 @@
 <li><code>--allow-peer-stream-ids &lt;a,b,c&gt;</code></li>
 <li><code>--require-session-mac &lt;true|false&gt;</code></li>
 </ul>
-</section><section class="doc-section" id="capability-profiles"><h2>Capability Profiles</h2>
+</section>
+<section class="doc-section" id="tool-profiles"><h2>Tool profiles</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Tools</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>core</code></td>
+<td><code>vdo_connect</code>, <code>vdo_send</code>, <code>vdo_receive</code>, <code>vdo_status</code>, <code>vdo_disconnect</code>, <code>vdo_list_sessions</code>, <code>vdo_capabilities</code>, <code>vdo_sync_peers</code>, <code>vdo_sync_announce</code> (9)</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td><code>core</code> plus the six file transfer tools (15)</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code>core</code> plus the three shared state tools (12)</td>
+</tr>
+<tr>
+<td><code>full</code></td>
+<td>All 18 tools</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>tools/list</code> only advertises tools in the active profile. Calling a tool outside it returns <code>validation_error</code>.</p>
+</section>
+<section class="doc-section" id="session-tools"><h2>Session tools</h2>
 <ul>
-<li><code>core</code>: <code>vdo_connect</code>, <code>vdo_send</code>, <code>vdo_receive</code>, <code>vdo_status</code>, <code>vdo_disconnect</code>, <code>vdo_list_sessions</code>, <code>vdo_capabilities</code>, <code>vdo_sync_peers</code>, <code>vdo_sync_announce</code></li>
-<li><code>file</code>: <code>core</code> + all file transfer tools</li>
-<li><code>state</code>: <code>core</code> + all state sync tools</li>
-<li><code>full</code>: <code>core</code> + file + state tools</li>
+<li><code>vdo_connect</code>: join a room and open a session.</li>
+<li><code>vdo_send</code>: send JSON or text to one peer or everyone connected.</li>
+<li><code>vdo_receive</code>: read queued events, oldest first, up to <code>max_events</code> per call (default 50, max 500). <code>wait_ms</code> (0 to 30000) waits for the first event when the queue is empty.</li>
+<li><code>vdo_status</code>: live status for one session, including its <code>transport</code>.</li>
+<li><code>vdo_disconnect</code>: leave the room, stop reconnecting, and free the session.</li>
+<li><code>vdo_list_sessions</code>: every active session.</li>
+<li><code>vdo_capabilities</code>: server version, the active profile and its tools, enabled features, and transport facts. Call it first.</li>
 </ul>
-<p>Enforcement:</p>
+<h3 id="vdo_connect-options"><code>vdo_connect</code> options</h3>
 <ul>
-<li><code>tools/list</code> only advertises tools in the active profile.</li>
-<li>Calling a disabled tool returns <code>validation_error</code>.</li>
+<li>Room: <code>room</code>, <code>stream_id</code>, <code>target_stream_id</code>, <code>transport</code> (<code>webrtc</code> by default, or <code>http</code>)</li>
+<li>WebRTC only: <code>host</code>, <code>password</code>, <code>force_turn</code></li>
+<li>HTTP relay only: <code>relay_url</code>, <code>relay_token</code>, <code>relay_key</code>, with defaults from <code>VDON_MCP_RELAY_URL</code>, <code>VDON_MCP_RELAY_TOKEN</code>, and <code>VDON_MCP_RELAY_KEY</code>. See <a href="http-relay.html">relay setup and delivery semantics</a>.</li>
+<li>Resilience: <code>heartbeat_ms</code> (default 15000, max 120000), <code>reconnect_ms</code> (3000, max 30000), <code>max_reconnect_ms</code> (30000, max 120000)</li>
+<li>Security: <code>join_token</code>, <code>join_token_secret</code>, <code>join_token_ttl_ms</code> (10 minutes, max 24 hours), <code>enforce_join_token</code>, <code>allow_peer_stream_ids</code>, <code>require_session_mac</code></li>
+<li>File defaults: <code>file_chunk_bytes</code> (64 KB, 1 KB to 256 KB), <code>file_max_bytes</code> (64 MB, max 256 MB), <code>file_ack_timeout_ms</code> (1200, max 30000), <code>file_max_retries</code> (6; <code>0</code> fails on the first lost chunk)</li>
+<li>File spooling: <code>file_spool_dir</code>, <code>file_spool_threshold_bytes</code> (4 MB), <code>keep_spool_files</code></li>
+<li>State limits: <code>state_max_keys</code> (2048), <code>state_max_snapshot_entries</code> (4096)</li>
+<li>Display and logging: <code>label</code>, <code>debug</code></li>
 </ul>
-</section><section class="doc-section" id="core-session-tools"><h2>Core Session Tools</h2>
+<p>Values above a maximum are capped to it.</p>
+<p>HTTP is an explicit peer transport, separate from the HTTP endpoint that can expose MCP itself. Both participants must use the same transport. WebRTC-only options are rejected in HTTP mode, and encryption can't be turned off on the relay.</p>
+<p>In HTTP mode, <code>vdo_send</code> returns <code>message_id</code> and <code>delivery_stage</code> (<code>queued</code> or <code>rejected</code>). A later <code>relay_receipt</code> event reports <code>relay_accepted</code> or <code>delivery_unknown</code>. Acceptance doesn't confirm that the peer read the message. <code>data_received</code> includes the matching <code>message_id</code>. <code>relay_history_lost</code> means a replay gap that the application must reconcile. Message queues and relay history are in memory; file completion still requires the peer's acknowledgement.</p>
+</section>
+<section class="doc-section" id="sync-tools"><h2>Sync tools</h2>
 <ul>
-<li><code>vdo_connect</code></li>
-<li><code>vdo_send</code></li>
-<li><code>vdo_receive</code></li>
-<li><code>vdo_status</code></li>
-<li><code>vdo_disconnect</code></li>
-<li><code>vdo_list_sessions</code></li>
-<li><code>vdo_capabilities</code></li>
+<li><code>vdo_sync_peers</code>: each peer's handshake, auth, and capability state.</li>
+<li><code>vdo_sync_announce</code>: send a sync hello now, to everyone or to one peer with <code>uuid</code> or <code>target</code>.</li>
 </ul>
-<h3 id="vdo_connect-notable-options"><code>vdo_connect</code> notable options</h3>
+</section>
+<section class="doc-section" id="file-transfer-tools"><h2>File transfer tools</h2>
 <ul>
-<li>transport: <code>room</code>, <code>stream_id</code>, <code>target_stream_id</code>, <code>transport</code> (<code>webrtc</code> by default or <code>http</code>)</li>
-<li>WebRTC: <code>host</code>, <code>password</code>, <code>force_turn</code></li>
-<li>HTTP relay: <code>relay_url</code>, <code>relay_token</code>, <code>relay_key</code>, with defaults from <code>VDON_MCP_RELAY_URL</code>, <code>VDON_MCP_RELAY_TOKEN</code>, <code>VDON_MCP_RELAY_KEY</code>; see <a href="http-relay.html">relay setup and delivery semantics</a></li>
-<li>resiliency: <code>heartbeat_ms</code>, <code>reconnect_ms</code>, <code>max_reconnect_ms</code></li>
-<li>security: <code>join_token</code>, <code>join_token_secret</code>, <code>join_token_ttl_ms</code>, <code>enforce_join_token</code>, <code>allow_peer_stream_ids</code>, <code>require_session_mac</code></li>
-<li>file defaults: <code>file_chunk_bytes</code>, <code>file_max_bytes</code>, <code>file_ack_timeout_ms</code>, <code>file_max_retries</code></li>
-<li>file spooling: <code>file_spool_dir</code>, <code>file_spool_threshold_bytes</code>, <code>keep_spool_files</code></li>
-<li>state limits: <code>state_max_keys</code>, <code>state_max_snapshot_entries</code></li>
+<li><code>vdo_file_send</code>: send from <code>data_base64</code>.</li>
+<li><code>vdo_file_send_path</code>: stream from a local <code>file_path</code> without loading it into context.</li>
+<li><code>vdo_file_resume</code>: resume an outgoing transfer by <code>transfer_id</code>.</li>
+<li><code>vdo_file_transfers</code>: incoming and outgoing transfer state.</li>
+<li><code>vdo_file_receive</code>: read a completed incoming file as <code>base64</code>, <code>utf8</code>, or <code>json</code>.</li>
+<li><code>vdo_file_save</code>: write a completed incoming file to <code>output_path</code>. Set <code>overwrite</code> to replace an existing file.</li>
 </ul>
-<p><code>vdo_status</code> identifies the selected <code>transport</code>. HTTP is an explicit peer transport, independent of the HTTP endpoint used to expose MCP. Both participants must use the same transport. WebRTC-only options are rejected in HTTP mode; encryption cannot be disabled on the HTTP relay.</p>
-<p>In HTTP mode, <code>vdo_send</code> returns <code>message_id</code> and <code>delivery_stage</code> (<code>queued</code> or <code>rejected</code>). A later <code>relay_receipt</code> event reports <code>relay_accepted</code> or <code>delivery_unknown</code>. Acceptance does not confirm peer consumption. <code>data_received</code> includes the matching <code>message_id</code>. <code>relay_history_lost</code> means a replay gap requires application reconciliation. Ordinary message queues and relay history are in memory; file completion still requires the existing peer acknowledgement.</p>
-</section><section class="doc-section" id="sync-tools"><h2>Sync Tools</h2>
+<p>Both send tools accept <code>chunk_bytes</code>, <code>ack_timeout_ms</code>, and <code>max_retries</code> to override the session defaults for one transfer, and <code>timeout_ms</code> to bound the wait for the receiver to accept the offer. Without <code>timeout_ms</code>, the sender waits for the larger of the ack timeout and one second.</p>
+<p>A retained incoming <code>transfer_id</code> is bound to its sending peer's UUID and its offer metadata: content hash, byte count, chunk layout, name, and MIME type. Identical retries from that peer resume or confirm completion. Reusing the ID for different content or metadata, or from another peer, is rejected; use a new ID for a new transfer. A peer that reconnects with a new UUID doesn't inherit an existing ID. Completion acknowledgements must match the sender's content hash and byte count.</p>
+</section>
+<section class="doc-section" id="shared-state-tools"><h2>Shared state tools</h2>
 <ul>
-<li><code>vdo_sync_peers</code>: peer handshake/auth/state capabilities</li>
-<li><code>vdo_sync_announce</code>: force immediate sync hello</li>
+<li><code>vdo_state_set</code>: set a key and, by default, broadcast it. Refuses new keys once the session holds <code>state_max_keys</code> keys.</li>
+<li><code>vdo_state_get</code>: read one key, or the whole snapshot when <code>key</code> is omitted.</li>
+<li><code>vdo_state_sync</code>: exchange full snapshots with everyone, or with one peer via <code>uuid</code> or <code>target</code>. <code>mode</code> is <code>request</code> (the default) or <code>send</code>.</li>
 </ul>
-</section><section class="doc-section" id="file-transfer-tools"><h2>File Transfer Tools</h2>
-<ul>
-<li><code>vdo_file_send</code>: send from <code>data_base64</code></li>
-<li><code>vdo_file_send_path</code>: send directly from local <code>file_path</code></li>
-<li><code>vdo_file_resume</code>: resume outgoing transfer by <code>transfer_id</code></li>
-<li><code>vdo_file_transfers</code>: inspect incoming/outgoing transfer state</li>
-<li><code>vdo_file_receive</code>: read completed incoming payload (<code>base64</code>/<code>utf8</code>/<code>json</code>)</li>
-<li><code>vdo_file_save</code>: save completed incoming transfer directly to disk</li>
-</ul>
-<p>A retained incoming <code>transfer_id</code> is bound to its originating peer UUID and offer metadata (content hash, byte count, chunk layout, name, and MIME type). Identical retries from that peer can resume or confirm completion. Reusing the ID for different content/metadata or from another peer is rejected; use a new ID for a new transfer. Reconnection with a new peer UUID does not transfer ownership of an existing retained ID. Completion acknowledgements must match the sender's content hash and byte count.</p>
-</section><section class="doc-section" id="state-sync-tools-crdt-lite"><h2>State Sync Tools (CRDT-lite)</h2>
-<ul>
-<li><code>vdo_state_set</code>: update key/value with local monotonic clock</li>
-<li><code>vdo_state_get</code>: read key or full state snapshot</li>
-<li><code>vdo_state_sync</code>: request/send full snapshot (<code>mode: request|send</code>)</li>
-</ul>
-<p>Merge rule is tuple-based last-writer:</p>
+<p>Conflicts resolve last-writer-wins on a <code>(clock, actor)</code> pair:</p>
 <ol>
-<li>higher <code>clock</code> wins</li>
-<li>if equal clock, lexicographically higher <code>actor</code> wins</li>
+<li>The higher <code>clock</code> wins.</li>
+<li>On equal clocks, the lexicographically higher <code>actor</code> wins.</li>
 </ol>
-</section><section class="doc-section" id="protocol-envelope-family"><h2>Protocol Envelope Family</h2>
-<p>Internal control/file/state envelopes use:</p>
+</section>
+<section class="doc-section" id="protocol-envelope"><h2>Protocol envelope</h2>
+<p>Internal control, file, and state messages use this envelope:</p>
 <pre><code class="lang-json">{
   "__vdo_mcp": "vdo_mcp_bridge_v1",
   "kind": "sync.* | file.* | state.*",
   "payload": {}
 }
 </code></pre>
-</section><section class="doc-section" id="event-types-via-vdo_receive"><h2>Event Types via <code>vdo_receive</code></h2>
+</section>
+<section class="doc-section" id="events-from-vdo_receive"><h2>Events from <code>vdo_receive</code></h2>
 <p>Lifecycle:</p>
 <ul>
-<li><code>ready</code>, <code>connected</code>, <code>disconnected</code>, <code>connection_failed</code>, <code>sdk_error</code>, <code>reconnect_scheduled</code></li>
+<li><code>ready</code>, <code>connected</code>, <code>disconnected</code>, <code>connect_error</code>, <code>connection_failed</code>, <code>sdk_error</code>, <code>reconnect_scheduled</code></li>
 <li><code>peer_connected</code>, <code>peer_disconnected</code>, <code>data_channel_open</code>, <code>data_channel_close</code></li>
-<li><code>data_received</code>, <code>send_error</code>, <code>send_rejected</code>, <code>heartbeat_sent</code></li>
 </ul>
-<p>Sync/security:</p>
+<p>Data:</p>
 <ul>
-<li><code>sync_hello_sent</code>, <code>sync_peer_updated</code>, <code>sync_peer_rejected</code>, <code>protocol_auth_failed</code></li>
+<li><code>data_received</code>, <code>send_error</code>, <code>send_rejected</code></li>
 </ul>
-<p>File:</p>
+<p>Sync and security:</p>
 <ul>
-<li><code>file_offer_received</code>, <code>file_chunk_received</code>, <code>file_chunk_rejected</code>, <code>file_received</code>, <code>file_transfer_complete</code>, <code>file_transfer_cancelled</code></li>
+<li><code>sync_hello_sent</code>, <code>sync_peer_updated</code>, <code>sync_peer_rejected</code>, <code>protocol_auth_failed</code>, <code>protocol_unknown</code></li>
+</ul>
+<p>Files:</p>
+<ul>
+<li><code>file_offer_received</code>, <code>file_offer_rejected</code>, <code>file_chunk_received</code>, <code>file_chunk_rejected</code>, <code>file_received</code>, <code>file_transfer_complete</code>, <code>file_transfer_cancelled</code>, <code>file_protocol_error</code>, <code>file_protocol_unhandled</code></li>
 </ul>
 <p>State:</p>
 <ul>
 <li><code>state_updated</code>, <code>state_snapshot_merged</code>, <code>state_protocol_unhandled</code></li>
 </ul>
-</section><section class="doc-section" id="error-shape"><h2>Error Shape</h2>
-<p>Tools return <code>isError: true</code> with:</p>
+<p>HTTP relay:</p>
+<ul>
+<li><code>relay_receipt</code>, <code>relay_connection</code>, <code>relay_history_lost</code>, <code>relay_message_rejected</code></li>
+</ul>
+</section>
+<section class="doc-section" id="error-shape"><h2>Error shape</h2>
+<p>Failed tool calls return <code>isError: true</code> with:</p>
 <pre><code class="lang-json">{
   "ok": false,
   "error": {
@@ -173,54 +268,55 @@
   }
 }
 </code></pre>
-</section><section class="doc-section" id="client-wiring"><h2>Client Wiring</h2>
-<p>Automated registration:</p>
+<p><code>validation_error</code> means bad arguments, an unknown session or transfer, or a tool outside the active profile. <code>tool_error</code> means a valid call that failed, such as a timed-out transfer.</p>
+</section>
+<section class="doc-section" id="client-wiring"><h2>Client wiring</h2>
+<p>Automated registration for Codex and Claude Code:</p>
 <pre><code class="lang-sh">npm i @vdoninja/mcp
 npx vdon-mcp-install
 </code></pre>
-<p>Preset registrations:</p>
+<p>Register a preset:</p>
 <pre><code class="lang-sh">npx vdon-mcp-install --preset core
 npx vdon-mcp-install --preset file
 npx vdon-mcp-install --preset state
 npx vdon-mcp-install --preset secure-core
 npx vdon-mcp-install --preset secure-full
 </code></pre>
-<p>Removal:</p>
+<p>Remove the registration:</p>
 <pre><code class="lang-sh">npx vdon-mcp-install --uninstall
 </code></pre>
-<p>Codex-style:</p>
-<pre><code class="lang-json">{
-  "name": "vdo-ninja-mcp",
-  "command": "node",
-  "args": ["node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
-}
-</code></pre>
-<p>Claude Code-style:</p>
+<p>Manual configuration for clients that use an <code>mcpServers</code> file:</p>
 <pre><code class="lang-json">{
   "mcpServers": {
     "vdo-ninja-mcp": {
       "command": "node",
-      "args": ["node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
     }
   }
 }
-</code></pre></section>
+</code></pre>
+<p>More client formats are in <a href="client-config-examples.html">client configuration</a>.</p>
+</section>
+    <p class="page-meta"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/references/mcp-tool-contract.md">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
     <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
   </main>
 </div>
+
 <footer class="footer">
-<div class="wrap">
-<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
-<nav aria-label="Footer">
-<a href="./">Home</a>
-<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
-<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
-<a href="https://discord.vdo.ninja">Discord</a>
-<a href="https://vdo.ninja">VDO.Ninja</a>
-</nav>
-<span>MIT · © 2026 Steve Seguin</span>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
 </footer>
+
 <script src="assets/site.js" defer></script>
 </body>
 </html>

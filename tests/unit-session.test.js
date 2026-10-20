@@ -76,6 +76,24 @@ async function run() {
   }, 1200, 30);
   assert.equal(reconnected, true, 'session A should reconnect after disconnect');
 
+  // An unrelated viewer failure must not reset the host or another viewer.
+  const hostSdk = sessionA.sdk;
+  const viewerSdk = sessionB.sdk;
+  hostSdk.emit('connectionFailed', { uuid: 'dead-client', type: 'publisher', streamID: 'agent_a' });
+  viewerSdk.emit('connectionFailed', { uuid: 'other-peer', type: 'viewer', streamID: 'unrelated_stream' });
+  viewerSdk.emit('connectionFailed', { uuid: 'own-viewer', type: 'publisher', streamID: 'agent_b' });
+  await new Promise((resolve) => setTimeout(resolve, 90));
+  assert.equal(sessionA.sdk, hostSdk, 'a failed client must not reconnect the whole host');
+  assert.equal(sessionB.sdk, viewerSdk, 'unrelated failures must not reconnect a targeted client');
+
+  viewerSdk.emit('connectionFailed', { uuid: 'host-peer', type: 'viewer', streamID: 'agent_a' });
+  assert.equal(await waitUntil(() => sessionB.sdk !== viewerSdk && sessionB.state === 'connected', 1200, 30), true,
+    'a failed target must still reconnect');
+  const restored = [];
+  sessionA.on('event', (event) => { if (event.type === 'data_received') restored.push(event.data); });
+  assert.equal(sessionB.send({ afterReconnect: true }, 'agent_a'), true);
+  assert.equal(await waitUntil(() => restored.some((data) => data.afterReconnect), 500, 20), true);
+
   await sessionA.stop();
   await sessionB.stop();
   assert.equal(sessionA.getStatus().state, 'stopped');

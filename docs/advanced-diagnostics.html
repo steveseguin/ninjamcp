@@ -4,98 +4,209 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Advanced diagnostics · VDO.Ninja MCP</title>
-  <meta name="description" content="Check network connectivity and diagnose connection reliability.">
+  <meta name="description" content="Live network tests, preset matrices, and reliability tuning for VDO.Ninja MCP.">
   <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/advanced-diagnostics.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Advanced diagnostics · VDO.Ninja MCP">
+  <meta property="og:description" content="Live network tests, preset matrices, and reliability tuning for VDO.Ninja MCP.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/advanced-diagnostics.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Advanced diagnostics · VDO.Ninja MCP">
+  <meta name="twitter:description" content="Live network tests, preset matrices, and reliability tuning for VDO.Ninja MCP.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="assets/site.css">
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="reference-page">
 <a class="skip-link" href="#main">Skip to content</a>
+
 <header class="nav">
-<div class="wrap">
-<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
-<img alt="" height="28" src="assets/logo.svg" width="28"/>
-<span>VDO.Ninja <small>MCP</small></span>
-</a>
-<nav aria-label="Primary" class="nav-links">
-<a href="./#how">How it works</a>
-<a href="./#privacy">Privacy</a>
-<a href="./#tools">Tools</a>
-<a href="./#faq">FAQ</a>
-<a aria-current="page" href="guide.html">Docs</a>
-</nav>
-<div class="nav-cta">
-<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
-<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
-</div>
-<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
 </header>
+
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#live-test-commands">Live Test Commands</a><a href="#preset-matrix-notes">Preset Matrix Notes</a><a href="#soak-matrix-knobs">Soak / Matrix Knobs</a><a href="#important">Important</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
+    <h5>Documentation</h5>
+    <a href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Documentation home</a>
+    <a href="guide.html#guides"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>All guides</a>
+    <h5>On this page</h5>
+    <a href="#overview">Overview</a>
+    <a href="#live-network-tests">Live network tests</a>
+    <a href="#preset-matrix-options">Preset matrix options</a>
+    <a href="#retry-and-timeout-settings">Retry and timeout settings</a>
+    <a href="#reading-the-results">Reading the results</a>
+    <h5>More guides</h5>
+    <a href="quickstart-and-compat.html">Quickstart</a>
+    <a href="client-config-examples.html">Client configuration</a>
+    <a href="http-relay.html">HTTP relay</a>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="browser-agent.html">Voice companion</a>
+    <a href="ssapp-integration.html">Remote SSApp</a>
+    <a href="ssapp-capability-matrix.html">SSApp capability matrix</a>
+    <a href="mcp-tool-contract.html">Tool contract</a>
+    <a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a>
+    <a href="direction.html">Project direction</a>
+  </aside>
+
   <main class="docs-main" id="main">
-    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
     <header>
       <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Advanced diagnostics</p>
-      <h1 id="vdoninja-mcp-advanced-diagnostics">VDO.Ninja MCP Advanced Diagnostics</h1>
+      <h1 id="advanced-diagnostics">Advanced diagnostics</h1>
       <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/advanced-diagnostics.md">Read in Markdown</a></p>
     </header>
-    <section class="doc-section guide-intro" id="overview">
-<p>This page is optional. Use it when you are debugging reliability or network edge cases.</p>
-</section><section class="doc-section" id="live-test-commands"><h2>Live Test Commands</h2>
+<section class="doc-section guide-intro" id="overview">
+<p>Use these checks when you are debugging reliability or network edge cases. Everyday setup doesn't need them.</p>
+<p>The test suites are in the repository, not the npm package. Run them from a clone after <code>npm install</code>. Live tests also need the optional Node WebRTC runtime; they skip themselves without it.</p>
+</section>
+<section class="doc-section" id="live-network-tests"><h2>Live network tests</h2>
+<p>These connect to the real VDO.Ninja network. They are skipped unless <code>LIVE_VDO_TEST=1</code> is set.</p>
 <pre><code class="lang-sh">LIVE_VDO_TEST=1 npm run test:mcp:live
 LIVE_VDO_TEST=1 npm run test:mcp:soak
 LIVE_VDO_TEST=1 npm run test:mcp:matrix
 LIVE_VDO_TEST=1 npm run test:mcp:preset:matrix
 LIVE_VDO_TEST=1 SOAK_MATRIX_SWEEP_RUNS=20 npm run test:mcp:matrix:sweep
 </code></pre>
-<p>Secure preset matrix:</p>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test:mcp:live</code></td>
+<td>Two live peers connect and exchange messages.</td>
+</tr>
+<tr>
+<td><code>test:mcp:soak</code></td>
+<td>Repeated connect, message, and reconnect cycles.</td>
+</tr>
+<tr>
+<td><code>test:mcp:matrix</code></td>
+<td>The soak run across direct and forced-TURN connection profiles, including UDP, TCP, and TLS hints.</td>
+</tr>
+<tr>
+<td><code>test:mcp:preset:matrix</code></td>
+<td>Each installer preset's tool profile and security settings.</td>
+</tr>
+<tr>
+<td><code>test:mcp:matrix:sweep</code></td>
+<td>The matrix repeated many times against a minimum success rate.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The preset matrix skips the secure presets unless a join-token secret is set:</p>
 <pre><code class="lang-sh">LIVE_VDO_TEST=1 VDON_MCP_JOIN_TOKEN_SECRET=change_me npm run test:mcp:preset:matrix
 </code></pre>
-</section><section class="doc-section" id="preset-matrix-notes"><h2>Preset Matrix Notes</h2>
+</section>
+<section class="doc-section" id="preset-matrix-options"><h2>Preset matrix options</h2>
 <ul>
-<li><code>PRESET_MATRIX_ADAPTIVE_FALLBACK=1</code> enables candidate fallback.</li>
-<li><code>PRESET_MATRIX_ALLOW_DIRECT_FALLBACK=1</code> allows direct fallback after TURN candidates.</li>
-<li><code>PRESET_MATRIX_STRICT=1</code> fails process when any profile fails.</li>
-<li><code>PRESET_CONNECT_ATTEMPTS</code>, <code>PRESET_CONNECT_TIMEOUT_MS</code>, and <code>PRESET_CHANNEL_READY_TIMEOUT_MS</code> control connect behavior.</li>
+<li><code>PRESET_MATRIX_ADAPTIVE_FALLBACK=1</code> tries other connection candidates when one fails.</li>
+<li><code>PRESET_MATRIX_ALLOW_DIRECT_FALLBACK=1</code> allows a direct connection after the TURN candidates.</li>
+<li><code>PRESET_MATRIX_STRICT=1</code> exits with a failure when any profile fails.</li>
+<li><code>PRESET_CONNECT_ATTEMPTS</code>, <code>PRESET_CONNECT_TIMEOUT_MS</code>, and <code>PRESET_CHANNEL_READY_TIMEOUT_MS</code> control connection attempts.</li>
 </ul>
-<p>Artifacts are written to:</p>
+<p>Reports are written to:</p>
 <ul>
 <li><code>tests/artifacts/latest-preset-matrix-report.json</code></li>
 <li><code>tests/artifacts/latest-preset-matrix-summary.txt</code></li>
 <li><code>tests/artifacts/history/preset-matrix-*.json</code></li>
 <li><code>tests/artifacts/history/preset-matrix-*.txt</code></li>
 </ul>
-</section><section class="doc-section" id="soak-matrix-knobs"><h2>Soak / Matrix Knobs</h2>
+</section>
+<section class="doc-section" id="retry-and-timeout-settings"><h2>Retry and timeout settings</h2>
+<div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Variables</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Live smoke</td>
+<td><code>LIVE_SMOKE_RETRIES</code>, <code>LIVE_SMOKE_TIMEOUT_MS</code></td>
+</tr>
+<tr>
+<td>Soak</td>
+<td><code>SOAK_RETRIES</code>, <code>SOAK_TIMEOUT_MS</code></td>
+</tr>
+<tr>
+<td>Matrix</td>
+<td><code>SOAK_MATRIX_PROFILE_RETRIES</code>, <code>SOAK_MATRIX_PROFILE_TIMEOUT_MS</code></td>
+</tr>
+<tr>
+<td>Sweep</td>
+<td><code>SOAK_MATRIX_SWEEP_RUNS</code>, <code>SOAK_MATRIX_SWEEP_TIMEOUT_MS</code>, <code>SOAK_MATRIX_SWEEP_MIN_SUCCESS_RATE</code></td>
+</tr>
+</tbody>
+</table></div>
+</section>
+<section class="doc-section" id="reading-the-results"><h2>Reading the results</h2>
 <ul>
-<li>Smoke: <code>LIVE_SMOKE_RETRIES</code>, <code>LIVE_SMOKE_TIMEOUT_MS</code></li>
-<li>Soak: <code>SOAK_RETRIES</code>, <code>SOAK_TIMEOUT_MS</code></li>
-<li>Matrix: <code>SOAK_MATRIX_PROFILE_RETRIES</code>, <code>SOAK_MATRIX_PROFILE_TIMEOUT_MS</code></li>
-<li>Sweep: <code>SOAK_MATRIX_SWEEP_RUNS</code>, <code>SOAK_MATRIX_SWEEP_TIMEOUT_MS</code>, <code>SOAK_MATRIX_SWEEP_MIN_SUCCESS_RATE</code></li>
+<li>If the simulated demos pass but the live tests fail, the problem is the network path, not your agents or client setup.</li>
+<li>Strict corporate networks and some WSL setups block WebRTC's UDP traffic. Try forced TURN, or switch both agents to the <a href="http-relay.html">HTTP relay</a>. These tests cover WebRTC only.</li>
+<li>TURN improves reachability, but it doesn't get through every firewall policy.</li>
 </ul>
-</section><section class="doc-section" id="important"><h2>Important</h2>
-<ul>
-<li>WebRTC data channels are the transport.</li>
-<li>TURN helps reachability but is not a universal bypass for all enterprise firewall policies.</li>
-</ul></section>
+</section>
+    <p class="page-meta"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/references/advanced-diagnostics.md">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
     <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
   </main>
 </div>
+
 <footer class="footer">
-<div class="wrap">
-<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
-<nav aria-label="Footer">
-<a href="./">Home</a>
-<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
-<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
-<a href="https://discord.vdo.ninja">Discord</a>
-<a href="https://vdo.ninja">VDO.Ninja</a>
-</nav>
-<span>MIT · © 2026 Steve Seguin</span>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
 </footer>
+
 <script src="assets/site.js" defer></script>
 </body>
 </html>

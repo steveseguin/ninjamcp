@@ -14,6 +14,7 @@ function createSession(id) {
 function createSdkHarness(initialState) {
   let sendCalls = 0;
   let pingCalls = 0;
+  let lastTarget;
 
   const sdk = {
     connections: new Map([
@@ -26,8 +27,9 @@ function createSdkHarness(initialState) {
         }
       ]
     ]),
-    sendData() {
+    sendData(data, target) {
       sendCalls += 1;
+      lastTarget = target;
       return true;
     },
     sendPing() {
@@ -43,6 +45,9 @@ function createSdkHarness(initialState) {
     },
     get pingCalls() {
       return pingCalls;
+    },
+    get lastTarget() {
+      return lastTarget;
     }
   };
 }
@@ -86,6 +91,20 @@ function run() {
   assert.equal(fallbackSession.hasOpenDataChannel(), true);
   assert.equal(fallbackSession.send({ ok: true }), true);
   assert.equal(fallbackSendCalls, 1);
+
+  // A host can keep its stream name while returning with a new connection UUID.
+  const returned = createSession('returned');
+  const returnedHarness = createSdkHarness('open');
+  returned.sdk = returnedHarness.sdk;
+  returned.touchPeer('old_peer', 'host_stream');
+  returned.invalidatePeer('old_peer');
+  returned.touchPeer('peer_1', 'host_stream');
+  assert.equal(returned.send({ msg: 'after reconnect' }, 'host_stream'), true);
+  assert.equal(returnedHarness.lastTarget, 'peer_1');
+  assert.equal(returned.resolvePeerTarget('host_stream').uuid, 'peer_1', 'files must select the live host too');
+  assert.equal(returned.send({ msg: 'explicit old UUID' }, { uuid: 'old_peer' }), false);
+  returned.sdk.connections.get('peer_1').viewer.dataChannel.readyState = 'closed';
+  assert.equal(returned.send({ msg: 'no live host' }, 'host_stream'), false);
 
   console.log('unit-send-guard.test.js passed');
 }

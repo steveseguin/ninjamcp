@@ -96,6 +96,7 @@
     "scripts/vdo-mcp-ssapp.js",
     "scripts/lib/ssapp-worker.js",
     "scripts/lib/ssapp-export.js",
+    "scripts/lib/ssapp-human.js",
     "references/ssapp-integration.md",
     "references/ssapp-capability-matrix.md"
   ],

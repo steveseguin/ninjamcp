@@ -6,37 +6,86 @@
   <title>Voice companion · VDO.Ninja MCP</title>
   <meta name="description" content="Talk to an agent while sharing selected browser views and controls.">
   <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/browser-agent.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Voice companion · VDO.Ninja MCP">
+  <meta property="og:description" content="Talk to an agent while sharing selected browser views and controls.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/browser-agent.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Voice companion · VDO.Ninja MCP">
+  <meta name="twitter:description" content="Talk to an agent while sharing selected browser views and controls.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="assets/site.css">
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="reference-page">
 <a class="skip-link" href="#main">Skip to content</a>
+
 <header class="nav">
-<div class="wrap">
-<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
-<img alt="" height="28" src="assets/logo.svg" width="28"/>
-<span>VDO.Ninja <small>MCP</small></span>
-</a>
-<nav aria-label="Primary" class="nav-links">
-<a href="./#how">How it works</a>
-<a href="./#privacy">Privacy</a>
-<a href="./#tools">Tools</a>
-<a href="./#faq">FAQ</a>
-<a aria-current="page" href="guide.html">Docs</a>
-</nav>
-<div class="nav-cta">
-<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
-<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
-</div>
-<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
 </header>
+
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#start-a-conversation">Start a conversation</a><a href="#control-what-is-shared">Control what is shared</a><a href="#watch-the-browser">Watch the browser</a><a href="#resolve-connection-problems">Resolve connection problems</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
+    <h5>Documentation</h5>
+    <a href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Documentation home</a>
+    <a href="guide.html#guides"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>All guides</a>
+    <h5>On this page</h5>
+    <a href="#overview">Overview</a>
+    <a href="#start-a-conversation">Start a conversation</a>
+    <a href="#control-what-is-shared">Control what is shared</a>
+    <a href="#watch-the-browser">Watch the browser</a>
+    <a href="#resolve-connection-problems">Resolve connection problems</a>
+    <h5>More guides</h5>
+    <a href="quickstart-and-compat.html">Quickstart</a>
+    <a href="client-config-examples.html">Client configuration</a>
+    <a href="http-relay.html">HTTP relay</a>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="ssapp-integration.html">Remote SSApp</a>
+    <a href="ssapp-capability-matrix.html">SSApp capability matrix</a>
+    <a href="mcp-tool-contract.html">Tool contract</a>
+    <a href="advanced-diagnostics.html">Advanced diagnostics</a>
+    <a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a>
+    <a href="direction.html">Project direction</a>
+  </aside>
+
   <main class="docs-main" id="main">
-    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
     <header>
       <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Voice companion</p>
       <h1 id="talk-to-an-agent-while-sharing-a-browser">Talk to an agent while sharing a browser</h1>
@@ -101,22 +150,26 @@
 <li>If a tool reports an uncertain outcome, have the agent use <code>browser_result</code> and inspect the page before repeating an action. A returned tool result and completion of your requested task are separate outcomes.</li>
 </ul>
 <p>The page accepts one local operator connection. Reopen the original private URL after a reload or disconnect; its access token is removed from the address bar after connection. Keep that URL and the agent credential file private.</p></section>
+    <p class="page-meta"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/references/browser-agent.md">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
     <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
   </main>
 </div>
+
 <footer class="footer">
-<div class="wrap">
-<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
-<nav aria-label="Footer">
-<a href="./">Home</a>
-<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
-<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
-<a href="https://discord.vdo.ninja">Discord</a>
-<a href="https://vdo.ninja">VDO.Ninja</a>
-</nav>
-<span>MIT · © 2026 Steve Seguin</span>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
 </footer>
+
 <script src="assets/site.js" defer></script>
 </body>
 </html>

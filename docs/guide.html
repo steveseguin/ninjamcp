@@ -79,7 +79,7 @@
 </header>
 
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
     <h5>Start</h5>
     <a href="#overview"><svg class="icon-sm"><use href="assets/icons.svg#i-book"></use></svg>Overview</a>
     <a href="#install"><svg class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>Install</a>
@@ -103,9 +103,9 @@
     <a href="#troubleshooting"><svg class="icon-sm"><use href="assets/icons.svg#i-alert"></use></svg>Troubleshooting</a>
     <a href="#testing"><svg class="icon-sm"><use href="assets/icons.svg#i-check"></use></svg>Testing</a>
     <h5>Optional integrations</h5>
-    <a href="browser-worker.html">Remote Chrome</a>
-    <a href="browser-agent.html">Voice companion</a>
-    <a href="ssapp-integration.html">Remote SSApp</a>
+    <a href="browser-worker.html"><svg class="icon-sm"><use href="assets/icons.svg#i-browser"></use></svg>Remote Chrome</a>
+    <a href="browser-agent.html"><svg class="icon-sm"><use href="assets/icons.svg#i-mic"></use></svg>Voice companion</a>
+    <a href="ssapp-integration.html"><svg class="icon-sm"><use href="assets/icons.svg#i-monitor"></use></svg>Remote SSApp</a>
     <h5>More</h5>
     <a href="./#faq"><svg class="icon-sm"><use href="assets/icons.svg#i-info"></use></svg>FAQ</a>
     <a href="direction.html"><svg class="icon-sm"><use href="assets/icons.svg#i-git-branch"></use></svg>Direction</a>
@@ -114,7 +114,7 @@
   </aside>
 
   <main class="docs-main" id="main">
-    <button class="btn docs-toggle" type="button"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
 
     <header>
       <h1>Documentation</h1>
@@ -268,7 +268,7 @@ npx vdon-mcp-install --claude-only --claude-scope user</code></pre>
         </div>
       </div>
       <h3>Check the wiring</h3>
-      <p>Ask your agent to call <code>vdo_capabilities</code>. If you get back the server's limits and active profile, it's connected.</p>
+      <p>Ask your agent to call <code>vdo_capabilities</code>. If you get back the server version, active profile, and enabled features, it's connected.</p>
 <pre><code class="lang-json">{ "name": "vdo_capabilities", "arguments": {} }</code></pre>
       <div class="note-box">
         <svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-info"></use></svg>
@@ -295,7 +295,7 @@ npx vdon-mcp-install --claude-only --claude-scope user</code></pre>
       <h3>4. B receives</h3>
 <pre><code class="lang-json">{ "name": "vdo_receive",
   "arguments": { "session_id": "&lt;agent_b_session&gt;", "wait_ms": 1000 } }</code></pre>
-      <p>Expect a <code>data_received</code> event whose <code>data</code> is the object A sent. If you only see lifecycle events, call <code>vdo_receive</code> again: the channel may still be opening.</p>
+      <p>Expect a <code>data_received</code> event whose <code>data</code> is the object A sent. If you only see lifecycle events, call <code>vdo_receive</code> again: the channel may still be opening. A <code>connect_error</code> event means the first connection attempt failed; the session keeps retrying.</p>
       <h3>No agents handy?</h3>
       <p>Two scripts run the full exchange for you on a simulated local network, then exit with pass or fail:</p>
 <pre><code class="lang-sh">npx vdon-mcp-demo-message
@@ -304,6 +304,32 @@ npx vdon-mcp-demo-file
 MCP_DEMO_FAKE=0 npx vdon-mcp-demo-message
 # real network, forced through TURN
 MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
+    </section>
+
+    <!-- Guides -->
+    <section class="doc-section" id="guides">
+      <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-book"></use></svg></span>All guides</h2>
+      <p>Step-by-step guides for specific tasks. Each one is also available in Markdown in the repository.</p>
+      <h3>Setup and connections</h3>
+      <div class="guide-list">
+        <a href="quickstart-and-compat.html"><strong>Quickstart</strong><span>Connect two clients and exchange a first message.</span></a>
+        <a href="client-config-examples.html"><strong>Client configuration</strong><span>Ready-to-copy setup for your MCP client.</span></a>
+        <a href="http-relay.html"><strong>Connect without WebRTC</strong><span>Run and use an encrypted HTTP relay.</span></a>
+      </div>
+      <h3>Optional remote tools</h3>
+      <div class="guide-list">
+        <a href="browser-worker.html"><strong>Remote Chrome</strong><span>Share a browser with agent control handoff and optional live media.</span></a>
+        <a href="browser-agent.html"><strong>Voice companion</strong><span>Speak to an agent and share selected browser views.</span></a>
+        <a href="ssapp-integration.html"><strong>Remote SSApp</strong><span>Use Social Stream Ninja screenshots, input, and app controls remotely.</span></a>
+      </div>
+      <h3>Reference and direction</h3>
+      <div class="guide-list">
+        <a href="ssapp-capability-matrix.html"><strong>SSApp capability matrix</strong><span>Coverage, remaining work, implementation references and validation procedures.</span></a>
+        <a href="mcp-tool-contract.html"><strong>Tool contract</strong><span>Arguments, permissions, and transport limits.</span></a>
+        <a href="advanced-diagnostics.html"><strong>Advanced diagnostics</strong><span>Check connectivity and troubleshoot reliability.</span></a>
+        <a href="vdo-ninja-p2p-data-notes.html"><strong>WebRTC data notes</strong><span>SDK constraints for peer data connections.</span></a>
+        <a href="direction.html"><strong>Project direction</strong><span>How Ninja MCP, ninja-p2p, and the SDK fit together.</span></a>
+      </div>
     </section>
 
     <!-- How it works -->
@@ -407,23 +433,23 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
     <!-- Events -->
     <section class="doc-section" id="events">
       <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-zap"></use></svg></span>Events</h2>
-      <p><code>vdo_receive</code> returns everything that happened since the last call, oldest first. Pass <code>wait_ms</code> (up to 30,000) to wait for something to arrive. Up to 2,000 events are held per session; older ones are dropped first.</p>
+      <p><code>vdo_receive</code> returns queued events oldest first, up to <code>max_events</code> per call (default 50, max 500). Call it again to drain the rest. Pass <code>wait_ms</code> (up to 30,000) to wait for something to arrive. Up to 2,000 events are held per session; older ones are dropped first.</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Group</th><th>Event types</th></tr></thead>
           <tbody>
-            <tr><td>Lifecycle</td><td><code>ready</code> <code>connected</code> <code>disconnected</code> <code>connection_failed</code> <code>sdk_error</code> <code>reconnect_scheduled</code></td></tr>
-            <tr><td>Peers</td><td><code>peer_connected</code> <code>peer_disconnected</code> <code>data_channel_open</code> <code>data_channel_close</code> <code>heartbeat_sent</code></td></tr>
+            <tr><td>Lifecycle</td><td><code>ready</code> <code>connected</code> <code>disconnected</code> <code>connect_error</code> <code>connection_failed</code> <code>sdk_error</code> <code>reconnect_scheduled</code></td></tr>
+            <tr><td>Peers</td><td><code>peer_connected</code> <code>peer_disconnected</code> <code>data_channel_open</code> <code>data_channel_close</code></td></tr>
             <tr><td>Data</td><td><code>data_received</code> <code>send_error</code> <code>send_rejected</code></td></tr>
-            <tr><td>Sync and auth</td><td><code>sync_hello_sent</code> <code>sync_peer_updated</code> <code>sync_peer_rejected</code> <code>protocol_auth_failed</code></td></tr>
-            <tr><td>Files</td><td><code>file_offer_received</code> <code>file_chunk_received</code> <code>file_chunk_rejected</code> <code>file_received</code> <code>file_transfer_complete</code> <code>file_transfer_cancelled</code></td></tr>
+            <tr><td>Sync and auth</td><td><code>sync_hello_sent</code> <code>sync_peer_updated</code> <code>sync_peer_rejected</code> <code>protocol_auth_failed</code> <code>protocol_unknown</code></td></tr>
+            <tr><td>Files</td><td><code>file_offer_received</code> <code>file_offer_rejected</code> <code>file_chunk_received</code> <code>file_chunk_rejected</code> <code>file_received</code> <code>file_transfer_complete</code> <code>file_transfer_cancelled</code> <code>file_protocol_error</code> <code>file_protocol_unhandled</code></td></tr>
             <tr><td>State</td><td><code>state_updated</code> <code>state_snapshot_merged</code> <code>state_protocol_unhandled</code></td></tr>
             <tr><td>HTTP relay</td><td><code>relay_receipt</code> <code>relay_connection</code> <code>relay_history_lost</code> <code>relay_message_rejected</code></td></tr>
           </tbody>
         </table>
       </div>
       <h3>Errors</h3>
-      <p>Failed tool calls return <code>isError: true</code> and this shape. <code>validation_error</code> means bad arguments or a tool outside the active profile; fix and retry.</p>
+      <p>Failed tool calls return <code>isError: true</code> and this shape. <code>validation_error</code> means bad arguments or a tool outside the active profile; fix and retry. <code>tool_error</code> means the call was valid but failed, for example a timed-out transfer.</p>
 <pre><code class="lang-json">{ "ok": false,
   "error": { "type": "validation_error", "message": "…", "tool": "vdo_send" } }</code></pre>
     </section>
@@ -448,20 +474,20 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
               <tr><td><code>password</code></td><td>SDK default</td><td>Room secret. <code>false</code> disables handshake encryption.</td></tr>
               <tr><td><code>host</code></td><td><code>wss://wss.vdo.ninja</code></td><td>Handshake server.</td></tr>
               <tr><td><code>force_turn</code></td><td><code>false</code></td><td>Always relay through TURN. Hides your IP from peers; may connect less often.</td></tr>
-              <tr><td><code>heartbeat_ms</code></td><td>15000</td><td>Keep-alive interval.</td></tr>
-              <tr><td><code>reconnect_ms</code> / <code>max_reconnect_ms</code></td><td>3000 / 30000</td><td>Reconnect backoff, doubling each try.</td></tr>
+              <tr><td><code>heartbeat_ms</code></td><td>15000</td><td>Keep-alive interval. Max 120000.</td></tr>
+              <tr><td><code>reconnect_ms</code> / <code>max_reconnect_ms</code></td><td>3000 / 30000</td><td>Reconnect backoff, doubling each try. Max 30000 / 120000.</td></tr>
               <tr><td><code>join_token</code> / <code>join_token_secret</code></td><td></td><td>Present a token, or a secret to sign and verify them.</td></tr>
-              <tr><td><code>join_token_ttl_ms</code></td><td>600000</td><td>Token lifetime (10 minutes).</td></tr>
+              <tr><td><code>join_token_ttl_ms</code></td><td>600000</td><td>Token lifetime (10 minutes). Max 24 hours.</td></tr>
               <tr><td><code>enforce_join_token</code></td><td><code>false</code></td><td>Reject peers without a valid token.</td></tr>
               <tr><td><code>allow_peer_stream_ids</code></td><td></td><td>Only these stream IDs may talk to you.</td></tr>
               <tr><td><code>require_session_mac</code></td><td><code>false</code></td><td>Reject unsigned control and file messages.</td></tr>
               <tr><td><code>file_chunk_bytes</code></td><td>65536</td><td>1 KB to 256 KB.</td></tr>
-              <tr><td><code>file_max_bytes</code></td><td>64 MB</td><td>Largest file accepted.</td></tr>
-              <tr><td><code>file_ack_timeout_ms</code> / <code>file_max_retries</code></td><td>1200 / 6</td><td>Per-chunk retry policy.</td></tr>
+              <tr><td><code>file_max_bytes</code></td><td>64 MB</td><td>Largest file accepted. Max 256 MB.</td></tr>
+              <tr><td><code>file_ack_timeout_ms</code> / <code>file_max_retries</code></td><td>1200 / 6</td><td>Per-chunk retry policy. Ack timeout max 30000. With <code>0</code> retries, the first lost chunk fails the transfer.</td></tr>
               <tr><td><code>file_spool_dir</code></td><td>OS temp</td><td>Where large incoming files are written.</td></tr>
               <tr><td><code>file_spool_threshold_bytes</code></td><td>4 MB</td><td>Spool to disk at or above this size.</td></tr>
               <tr><td><code>keep_spool_files</code></td><td><code>false</code></td><td>Keep spooled files after cleanup.</td></tr>
-              <tr><td><code>state_max_keys</code> / <code>state_max_snapshot_entries</code></td><td>2048 / 4096</td><td>Shared state limits.</td></tr>
+              <tr><td><code>state_max_keys</code> / <code>state_max_snapshot_entries</code></td><td>2048 / 4096</td><td>Shared state limits. New keys past the limit are refused.</td></tr>
               <tr><td><code>label</code>, <code>debug</code></td><td></td><td>Display label; verbose SDK logging.</td></tr>
             </tbody>
           </table>
@@ -500,7 +526,7 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
       </details>
       <details class="tool-ref">
         <summary><code>vdo_list_sessions</code> · <code>vdo_capabilities</code><span>Server-wide views.</span><span class="profile-tag">core</span></summary>
-        <div class="tool-body"><p>No arguments. <code>vdo_capabilities</code> reports the active profile, limits, and transport constraints. Have agents call it first.</p></div>
+        <div class="tool-body"><p>No arguments. <code>vdo_capabilities</code> reports the server version, the active profile and its tools, enabled features, and transport facts such as supported transports and the lack of automatic failover. Have agents call it first.</p></div>
       </details>
 
       <h3>Peer sync</h3>
@@ -526,7 +552,8 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
               <tr><td><code>name</code>, <code>mime</code></td><td>Metadata for the receiver.</td></tr>
               <tr><td><code>uuid</code> or <code>target</code></td><td>Recipient.</td></tr>
               <tr><td><code>transfer_id</code></td><td>Your own ID. Reuse it only to retry the same file to the same peer.</td></tr>
-              <tr><td><code>chunk_bytes</code>, <code>timeout_ms</code>, <code>ack_timeout_ms</code>, <code>max_retries</code></td><td>Override session defaults for this transfer.</td></tr>
+              <tr><td><code>chunk_bytes</code>, <code>ack_timeout_ms</code>, <code>max_retries</code></td><td>Override session defaults for this transfer.</td></tr>
+              <tr><td><code>timeout_ms</code></td><td>How long to wait for the receiver to accept the offer. Default: the larger of the ack timeout and 1 second.</td></tr>
             </tbody>
           </table>
         </div>
@@ -555,7 +582,7 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
       </details>
       <details class="tool-ref">
         <summary><code>vdo_state_sync</code><span>Exchange full snapshots.</span><span class="profile-tag">state</span></summary>
-        <div class="tool-body"><p>Takes <code>session_id</code> and <code>mode</code>: <code>request</code> asks peers for theirs, <code>send</code> pushes yours. Use after a reconnect.</p></div>
+        <div class="tool-body"><p>Takes <code>session_id</code> and <code>mode</code>: <code>request</code> (the default) asks peers for theirs, <code>send</code> pushes yours. Pass <code>uuid</code> or <code>target</code> to sync with one peer. Use after a reconnect.</p></div>
       </details>
     </section>
 
@@ -577,9 +604,9 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
           <line class="ln-life" x1="140" y1="46" x2="140" y2="424"/>
           <line class="ln-life" x1="500" y1="46" x2="500" y2="424"/>
 
-          <path class="ln" d="M140 74H498" marker-end="url(#sa)"/><text x="320" y="68" text-anchor="middle">file.offer · name, size, SHA-256, chunk hashes</text>
+          <path class="ln" d="M140 74H498" marker-end="url(#sa)"/><text x="320" y="68" text-anchor="middle">file.offer · name, size, chunk count, SHA-256</text>
           <path class="ln" d="M500 106H142" marker-end="url(#sa)"/><text x="320" y="100" text-anchor="middle">file.accept</text>
-          <path class="ln" d="M140 138H498" marker-end="url(#sa)"/><text x="320" y="132" text-anchor="middle">file.chunk seq 0</text>
+          <path class="ln" d="M140 138H498" marker-end="url(#sa)"/><text x="320" y="132" text-anchor="middle">file.chunk seq 0 · data + chunk SHA-256</text>
           <path class="ln" d="M500 170H142" marker-end="url(#sa)"/><text x="320" y="164" text-anchor="middle">file.ack 0 · hash checked</text>
           <path class="ln" d="M140 202H498" marker-end="url(#sa)"/><text x="320" y="196" text-anchor="middle">file.chunk seq 1</text>
           <path class="ln-nack" d="M500 234H142" marker-end="url(#sn)"/><text x="320" y="228" text-anchor="middle" class="t-nack">file.nack 1 · bad hash, send again</text>
@@ -609,7 +636,7 @@ MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file</code></pre>
         <li>The higher <code>clock</code> wins.</li>
         <li>On a tie, the alphabetically later <code>actor</code> wins.</li>
       </ol>
-      <p>Every peer applies the same rule, so they all end up with the same value without a server deciding. Good for task status, assignments, and small flags. Not a database: keep values small and keys under the 2,048 limit.</p>
+      <p>Every peer applies the same rule, so they all end up with the same value without a server deciding. Good for task status, assignments, and small flags. Not a database: keep values small. A session holds up to 2,048 keys by default, and <code>vdo_state_set</code> refuses new keys past that.</p>
 <pre><code class="lang-json">{ "name": "vdo_state_set",
   "arguments": { "session_id": "vdo_9a0e…", "key": "task.status", "value": "approved" } }</code></pre>
     </section>
@@ -807,45 +834,24 @@ VDON_RELAY_TOKEN=&lt;token&gt; npx vdon-mcp-relay
       </div>
     </section>
 
-    <section class="doc-section" id="guides">
-      <h2>Guides</h2>
-      <p>Choose the task you want to complete. Each guide is also available in Markdown.</p>
-      <h3>Setup and connections</h3>
-      <div class="guide-list">
-        <a href="quickstart-and-compat.html"><strong>Quickstart</strong><span>Connect two clients and exchange a first message.</span></a>
-        <a href="client-config-examples.html"><strong>Client configuration</strong><span>Ready-to-copy setup for your MCP client.</span></a>
-        <a href="http-relay.html"><strong>Connect without WebRTC</strong><span>Run and use an encrypted HTTP relay.</span></a>
-      </div>
-      <h3>Optional remote tools</h3>
-      <div class="guide-list">
-        <a href="browser-worker.html"><strong>Remote Chrome</strong><span>Share a browser with agent control handoff and optional live media.</span></a>
-        <a href="browser-agent.html"><strong>Voice companion</strong><span>Speak to an agent and share selected browser views.</span></a>
-        <a href="ssapp-integration.html"><strong>Remote SSApp</strong><span>Use Social Stream Ninja screenshots, input, and app controls remotely.</span></a>
-      </div>
-      <h3>Reference and direction</h3>
-      <div class="guide-list">
-        <a href="ssapp-capability-matrix.html"><strong>SSApp capability matrix</strong><span>Coverage, remaining work, implementation references and validation procedures.</span></a>
-        <a href="mcp-tool-contract.html"><strong>Tool contract</strong><span>Arguments, permissions, and transport limits.</span></a>
-        <a href="advanced-diagnostics.html"><strong>Advanced diagnostics</strong><span>Check connectivity and troubleshoot reliability.</span></a>
-        <a href="vdo-ninja-p2p-data-notes.html"><strong>WebRTC data notes</strong><span>SDK constraints for peer data connections.</span></a>
-        <a href="direction.html"><strong>Project direction</strong><span>How Ninja MCP, ninja-p2p, and the SDK fit together.</span></a>
-      </div>
-    </section>
-
     <!-- Testing -->
     <section class="doc-section" id="testing">
       <h2><span class="card-icon"><svg class="icon"><use href="assets/icons.svg#i-check"></use></svg></span>Testing</h2>
-<pre><code class="lang-sh"># fast product checks: conformance, server smoke, sync security
+<p>The test suites ship in the repository, not the npm package. Run them from a clone:</p>
+<pre><code class="lang-sh">git clone https://github.com/steveseguin/ninjamcp
+cd ninjamcp
+npm install
+# fast product checks: conformance, server smoke, sync security
 npm run test:mcp
 # full engineering suite
 npm run test:mcp:all
 # live network diagnostics
-node tests/live-turn-smoke.js
-node tests/live-turn-soak.js
-node tests/live-turn-matrix.js</code></pre>
+LIVE_VDO_TEST=1 npm run test:mcp:live
+LIVE_VDO_TEST=1 npm run test:mcp:soak
+LIVE_VDO_TEST=1 npm run test:mcp:matrix</code></pre>
       <p>Soak, matrix, and tuning knobs are covered in <a href="advanced-diagnostics.html">advanced diagnostics</a>. See the <a href="mcp-tool-contract.html">tool contract</a> for arguments and protocol limits.</p>
 
-      <p class="muted" style="margin-top:40px;font-size:14px"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/docs/guide.html">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
+      <p class="page-meta"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/docs/guide.html">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
       <nav class="pager" aria-label="More">
         <a href="./#faq"><small>Still curious?</small><b>Read the FAQ</b></a>
         <a href="https://discord.vdo.ninja"><small>Stuck?</small><b>Ask on Discord</b></a>

@@ -85,7 +85,7 @@ Ninja MCP's direction is live access to remote peers, tools, and perception thro
 
 The [browser worker](https://steveseguin.github.io/ninjamcp/browser-worker.html) lets agents share an isolated, headless Chrome tab over WebRTC or your HTTP relay. Each agent has a separate credential; one controller holds the tab while others observe. Tools return page snapshots and screenshots. Hosts can also enable live tab audio/video through the VDO.Ninja SDK.
 
-Install the optional browser packages on the host, run `vdon-mcp-browser --setup`, and register it as a separate MCP server. The [setup guide](https://steveseguin.github.io/ninjamcp/browser-worker.html) covers connection checks, automatic WebRTC/HTTP routing, control handoff, and private viewing links.
+Install the optional browser packages on the host, run `vdon-mcp-browser --setup ./private-browser`, and register it as a separate MCP server. The [setup guide](https://steveseguin.github.io/ninjamcp/browser-worker.html) covers connection checks, automatic WebRTC/HTTP routing, control handoff, and private viewing links.
 
 The optional [browser companion](https://steveseguin.github.io/ninjamcp/browser-agent.html) adds a speaking agent with microphone, browser-frame sharing, interruption, and control permissions. It uses an OpenAI API key; ordinary MCP tools and live browser viewing do not require a model account.
 
@@ -93,7 +93,10 @@ The optional [browser companion](https://steveseguin.github.io/ninjamcp/browser-
 
 For an existing Social Stream Ninja Standalone instance, the optional [SSApp bridge](https://steveseguin.github.io/ninjamcp/ssapp-integration.html)
 forwards its MCP tools, screenshots, and input over WebRTC or the HTTP relay. Agents use separate credentials
-and take turns controlling the app; SSApp keeps its existing sessions and windows.
+and take turns controlling the app; SSApp keeps its existing sessions and windows. When a site
+needs you to sign in, the agent asks through its MCP connection and you get a private viewer of SSApp's
+sign-in window, even when SSApp runs headless. The agent never sees the link, the picture, or what you
+type, and stays paused until you hand control back.
 
 ## Run from a checkout
 

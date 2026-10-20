@@ -1,31 +1,28 @@
-# VDO.Ninja MCP Tool Contract
+# Tool contract
 
 [Read this guide in HTML](https://steveseguin.github.io/ninjamcp/mcp-tool-contract.html)
 
-Implemented by:
-
-- `scripts/vdo-mcp-server.js`
-- Installer automation: `scripts/install-mcp.js`
-- Discovery manifest: `server.json`
+The tools, arguments, events, and limits of the Ninja MCP server. The server is [`scripts/vdo-mcp-server.js`](../scripts/vdo-mcp-server.js), registration is handled by [`scripts/install-mcp.js`](../scripts/install-mcp.js), and the registry manifest is [`server.json`](../server.json).
 
 ## Transport
 
-- JSON-RPC 2.0 over stdio
-- Input:
+The server speaks JSON-RPC 2.0 over stdio.
+
+- Input can be:
   - newline-delimited JSON messages
   - `Content-Length` framed messages
-- Output:
+- Output is:
   - framed when framed input is detected
-  - newline JSON otherwise
+  - newline-delimited JSON otherwise
 
-## Runtime Limit
+## Runtime limits
 
-- `VDON_MCP_MAX_MESSAGE_BYTES` (default `1048576`)
-- `VDON_MCP_TOOL_PROFILE` (default `full`, values: `core|file|state|full`)
+- `VDON_MCP_MAX_MESSAGE_BYTES` caps one JSON-RPC message. Default `1048576`.
+- `VDON_MCP_TOOL_PROFILE` selects the tool profile: `core`, `file`, `state`, or `full`. Default `full`.
 
-## Server CLI Flags
+## Server CLI flags
 
-Supported by `scripts/vdo-mcp-server.js`:
+`scripts/vdo-mcp-server.js` accepts these flags. A flag takes precedence over the matching environment variable.
 
 - `--tool-profile <core|file|state|full>`
 - `--max-message-bytes <bytes>`
@@ -34,73 +31,77 @@ Supported by `scripts/vdo-mcp-server.js`:
 - `--allow-peer-stream-ids <a,b,c>`
 - `--require-session-mac <true|false>`
 
-## Capability Profiles
+## Tool profiles
 
-- `core`: `vdo_connect`, `vdo_send`, `vdo_receive`, `vdo_status`, `vdo_disconnect`, `vdo_list_sessions`, `vdo_capabilities`, `vdo_sync_peers`, `vdo_sync_announce`
-- `file`: `core` + all file transfer tools
-- `state`: `core` + all state sync tools
-- `full`: `core` + file + state tools
+| Profile | Tools |
+| --- | --- |
+| `core` | `vdo_connect`, `vdo_send`, `vdo_receive`, `vdo_status`, `vdo_disconnect`, `vdo_list_sessions`, `vdo_capabilities`, `vdo_sync_peers`, `vdo_sync_announce` (9) |
+| `file` | `core` plus the six file transfer tools (15) |
+| `state` | `core` plus the three shared state tools (12) |
+| `full` | All 18 tools |
 
-Enforcement:
+`tools/list` only advertises tools in the active profile. Calling a tool outside it returns `validation_error`.
 
-- `tools/list` only advertises tools in the active profile.
-- Calling a disabled tool returns `validation_error`.
+## Session tools
 
-## Core Session Tools
+- `vdo_connect`: join a room and open a session.
+- `vdo_send`: send JSON or text to one peer or everyone connected.
+- `vdo_receive`: read queued events, oldest first, up to `max_events` per call (default 50, max 500). `wait_ms` (0 to 30000) waits for the first event when the queue is empty.
+- `vdo_status`: live status for one session, including its `transport`.
+- `vdo_disconnect`: leave the room, stop reconnecting, and free the session.
+- `vdo_list_sessions`: every active session.
+- `vdo_capabilities`: server version, the active profile and its tools, enabled features, and transport facts. Call it first.
 
-- `vdo_connect`
-- `vdo_send`
-- `vdo_receive`
-- `vdo_status`
-- `vdo_disconnect`
-- `vdo_list_sessions`
-- `vdo_capabilities`
+### `vdo_connect` options
 
-### `vdo_connect` notable options
+- Room: `room`, `stream_id`, `target_stream_id`, `transport` (`webrtc` by default, or `http`)
+- WebRTC only: `host`, `password`, `force_turn`
+- HTTP relay only: `relay_url`, `relay_token`, `relay_key`, with defaults from `VDON_MCP_RELAY_URL`, `VDON_MCP_RELAY_TOKEN`, and `VDON_MCP_RELAY_KEY`. See [relay setup and delivery semantics](http-relay.md).
+- Resilience: `heartbeat_ms` (default 15000, max 120000), `reconnect_ms` (3000, max 30000), `max_reconnect_ms` (30000, max 120000)
+- Security: `join_token`, `join_token_secret`, `join_token_ttl_ms` (10 minutes, max 24 hours), `enforce_join_token`, `allow_peer_stream_ids`, `require_session_mac`
+- File defaults: `file_chunk_bytes` (64 KB, 1 KB to 256 KB), `file_max_bytes` (64 MB, max 256 MB), `file_ack_timeout_ms` (1200, max 30000), `file_max_retries` (6; `0` fails on the first lost chunk)
+- File spooling: `file_spool_dir`, `file_spool_threshold_bytes` (4 MB), `keep_spool_files`
+- State limits: `state_max_keys` (2048), `state_max_snapshot_entries` (4096)
+- Display and logging: `label`, `debug`
 
-- transport: `room`, `stream_id`, `target_stream_id`, `transport` (`webrtc` by default or `http`)
-- WebRTC: `host`, `password`, `force_turn`
-- HTTP relay: `relay_url`, `relay_token`, `relay_key`, with defaults from `VDON_MCP_RELAY_URL`, `VDON_MCP_RELAY_TOKEN`, `VDON_MCP_RELAY_KEY`; see [relay setup and delivery semantics](http-relay.md)
-- resiliency: `heartbeat_ms`, `reconnect_ms`, `max_reconnect_ms`
-- security: `join_token`, `join_token_secret`, `join_token_ttl_ms`, `enforce_join_token`, `allow_peer_stream_ids`, `require_session_mac`
-- file defaults: `file_chunk_bytes`, `file_max_bytes`, `file_ack_timeout_ms`, `file_max_retries`
-- file spooling: `file_spool_dir`, `file_spool_threshold_bytes`, `keep_spool_files`
-- state limits: `state_max_keys`, `state_max_snapshot_entries`
+Values above a maximum are capped to it.
 
-`vdo_status` identifies the selected `transport`. HTTP is an explicit peer transport, independent of the HTTP endpoint used to expose MCP. Both participants must use the same transport. WebRTC-only options are rejected in HTTP mode; encryption cannot be disabled on the HTTP relay.
+HTTP is an explicit peer transport, separate from the HTTP endpoint that can expose MCP itself. Both participants must use the same transport. WebRTC-only options are rejected in HTTP mode, and encryption can't be turned off on the relay.
 
-In HTTP mode, `vdo_send` returns `message_id` and `delivery_stage` (`queued` or `rejected`). A later `relay_receipt` event reports `relay_accepted` or `delivery_unknown`. Acceptance does not confirm peer consumption. `data_received` includes the matching `message_id`. `relay_history_lost` means a replay gap requires application reconciliation. Ordinary message queues and relay history are in memory; file completion still requires the existing peer acknowledgement.
+In HTTP mode, `vdo_send` returns `message_id` and `delivery_stage` (`queued` or `rejected`). A later `relay_receipt` event reports `relay_accepted` or `delivery_unknown`. Acceptance doesn't confirm that the peer read the message. `data_received` includes the matching `message_id`. `relay_history_lost` means a replay gap that the application must reconcile. Message queues and relay history are in memory; file completion still requires the peer's acknowledgement.
 
-## Sync Tools
+## Sync tools
 
-- `vdo_sync_peers`: peer handshake/auth/state capabilities
-- `vdo_sync_announce`: force immediate sync hello
+- `vdo_sync_peers`: each peer's handshake, auth, and capability state.
+- `vdo_sync_announce`: send a sync hello now, to everyone or to one peer with `uuid` or `target`.
 
-## File Transfer Tools
+## File transfer tools
 
-- `vdo_file_send`: send from `data_base64`
-- `vdo_file_send_path`: send directly from local `file_path`
-- `vdo_file_resume`: resume outgoing transfer by `transfer_id`
-- `vdo_file_transfers`: inspect incoming/outgoing transfer state
-- `vdo_file_receive`: read completed incoming payload (`base64`/`utf8`/`json`)
-- `vdo_file_save`: save completed incoming transfer directly to disk
+- `vdo_file_send`: send from `data_base64`.
+- `vdo_file_send_path`: stream from a local `file_path` without loading it into context.
+- `vdo_file_resume`: resume an outgoing transfer by `transfer_id`.
+- `vdo_file_transfers`: incoming and outgoing transfer state.
+- `vdo_file_receive`: read a completed incoming file as `base64`, `utf8`, or `json`.
+- `vdo_file_save`: write a completed incoming file to `output_path`. Set `overwrite` to replace an existing file.
 
-A retained incoming `transfer_id` is bound to its originating peer UUID and offer metadata (content hash, byte count, chunk layout, name, and MIME type). Identical retries from that peer can resume or confirm completion. Reusing the ID for different content/metadata or from another peer is rejected; use a new ID for a new transfer. Reconnection with a new peer UUID does not transfer ownership of an existing retained ID. Completion acknowledgements must match the sender's content hash and byte count.
+Both send tools accept `chunk_bytes`, `ack_timeout_ms`, and `max_retries` to override the session defaults for one transfer, and `timeout_ms` to bound the wait for the receiver to accept the offer. Without `timeout_ms`, the sender waits for the larger of the ack timeout and one second.
 
-## State Sync Tools (CRDT-lite)
+A retained incoming `transfer_id` is bound to its sending peer's UUID and its offer metadata: content hash, byte count, chunk layout, name, and MIME type. Identical retries from that peer resume or confirm completion. Reusing the ID for different content or metadata, or from another peer, is rejected; use a new ID for a new transfer. A peer that reconnects with a new UUID doesn't inherit an existing ID. Completion acknowledgements must match the sender's content hash and byte count.
 
-- `vdo_state_set`: update key/value with local monotonic clock
-- `vdo_state_get`: read key or full state snapshot
-- `vdo_state_sync`: request/send full snapshot (`mode: request|send`)
+## Shared state tools
 
-Merge rule is tuple-based last-writer:
+- `vdo_state_set`: set a key and, by default, broadcast it. Refuses new keys once the session holds `state_max_keys` keys.
+- `vdo_state_get`: read one key, or the whole snapshot when `key` is omitted.
+- `vdo_state_sync`: exchange full snapshots with everyone, or with one peer via `uuid` or `target`. `mode` is `request` (the default) or `send`.
 
-1. higher `clock` wins
-2. if equal clock, lexicographically higher `actor` wins
+Conflicts resolve last-writer-wins on a `(clock, actor)` pair:
 
-## Protocol Envelope Family
+1. The higher `clock` wins.
+2. On equal clocks, the lexicographically higher `actor` wins.
 
-Internal control/file/state envelopes use:
+## Protocol envelope
+
+Internal control, file, and state messages use this envelope:
 
 ```json
 {
@@ -110,29 +111,36 @@ Internal control/file/state envelopes use:
 }
 ```
 
-## Event Types via `vdo_receive`
+## Events from `vdo_receive`
 
 Lifecycle:
 
-- `ready`, `connected`, `disconnected`, `connection_failed`, `sdk_error`, `reconnect_scheduled`
+- `ready`, `connected`, `disconnected`, `connect_error`, `connection_failed`, `sdk_error`, `reconnect_scheduled`
 - `peer_connected`, `peer_disconnected`, `data_channel_open`, `data_channel_close`
-- `data_received`, `send_error`, `send_rejected`, `heartbeat_sent`
 
-Sync/security:
+Data:
 
-- `sync_hello_sent`, `sync_peer_updated`, `sync_peer_rejected`, `protocol_auth_failed`
+- `data_received`, `send_error`, `send_rejected`
 
-File:
+Sync and security:
 
-- `file_offer_received`, `file_chunk_received`, `file_chunk_rejected`, `file_received`, `file_transfer_complete`, `file_transfer_cancelled`
+- `sync_hello_sent`, `sync_peer_updated`, `sync_peer_rejected`, `protocol_auth_failed`, `protocol_unknown`
+
+Files:
+
+- `file_offer_received`, `file_offer_rejected`, `file_chunk_received`, `file_chunk_rejected`, `file_received`, `file_transfer_complete`, `file_transfer_cancelled`, `file_protocol_error`, `file_protocol_unhandled`
 
 State:
 
 - `state_updated`, `state_snapshot_merged`, `state_protocol_unhandled`
 
-## Error Shape
+HTTP relay:
 
-Tools return `isError: true` with:
+- `relay_receipt`, `relay_connection`, `relay_history_lost`, `relay_message_rejected`
+
+## Error shape
+
+Failed tool calls return `isError: true` with:
 
 ```json
 {
@@ -145,16 +153,18 @@ Tools return `isError: true` with:
 }
 ```
 
-## Client Wiring
+`validation_error` means bad arguments, an unknown session or transfer, or a tool outside the active profile. `tool_error` means a valid call that failed, such as a timed-out transfer.
 
-Automated registration:
+## Client wiring
+
+Automated registration for Codex and Claude Code:
 
 ```bash
 npm i @vdoninja/mcp
 npx vdon-mcp-install
 ```
 
-Preset registrations:
+Register a preset:
 
 ```bash
 npx vdon-mcp-install --preset core
@@ -164,31 +174,23 @@ npx vdon-mcp-install --preset secure-core
 npx vdon-mcp-install --preset secure-full
 ```
 
-Removal:
+Remove the registration:
 
 ```bash
 npx vdon-mcp-install --uninstall
 ```
 
-Codex-style:
-
-```json
-{
-  "name": "vdo-ninja-mcp",
-  "command": "node",
-  "args": ["node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
-}
-```
-
-Claude Code-style:
+Manual configuration for clients that use an `mcpServers` file:
 
 ```json
 {
   "mcpServers": {
     "vdo-ninja-mcp": {
       "command": "node",
-      "args": ["node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
+      "args": ["/ABSOLUTE/PATH/node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js"]
     }
   }
 }
 ```
+
+More client formats are in [client configuration](client-config-examples.md).

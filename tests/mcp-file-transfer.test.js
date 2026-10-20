@@ -291,7 +291,55 @@ async function completionIdentityTest(field) {
   }
 }
 
+async function zeroRetriesFailsAfterOneAttemptTest() {
+  const sdkFactory = createFakeSDKFactory({
+    transformMessage: ({ data }) => {
+      if (!data || typeof data !== 'object' || data.__vdo_mcp !== 'vdo_mcp_bridge_v1') return null;
+      if (data.kind === 'file.ack' || data.kind === 'file.resume_state') return { drop: true };
+      return null;
+    }
+  });
+  const { server, a } = await setupPair(sdkFactory, 'file_zero_retries_room');
+  try {
+    await assert.rejects(server.callTool('vdo_file_send', {
+      session_id: a.session_id,
+      transfer_id: 'zero_retries',
+      data_base64: Buffer.from('no retries').toString('base64'),
+      ack_timeout_ms: 30,
+      max_retries: 0
+    }), /max retries exceeded at chunk 0/);
+    const transfer = server.sessions.get(a.session_id).outgoingTransfers.get('zero_retries');
+    assert.equal(transfer.retries_total, 1, 'max_retries: 0 must not fall back to the default');
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
+async function offerTimeoutTest() {
+  const sdkFactory = createFakeSDKFactory({
+    transformMessage: ({ data }) => {
+      if (data && typeof data === 'object' && data.kind === 'file.accept') return { drop: true };
+      return null;
+    }
+  });
+  const { server, a } = await setupPair(sdkFactory, 'file_offer_timeout_room');
+  try {
+    const started = Date.now();
+    await assert.rejects(server.callTool('vdo_file_send', {
+      session_id: a.session_id,
+      data_base64: Buffer.from('unaccepted').toString('base64'),
+      ack_timeout_ms: 5000,
+      timeout_ms: 50
+    }), /timed out waiting for file.accept/);
+    assert.ok(Date.now() - started < 2500, 'timeout_ms should bound the wait for file.accept');
+  } finally {
+    await server.shutdownAll();
+  }
+}
+
 async function run() {
+  await zeroRetriesFailsAfterOneAttemptTest();
+  await offerTimeoutTest();
   await transferIdentityTest(false);
   await transferIdentityTest(true);
   await completionIdentityTest('file_hash');

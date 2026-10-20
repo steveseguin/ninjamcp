@@ -8,8 +8,12 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { McpStdioParser } = require('./mcp-stdio-parser');
 
+// Private viewer reads (pages, pictures, window lists) are recomputed on retry rather than cached.
+const HUMAN_READS = new Set(['listBrowserTargets', 'captureBrowserScreenshot', 'getPendingAppDialogs']);
 const RPC_OPTIONS = { magic: 'ninja_ssapp_v1', maxResult: 10 * 1024 * 1024, parallel: true, backpressure: true, errorCodes: true,
-  replayableRead: (request) => request.op === 'call' && request.args?.name === 'ssapp_read_settings_export',
+  replayableRead: (request) => request.op === 'call' && request.args?.name === 'ssapp_read_settings_export'
+    || ['human_page', 'human_instance'].includes(request.op)
+    || request.op === 'human_command' && HUMAN_READS.has(request.args?.action),
   timeoutMessage: 'Inspect ninja_ssapp_result and the current app before repeating an action.' };
 const error = (code, message) => Object.assign(new Error(message || code), { code });
 
@@ -106,17 +110,28 @@ class SsappController {
     this.origin = controlOrigin(config.ssapp.controlUrl);
     this.instance = null; this.lastInstanceId = null; this.local = null; this.checking = null; this.lease = null;
     this.generation = 0; this.mutations = Promise.resolve(); this.queued = 0; this.closed = false; this.uncertain = false;
+    this.human = false;
     this.discovered = new Map();
     this.exports = new Map();
   }
   revoke() { this.lease = null; this.generation++; }
+  // A person's private takeover ends agent control and discards agent work not yet sent to SSApp.
+  pauseForHuman() { this.human = true; this.revoke(); }
+  // After explicit handback, agents must discover the app again and claim a new lease.
+  resumeAfterHuman() { this.human = false; this.revoke(); this.discovered.clear(); }
   async ensure() {
     if (this.checking) return this.checking;
     this.checking = (async () => {
       let instance = null;
       try { instance = await appInstance(this.origin); } catch (_) { /* Offline discovery still exposes the local tool catalog. */ }
       if (this.closed) throw error('worker_closed');
-      if (this.instance?.instanceId !== instance?.instanceId) { this.revoke(); this.discovered.clear(); }
+      if (this.instance?.instanceId !== instance?.instanceId) {
+        this.revoke(); this.discovered.clear();
+        // Old viewer grants do not survive an instance change. A restarted bridge,
+        // however, must inherit a private pause still held by the running app.
+        this.human = instance ? instance.humanControl?.automationPaused === true : this.human;
+        if (this.onInstanceChange) this.onInstanceChange();
+      }
       // A temporary API outage does not resolve a previously dispatched action.
       if (instance && instance.instanceId !== this.lastInstanceId) { this.uncertain = false; this.lastInstanceId = instance.instanceId; this.exports.clear(); }
       if (!this.local || this.local.failed || this.instance?.instanceId !== instance?.instanceId) {
@@ -132,9 +147,18 @@ class SsappController {
   }
   allowed(client, tool) {
     const identity = this.config.clients[client];
+    if (identity.role === 'human') return false;
     if (['ssapp_export_settings_backup', 'ssapp_read_settings_export', 'ssapp_release_settings_export'].includes(tool.name)
       && (identity.role !== 'controller' || identity.allowSettingsExport !== true)) return false;
     return (!identity.tools || identity.tools.includes(tool.name)) && (identity.role === 'controller' || tool.annotations?.readOnlyHint === true);
+  }
+  // Private sign-in needs SSApp's human viewer (0.4.40+). A controller may offer it to its own person
+  // when it may show sources for a person; the separate human credential always may.
+  mayTakeOver(client) {
+    const tools = this.local?.catalog.tools || [];
+    if (!tools.some((tool) => tool.name === 'ssapp_get_human_control_status')) return false;
+    if (this.config.clients[client].role === 'human') return true;
+    return tools.some((tool) => tool.name === 'ssapp_show_source_for_human' && this.allowed(client, tool));
   }
   async discovery(client) {
     await this.ensure();
@@ -145,16 +169,23 @@ class SsappController {
       allowSettingsExport: identity.role === 'controller' && identity.allowSettingsExport === true,
       catalog: { ...this.local.catalog, tools: this.local.catalog.tools.filter((tool) => this.allowed(client, tool)) },
       lease: this.lease && this.lease.expires > Date.now() ? { owner: this.lease.owner, expires: this.lease.expires } : null,
-      uncertain: this.uncertain, limits: { result_bytes: RPC_OPTIONS.maxResult, request_envelope_bytes: 65000, timeout_ms: 60000 }, live_frames: false };
+      uncertain: this.uncertain, limits: { result_bytes: RPC_OPTIONS.maxResult, request_envelope_bytes: 65000, timeout_ms: 60000 }, live_frames: false,
+      human_control: this.human ? 'active' : 'idle', human_viewer: this.mayTakeOver(client) };
   }
   checkLease(client, args) {
     if (!this.lease || this.lease.owner !== client || this.lease.token !== args.lease || this.lease.expires <= Date.now()) throw error('valid_app_lease_required');
   }
   async execute(client, role, op, args, request) {
     if (op === 'discover') return this.discovery(client);
+    if (role === 'human') throw error('human_viewer_only', 'This credential only opens the private sign-in viewer.');
     if (op === 'release') { this.checkLease(client, args); this.revoke(); return { released: true }; }
     await this.ensure();
     if (this.closed || Date.now() >= request.deadline) throw error('request_expired');
+    // A takeover can begin while the instance lookup is pending. Check the pause
+    // after that lookup, before admitting a claim or dispatching an agent tool.
+    if (this.human && !(op === 'call' && args.name === 'ssapp_get_human_control_status')) {
+      throw error('HUMAN_CONTROL_ACTIVE', 'A person is completing a private step in SSApp. Poll ssapp_get_human_control_status, then call ninja_ssapp_status and claim again after they return control.');
+    }
     if (this.instance && (args.instance !== this.instance.instanceId || this.discovered.get(client) !== this.instance.instanceId)) throw error('fresh_app_discovery_required', 'Call ninja_ssapp_status, discover targets, and claim control again');
     if (op === 'claim') {
       if (!this.instance) throw error('SSAPP_UNREACHABLE', 'Start SSApp with API 1.4.1 or newer and enable Local AI / Automation');
@@ -210,4 +241,4 @@ class SsappController {
   async close() { this.closed = true; this.revoke(); if (this.checking) await this.checking.catch(() => {}); if (this.local) await this.local.close(); }
 }
 
-module.exports = { RPC_OPTIONS, LocalMcp, SsappController, controlOrigin, appInstance, validateCommand };
+module.exports = { RPC_OPTIONS, LocalMcp, SsappController, controlOrigin, appInstance, validateCommand, error };

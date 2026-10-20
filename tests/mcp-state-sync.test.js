@@ -123,6 +123,19 @@ async function run() {
       session_id: snapshotSource.session_id, key: 'z_last'
     })).value, 'after snapshot');
 
+    // Local writes respect state_max_keys, matching what peers will accept.
+    const limited = await server.callTool('vdo_connect', {
+      room: 'state_limit_room', stream_id: 'limited', state_max_keys: 2
+    });
+    await server.callTool('vdo_state_set', { session_id: limited.session_id, key: 'k1', value: 1 });
+    await server.callTool('vdo_state_set', { session_id: limited.session_id, key: 'k2', value: 2 });
+    await assert.rejects(
+      server.callTool('vdo_state_set', { session_id: limited.session_id, key: 'k3', value: 3 }),
+      /state key limit reached/
+    );
+    const updated = await server.callTool('vdo_state_set', { session_id: limited.session_id, key: 'k1', value: 'again' });
+    assert.equal(updated.ok, true, 'existing keys stay writable at the limit');
+
     console.log('mcp-state-sync.test.js passed');
   } finally {
     await server.shutdownAll();

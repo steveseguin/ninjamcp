@@ -73,7 +73,7 @@ class BrowserRpcWorker {
     const previous = this.records.get(id);
     if (previous) {
       if (previous.fingerprint !== fingerprint) return this.reply(packet.client, event.uuid, request.id, { error: 'request_id_conflict' });
-      // Only explicitly replayable immutable reads may be recomputed. Keep their
+      // Only explicitly replayable reads may be recomputed. Keep their
       // fingerprint after sending, so conflicting reuse still fails. Mutations
       // and all existing browser calls retain their original cached replies.
       if (!(previous.replayable && previous.finished && !previous.sending)) {
@@ -89,7 +89,7 @@ class BrowserRpcWorker {
       // Do not report rejection while a replay could still be admitted later.
       return;
     }
-    const record = { fingerprint, until: request.deadline + 120000, result: null, bytes: 0, sending: false,
+    const record = { op: request.op, fingerprint, until: request.deadline + 120000, result: null, bytes: 0, sending: false,
       replayable: this.options.replayableRead?.(request) === true, finished: false };
     this.records.set(id, record);
     this.queued++;
@@ -125,10 +125,13 @@ class BrowserRpcWorker {
 
   async reply(client, uuid, id, result) {
     const bytes = Buffer.from(JSON.stringify(result));
+    // A retried observation can change. Identify the complete reply so pieces of
+    // an earlier screenshot cannot be combined with a fresh capture.
+    const digest = crypto.createHash('sha256').update(bytes).digest('hex');
     const count = Math.ceil(bytes.length / PART_BYTES);
     for (let part = 0; part < count && !this.closed; part++) {
       const packet = seal(this.clients[client].key, this.worker, client, 'response', {
-        id, boot: this.boot, part, count, data: bytes.subarray(part * PART_BYTES, (part + 1) * PART_BYTES).toString('base64')
+        id, boot: this.boot, digest, part, count, data: bytes.subarray(part * PART_BYTES, (part + 1) * PART_BYTES).toString('base64')
       }, this.magic);
       let sent = this.session.send(packet, uuid);
       if (!sent && this.options.backpressure) {
@@ -141,6 +144,14 @@ class BrowserRpcWorker {
       if (!sent) return;
       // Bound queued bytes on HTTP and avoid monopolizing a data channel.
       if (count > 1) await delay(12);
+    }
+  }
+
+  // Drop retry records for one client, such as a person's private viewer after revocation.
+  forget(client, ops) {
+    for (const [id, record] of this.records) {
+      // Requests still executing keep their record so the byte accounting stays correct.
+      if (id.startsWith(`${client}:`) && (!ops || ops.has(record.op)) && record.finished && !record.sending) { this.cacheBytes -= record.bytes; this.records.delete(id); }
     }
   }
 
@@ -168,7 +179,14 @@ class BrowserRpcClient {
     try { value = open(this.config.key, p, this.magic); } catch (_) { return; }
     const pending = this.pending.get(value.id);
     if (!pending || !Number.isInteger(value.count) || value.count < 1 || value.count > Math.ceil(this.maxResult / PART_BYTES) || !Number.isInteger(value.part) || value.part < 0 || value.part >= value.count || typeof value.data !== 'string' || value.data.length > 32000) return;
-    if (pending.count && (pending.count !== value.count || pending.boot !== value.boot)) return;
+    if (value.digest !== undefined && (typeof value.digest !== 'string' || !/^[a-f0-9]{64}$/.test(value.digest))) return;
+    if (pending.count && pending.boot !== value.boot) return;
+    if (pending.digest !== value.digest) {
+      pending.parts.clear();
+      pending.count = null;
+      pending.digest = value.digest;
+    }
+    if (pending.count && pending.count !== value.count) return;
     pending.count = value.count;
     pending.boot = value.boot;
     if (pending.waitForProgress && !pending.parts.has(value.part)) pending.lastProgressAt = Date.now();
@@ -177,6 +195,10 @@ class BrowserRpcClient {
       try {
         const bytes = Buffer.concat(Array.from({ length: value.count }, (_, i) => pending.parts.get(i)));
         if (bytes.length > this.maxResult) return;
+        if (pending.digest && crypto.createHash('sha256').update(bytes).digest('hex') !== pending.digest) {
+          pending.parts.clear();
+          return;
+        }
         const result = JSON.parse(bytes.toString('utf8'));
         pending.route = event.route || this.session.config.transport;
         if (this.session.markResponse) this.session.markResponse(value.id, event.route);

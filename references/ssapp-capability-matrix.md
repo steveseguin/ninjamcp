@@ -14,9 +14,9 @@ The implementation baseline is SSApp **0.4.38**, control API **1.4.1**, local MC
 and Ninja MCP **0.4.2** with the SSApp backend. Runtime discovery is authoritative. A package version
 alone does not establish that a particular source mode, permission, or workflow is available.
 
-Settings-export support requires the updated 0.4.38 development build advertising API 1.5.0 /
-MCP 1.4.0 and the Ninja MCP settings-export helper. See the [backup workflow](ssapp-integration.md#retrieve-a-settings-backup).
-The existing 0.4.38 release does not imply these additional commands are available.
+Settings-export support requires SSApp 0.4.39 or newer advertising API 1.5.0 /
+MCP 1.4.0 or newer and Ninja MCP 0.4.3 or newer with the settings-export helper.
+See the [backup workflow](ssapp-integration.md#retrieve-a-settings-backup).
 
 | State | Meaning and action |
 | --- | --- |
@@ -116,12 +116,12 @@ a change, not permission to change unrelated behavior.
 | --- | --- | --- | --- | --- | --- |
 | <a id="cap-a01"></a>A01 | Use the intended existing account and browser session. | UI path / P0 | SSApp sign-in/session UI; [S6](#s6), [C1](#c1) | Generic controls do not establish that every platform's authentication flow is covered. | [V03](#validation-v03): own test accounts remain isolated; expected account is active after return. |
 | <a id="cap-a02"></a>A02 | Handle notices, consent screens and sign-in form controls. | UI path / P0 | semantic/native input; [S3](#s3)–[S4](#s4) | Existing session use first; do not request secret values in conversation. | [V03](#validation-v03): fixture plus authorized real platform flow reaches the intended page. |
-| <a id="cap-a03"></a>A03 | Hand MFA/passkeys/CAPTCHA/private steps to a person and resume. | External / P0 | `ssapp_show_source_for_human`, window show; [S3](#s3), [S4](#s4) | Human participation occurs on host or a separately shared surface; no automatic bypass. | [V03](#validation-v03): pause clearly, complete human step, then continue the original source task once. |
+| <a id="cap-a03"></a>A03 | Hand MFA/passkeys/CAPTCHA/private steps to a person and resume. | Implemented / P0 | Agent-offered private viewer: `ninja_ssapp_request_human` (MCP URL elicitation, else the local browser) and `ninja_ssapp_wait_for_human`; `vdon-mcp-ssapp --human` with `human.json` for a person at another computer (SSApp 0.4.40 / API 1.6.0); `ssapp_show_source_for_human` on the host; [N1](#n1)–[N3](#n3), [S3](#s3), [S4](#s4) | The person completes the step; no automatic bypass. Claude Code 2.1.303 delivered the agent-offered link by URL elicitation, and the person reached YouTube's sign-in page in a headless Windows SSApp; a real Google page was also reached earlier; person-completed provider sign-in, MFA, passkeys and CAPTCHA are not yet validated. | [V03](#validation-v03): pause clearly, complete human step, then continue the original source task once. |
 | <a id="cap-a04"></a>A04 | Detect sign-in success, failure and expired authentication. | Partial / P0 | source diagnostics and page observation; [S4](#s4), [C1](#c1) | No universal authenticated/account-status command; platform-specific evidence is required. | [V03](#validation-v03)/[V09](#validation-v09): good/expired/wrong-account cases are distinguished with observable evidence. |
 | <a id="cap-a05"></a>A05 | Answer JavaScript alert/confirm/prompt while renderer is blocked. | Implemented / P0 | pending/wait/respond dialog tools; [S5](#s5); [N2](#n2) bypass queue | Preserve the prompt recovery path during long operations. | [V03](#validation-v03): open a prompt with input, answer remotely, and verify exactly one result. |
 | <a id="cap-a06"></a>A06 | Operate Electron message/open/save dialogs and structured child prompts. | Implemented / P0 | [S5](#s5) dialog tools; [S3](#s3)/[S5](#s5) child window controls | File paths require client host-file permission; cancellation is a distinct result. | [V03](#validation-v03)/[V04](#validation-v04): accept/cancel/checkbox/default choices and child inputs behave correctly. |
 | <a id="cap-a07"></a>A07 | Discover and invoke application and context menus. | Implemented / P0 | `ssapp_list_app_menu_items`, `ssapp_invoke_app_menu_item`; [S3](#s3) | Use exact returned path/label; context menu IDs expire. | [V02](#validation-v02): right-click, list, invoke; disabled/stale item fails without unintended action. |
-| <a id="cap-a08"></a>A08 | Hand control to a person without losing task context. | Partial / P1 | release/revoke; [N1](#n1)–[N2](#n2); host window controls | No unified human-assistance request/ack/resume protocol. | [V03](#validation-v03)/[V06](#validation-v06): person changes state; agent re-observes and resumes without replaying old input. |
+| <a id="cap-a08"></a>A08 | Hand control to a person without losing task context. | Implemented / P1 | Private takeover revokes the agent lease and discards queued agent actions; `ssapp_get_human_control_status` and `ninja_ssapp_wait_for_human`; explicit Done; [N1](#n1)–[N2](#n2) | Agents must rediscover and reclaim after handback; the agent's own conversation keeps the task context. | [V03](#validation-v03)/[V06](#validation-v06): person changes state; agent re-observes and resumes without replaying old input. |
 
 ## 7. Source configuration and application state
 

@@ -39,7 +39,9 @@ function loadConfig(file) {
     if (!Object.keys(config.clients).length || Object.keys(config.clients).length > 32) throw new Error('Configure 1 to 32 browser clients');
     const keys = new Set();
     for (const [id, value] of Object.entries(config.clients)) {
-      if (!/^[a-zA-Z0-9_-]{1,80}$/.test(id) || !['controller', 'observer'].includes(value.role)) throw new Error('Invalid browser client');
+      // The human role opens SSApp's private sign-in viewer; the Chrome worker has no equivalent.
+      const roles = config.backend === 'ssapp' ? ['controller', 'observer', 'human'] : ['controller', 'observer'];
+      if (!/^[a-zA-Z0-9_-]{1,80}$/.test(id) || !roles.includes(value.role)) throw new Error('Invalid browser client');
       keyBytes(value.key);
       if (keys.has(value.key.toLowerCase())) throw new Error('Each browser client needs a unique key');
       keys.add(value.key.toLowerCase());

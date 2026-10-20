@@ -1,210 +1,150 @@
-# VDO.Ninja MCP Quickstart
+# Quickstart
 
 [Read this guide in HTML](https://steveseguin.github.io/ninjamcp/quickstart-and-compat.html)
 
-This is the fast path for users and AI agents.
+Connect two MCP clients, exchange a message, and send a file. It takes about five minutes.
 
-## Transport Truth
+## What you need
 
-- This bridge uses **WebRTC data channels**.
-- It is **not** a generic TCP/SSH tunnel.
-- TURN improves connectivity on restrictive networks, but it is **not** a guaranteed firewall bypass.
+- Node.js 18 or newer on each computer.
+- An MCP client that launches local `stdio` servers, such as Codex, Claude Code, Cursor, Gemini CLI, or OpenCode.
+- Access to `wss://wss.vdo.ninja` and outbound UDP for WebRTC. If WebRTC is blocked or can't run, use the [HTTP relay](http-relay.md) instead.
 
-## 60-Second Setup
+Ninja MCP carries tool payloads over WebRTC data channels, or through an HTTP relay you run. It is not a TCP or SSH tunnel. TURN relays improve connectivity on restrictive networks, but they don't guarantee a path through every firewall.
 
-Install locally (no clone), including a Node WebRTC implementation:
+## Install and register
+
+Install into a folder that will stay put. The installer registers an absolute path to the server script.
 
 ```bash
 npm i @vdoninja/mcp
-```
-
-Register MCP for Codex/Claude:
-
-```bash
 npx vdon-mcp-install
 ```
 
-Start the local MCP server:
+The installer registers the server with Codex and Claude Code, whichever are on your `PATH`. For other clients, see [client configuration](client-config-examples.md).
+
+To start with the smallest tool set, register the `core` preset instead:
 
 ```bash
-npx vdon-mcp-server
+npx vdon-mcp-install --preset core
 ```
 
-If started directly in a terminal, it prints a short `Server running (stdio)` banner and a first-call hint.
-If started by an MCP client, no interactive banner may appear, which is normal.
-
-Optional least-privilege profile:
-
-```bash
-VDON_MCP_TOOL_PROFILE=core npx vdon-mcp-server
-```
-
-Repo-local equivalents still work when developing in this repo:
-
-```bash
-npm run mcp:install
-node scripts/vdo-mcp-server.js
-```
-
-AI-first sanity check (recommended first call):
+Restart your client, then ask the agent to call:
 
 ```json
 { "name": "vdo_capabilities", "arguments": {} }
 ```
 
-## Workflow A: Bot-to-Bot Message
+A result with the server version and active profile means the wiring works. Your client starts the server itself. Run `npx vdon-mcp-server` only to start it by hand; from a terminal it prints a short `Server running (stdio)` banner, and under a client it stays quiet, which is normal.
 
-1. Connect peer A:
+## Send a message
 
-```json
-{ "name": "vdo_connect", "arguments": { "room": "lab_1", "stream_id": "agent_a" } }
-```
+Open two agent sessions, on one computer or two. Use a room name nobody else will guess.
 
-2. Connect peer B:
+1. In the first session, join the room:
 
 ```json
-{ "name": "vdo_connect", "arguments": { "room": "lab_1", "stream_id": "agent_b", "target_stream_id": "agent_a" } }
+{ "name": "vdo_connect", "arguments": { "room": "lab_7f3k2", "stream_id": "agent_a" } }
 ```
 
-3. Send:
+2. In the second session, join and connect to the first agent:
+
+```json
+{ "name": "vdo_connect", "arguments": { "room": "lab_7f3k2", "stream_id": "agent_b", "target_stream_id": "agent_a" } }
+```
+
+Each result includes a `session_id`. Every other tool needs it.
+
+3. In the first session, call `vdo_sync_peers` until `agent_b` appears, then send:
 
 ```json
 {
   "name": "vdo_send",
   "arguments": {
     "session_id": "<agent_a_session_id>",
+    "target": "agent_b",
     "data": { "type": "chat.message", "text": "hello from agent_a" }
   }
 }
 ```
 
-4. Receive:
+4. In the second session, read it:
+
+```json
+{ "name": "vdo_receive", "arguments": { "session_id": "<agent_b_session_id>", "wait_ms": 1000 } }
+```
+
+Expect a `data_received` event containing `"hello from agent_a"`. If you only see connection events, call `vdo_receive` again; the data channel may still be opening.
+
+`ok: true` from `vdo_send` means your side accepted the message for sending, not that the other agent read it. Ask for a reply when you need confirmation.
+
+## Send a file
+
+File tools need the `file` or `full` profile. Reuse the two connected sessions.
+
+1. In the first session, stream a file from disk:
 
 ```json
 {
-  "name": "vdo_receive",
-  "arguments": {
-    "session_id": "<agent_b_session_id>",
-    "max_events": 100,
-    "wait_ms": 1000
-  }
+  "name": "vdo_file_send_path",
+  "arguments": { "session_id": "<agent_a_session_id>", "target": "agent_b", "file_path": "./notes.txt" }
 }
 ```
 
-Runnable demo script:
+2. In the second session, find the finished transfer and its `transfer_id`:
+
+```json
+{ "name": "vdo_file_transfers", "arguments": { "session_id": "<agent_b_session_id>", "direction": "incoming" } }
+```
+
+3. Save it to disk:
+
+```json
+{
+  "name": "vdo_file_save",
+  "arguments": { "session_id": "<agent_b_session_id>", "transfer_id": "<transfer_id>", "output_path": "./inbox/notes.txt" }
+}
+```
+
+Or read it into the conversation with `vdo_file_receive` and `"encoding": "utf8"`.
+
+`vdo_file_send_path` and `vdo_file_save` keep file contents out of the model's context. Use `vdo_file_send` with `data_base64` only for small generated payloads.
+
+## Try it without agents
+
+Two scripts run the same exchanges on a simulated local network and exit with pass or fail:
 
 ```bash
 npx vdon-mcp-demo-message
+npx vdon-mcp-demo-file
 ```
 
-For live network mode instead of fake/local demo mode:
+Set `MCP_DEMO_FAKE=0` to use the real network. Add `MCP_DEMO_FORCE_TURN=1` to force the connection through TURN:
 
 ```bash
 MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-message
 ```
 
-## Workflow B: File Send/Receive
+## Lock it down
 
-1. Reuse two connected peers from Workflow A.
+Out of the box, data is encrypted in transit, but anyone who knows the room name can join. For private work:
 
-2. Send file payload from agent A:
+- Pass your own `password` to `vdo_connect`.
+- Sign joins with `join_token_secret` and set `enforce_join_token: true`.
+- List the peers you expect in `allow_peer_stream_ids`.
+- Set `require_session_mac: true` to drop unsigned control and file messages.
 
-```json
-{
-  "name": "vdo_file_send",
-  "arguments": {
-    "session_id": "<agent_a_session_id>",
-    "name": "notes.txt",
-    "mime": "text/plain",
-    "data_base64": "<base64>"
-  }
-}
-```
+The `secure-core` and `secure-full` installer presets turn on token enforcement and session MACs. Set `VDON_MCP_JOIN_TOKEN_SECRET` in the server's environment first; every peer needs the same secret.
 
-3. On agent B, watch transfers:
+## Compatibility
 
-```json
-{
-  "name": "vdo_file_transfers",
-  "arguments": {
-    "session_id": "<agent_b_session_id>",
-    "direction": "incoming"
-  }
-}
-```
+- Any MCP client that launches local `stdio` servers works. Codex and Claude Code are registered automatically; other clients take a few lines of JSON, shown in [client configuration](client-config-examples.md).
+- Clients that only connect to remote MCP servers can use `npx vdon-mcp-http`, described under [MCP over HTTP](https://steveseguin.github.io/ninjamcp/guide.html#mcp-http).
+- Tool arguments and limits are in the [tool contract](mcp-tool-contract.md). Registry metadata is in `server.json`.
+- `@vdoninja/mcp` installs `@vdoninja/sdk` as a dependency. Ninja MCP is MIT licensed. The SDK is licensed separately under MPL-2.0, with some separately marked wrappers and adapters under MIT.
 
-4. Read completed file:
+## Next steps
 
-```json
-{
-  "name": "vdo_file_receive",
-  "arguments": {
-    "session_id": "<agent_b_session_id>",
-    "transfer_id": "<transfer_id>",
-    "encoding": "utf8"
-  }
-}
-```
-
-Runnable demo script:
-
-```bash
-npx vdon-mcp-demo-file
-```
-
-For live network mode:
-
-```bash
-MCP_DEMO_FAKE=0 MCP_DEMO_FORCE_TURN=1 npx vdon-mcp-demo-file
-```
-
-## Security Baseline
-
-Use secure mode when needed:
-
-- `join_token` + `join_token_secret`
-- `enforce_join_token: true`
-- `allow_peer_stream_ids: [...]`
-- `require_session_mac: true`
-
-For secure preset installs, set `VDON_MCP_JOIN_TOKEN_SECRET` first.
-
-## Minimal Test Bar
-
-Default MCP test run (fast, product-focused):
-
-```bash
-npm run test:mcp
-```
-
-This runs:
-
-- conformance
-- server smoke
-- sync security smoke
-
-Full engineering suite (advanced):
-
-```bash
-npm run test:mcp:all
-```
-
-## Compatibility Notes
-
-- Works with any MCP client that supports local `stdio` transport (Codex CLI, Claude Code, Cursor, and other MCP-compatible CLIs).
-- Codex and Claude can be auto-registered via `npx vdon-mcp-install`.
-- Cursor and other GUI tools typically need manual MCP JSON config using:
-  - `command`: your Node executable
-  - `args`: path to `.../node_modules/@vdoninja/mcp/scripts/vdo-mcp-server.js` plus optional flags
-- Ready-to-paste per-client examples are in `references/client-config-examples.md`.
-- Registry metadata is in `server.json`.
-- Tool contracts are in `references/mcp-tool-contract.md`.
-- `@vdoninja/mcp` depends on `@vdoninja/sdk`, so SDK is installed transitively.
-- `@vdoninja/mcp` is MIT licensed. Its SDK dependency is separately licensed
-  under MPL-2.0, with some separately marked wrappers and adapters under MIT.
-
-## Optional Advanced Diagnostics
-
-For soak/matrix/preset-matrix/sweep tuning and all reliability knobs, use:
-
-- `references/advanced-diagnostics.md`
+- [Client configuration](client-config-examples.md) for Cursor, Gemini CLI, OpenCode, and other clients.
+- [HTTP relay](http-relay.md) for machines or networks where WebRTC can't run.
+- [Advanced diagnostics](advanced-diagnostics.md) for live network tests and reliability tuning.

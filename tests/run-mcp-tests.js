@@ -7,6 +7,8 @@ const tests = [
   'unit-helpers.test.js',
   'unit-send-guard.test.js',
   'unit-tool-profiles.test.js',
+  'unit-ssapp-status.test.js',
+  'mcp-ssapp-human.test.js',
   'mcp-cli-flags.test.js',
   'mcp-package-scripts.test.js',
   'mcp-manifest.test.js',

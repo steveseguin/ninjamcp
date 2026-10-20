@@ -262,6 +262,11 @@
       docsToggle.setAttribute('aria-expanded', String(expanded));
     });
     $$('.sidebar a').forEach((a) => a.addEventListener('click', closeSidebar));
+    document.addEventListener('click', (event) => {
+      if (!document.body.classList.contains('sidebar-open')) return;
+      if (event.target.closest('.sidebar, .docs-toggle')) return;
+      closeSidebar();
+    });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
         closeSidebar();

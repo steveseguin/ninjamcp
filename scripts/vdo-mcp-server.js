@@ -196,7 +196,7 @@ function buildTools() {
           uuid: { type: 'string' },
           transfer_id: { type: 'string' },
           chunk_bytes: { type: 'integer', minimum: 1024 },
-          timeout_ms: { type: 'integer', minimum: 1 },
+          timeout_ms: { type: 'integer', minimum: 1, description: 'Milliseconds to wait for the receiver to accept the offer. Defaults to the larger of ack_timeout_ms and 1000.' },
           ack_timeout_ms: { type: 'integer', minimum: 1 },
           max_retries: { type: 'integer', minimum: 0 }
         },
@@ -218,7 +218,7 @@ function buildTools() {
           uuid: { type: 'string' },
           transfer_id: { type: 'string' },
           chunk_bytes: { type: 'integer', minimum: 1024 },
-          timeout_ms: { type: 'integer', minimum: 1 },
+          timeout_ms: { type: 'integer', minimum: 1, description: 'Milliseconds to wait for the receiver to accept the offer. Defaults to the larger of ack_timeout_ms and 1000.' },
           ack_timeout_ms: { type: 'integer', minimum: 1 },
           max_retries: { type: 'integer', minimum: 0 }
         },

@@ -6,37 +6,88 @@
   <title>Remote SSApp · VDO.Ninja MCP</title>
   <meta name="description" content="Use the running Social Stream Ninja app from another computer through MCP.">
   <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/ssapp-integration.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Remote SSApp · VDO.Ninja MCP">
+  <meta property="og:description" content="Use the running Social Stream Ninja app from another computer through MCP.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/ssapp-integration.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Remote SSApp · VDO.Ninja MCP">
+  <meta name="twitter:description" content="Use the running Social Stream Ninja app from another computer through MCP.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="assets/site.css">
   <script>document.documentElement.classList.add('js');</script>
 </head>
 <body class="reference-page">
 <a class="skip-link" href="#main">Skip to content</a>
+
 <header class="nav">
-<div class="wrap">
-<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
-<img alt="" height="28" src="assets/logo.svg" width="28"/>
-<span>VDO.Ninja <small>MCP</small></span>
-</a>
-<nav aria-label="Primary" class="nav-links">
-<a href="./#how">How it works</a>
-<a href="./#privacy">Privacy</a>
-<a href="./#tools">Tools</a>
-<a href="./#faq">FAQ</a>
-<a aria-current="page" href="guide.html">Docs</a>
-</nav>
-<div class="nav-cta">
-<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
-<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
-</div>
-<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
 </header>
+
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#set-up-remote-access">Set up remote access</a><a href="#existing-interfaces-and-responsibilities">Existing interfaces and responsibilities</a><a href="#connect-to-the-local-app">Connect to the local app</a><a href="#tool-reference">Tool reference</a><a href="#observation-and-interaction-rules">Observation and interaction rules</a><a href="#transport-and-recovery">Transport and recovery</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a><a href="ssapp-capability-matrix.html">SSApp capability matrix</a></aside>
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
+    <h5>Documentation</h5>
+    <a href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Documentation home</a>
+    <a href="guide.html#guides"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>All guides</a>
+    <h5>On this page</h5>
+    <a href="#overview">Overview</a>
+    <a href="#set-up-remote-access">Set up remote access</a>
+    <a href="#existing-interfaces-and-responsibilities">Existing interfaces and responsibilities</a>
+    <a href="#connect-to-the-local-app">Connect to the local app</a>
+    <a href="#tool-reference">Tool reference</a>
+    <a href="#observation-and-interaction-rules">Observation and interaction rules</a>
+    <a href="#transport-and-recovery">Transport and recovery</a>
+    <h5>More guides</h5>
+    <a href="quickstart-and-compat.html">Quickstart</a>
+    <a href="client-config-examples.html">Client configuration</a>
+    <a href="http-relay.html">HTTP relay</a>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="browser-agent.html">Voice companion</a>
+    <a href="ssapp-capability-matrix.html">SSApp capability matrix</a>
+    <a href="mcp-tool-contract.html">Tool contract</a>
+    <a href="advanced-diagnostics.html">Advanced diagnostics</a>
+    <a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a>
+    <a href="direction.html">Project direction</a>
+  </aside>
+
   <main class="docs-main" id="main">
-    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
     <header>
       <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / Remote SSApp</p>
       <h1 id="integrating-remote-ssapp-control">Integrating remote SSApp control</h1>
@@ -59,7 +110,8 @@ Install Ninja MCP on the host and each agent computer. Node.js 18 or newer is re
 npx vdon-mcp-ssapp --worker --config ./private-ssapp/worker.json
 </code></pre>
 <p>The generated folder contains separate controller credentials for <code>agent1</code> and <code>agent2</code>, an
-observe-only <code>viewer</code>, and a local MCP registration example. Keep <code>worker.json</code> on the host.
+observe-only <code>viewer</code>, a <code>human.json</code> for a person signing in from a different computer than the
+agent, and a local MCP registration example. Keep <code>worker.json</code> on the host.
 Give each agent only its own JSON file through a private channel. Protect the folder with your
 operating system's file permissions; these files grant access to the app.</p>
 <p>On the agent computer, register a separate stdio MCP server using <code>vdon-mcp-ssapp --config</code>
@@ -94,6 +146,47 @@ Stopping the bridge leaves SSApp and its sources running.</p>
 For an uncertain result, inspect the app and use <code>ninja_ssapp_result</code> with the returned
 <code>request_id</code> before repeating an action. If control was suspended after an adapter failure,
 claim with <code>reconciled: true</code> only after checking its outcome.</p>
+<h3 id="sign-in-to-sites-remotely">Sign in to sites remotely</h3>
+<p>SSApp keeps each platform's sign-in inside its own browser session, so a person has to sign in
+through SSApp itself, even when it runs headless on another computer. When a site needs them,
+the agent asks through the MCP connection already in use. The person sees the SSApp window in a
+private viewer and uses their own mouse and keyboard. The agent and model never receive the link,
+the picture, or what the person types.</p>
+<p>This needs SSApp 0.4.40 with API 1.6.0 or newer, and a controller credential that may use
+<code>ssapp_show_source_for_human</code>. Both generated agent files qualify; the observer does not.</p>
+<ol>
+<li>The agent calls <code>ninja_ssapp_request_human</code> with a short reason, such as "Sign in to YouTube
+   in the YouTube source window."</li>
+<li>The person's MCP client shows the reason and the private link and asks before opening it
+   (MCP URL elicitation). If the client does not support that, the link opens in the default
+   browser of the computer running the AI client. The link works once, on that computer only.</li>
+<li>Select <strong>Take private control</strong>. Agents stop at once: their lease ends, their queued actions are
+   discarded, and every agent call except <code>ssapp_get_human_control_status</code> returns
+   <code>HUMAN_CONTROL_ACTIVE</code>, including screenshots.</li>
+<li>Choose the SSApp window. Click a source's <strong>Sign-in</strong> button in the picture, then pick the
+   sign-in window from the window list. Check the site address above the picture before typing.</li>
+<li>Click and type in the picture, or use the private text box for passwords and mobile keyboards.
+   Browser prompts appear below the picture.</li>
+<li>Select <strong>Done · return control to AI</strong>. The agent's <code>ninja_ssapp_wait_for_human</code> call returns
+   <code>returned_control</code>, and the agent claims control again.</li>
+</ol>
+<p><strong>Disconnect · keep AI paused</strong>, closing the page, or closing the AI client suspends the viewer
+and keeps agents paused; ask the agent for a new link, take control, and finish. If the
+computer drops off the network, the host suspends the viewer when the connection times out
+(usually 30 to 60 seconds), and SSApp expires an idle viewer after two minutes. Agents stay
+paused until someone selects <strong>Done</strong>. Restarting SSApp ends the takeover.</p>
+<p>The picture is a stream of screenshots over the encrypted link: about two to three per second
+with SSApp's viewer. No audio is carried. SSApp's viewer token stays on the host; the person's browser
+gets a separate local token, and the local link only accepts requests from its own page.</p>
+<h4 id="when-the-person-is-at-a-different-computer">When the person is at a different computer</h4>
+<p>If the agent runs elsewhere, such as on a cloud server, <code>ninja_ssapp_request_human</code> reports that
+it has no screen. Give the person <code>human.json</code> from the setup folder instead. It opens the
+viewer and cannot use agent tools. On that person's computer:</p>
+<pre><code class="lang-sh">npx vdon-mcp-ssapp --human --config ./human.json
+</code></pre>
+<p>The command connects over the same encrypted WebRTC or relay route and opens the private link in
+the browser. Add <code>--no-open</code> to print the link instead. The agent waits with
+<code>ninja_ssapp_wait_for_human</code> in the same way.</p>
 <h3 id="choose-permissions">Choose permissions</h3>
 <p>In the host's <code>worker.json</code>, each client has a <code>role</code> of <code>controller</code> or <code>observer</code>.
 An optional <code>tools</code> array restricts that client's allowed <code>ssapp_*</code> tool names. Restart the
@@ -107,10 +200,9 @@ transfer before selecting it. Use <code>ssapp_browser_screenshot</code> for remo
 <code>ssapp_browser_frame_stream</code> endpoint is not forwarded, and SSApp audio/video streaming is
 not part of this bridge.</p>
 <h3 id="retrieve-a-settings-backup">Retrieve a settings backup</h3>
-<p>Use an SSApp build advertising <strong>API 1.5.0 / MCP 1.4.0</strong> and <code>exportSettingsBackup</code>,
-plus a Ninja MCP bridge with <code>ninja_ssapp_save_settings_export</code>. These commands require
-the updated 0.4.38 development build; the published 0.4.38 version alone is insufficient.
-Check capabilities before using them.</p>
+<p>Use <strong>SSApp 0.4.39 or newer</strong> advertising <strong>API 1.5.0 / MCP 1.4.0</strong> or newer and
+<code>exportSettingsBackup</code>, plus <strong>Ninja MCP 0.4.3 or newer</strong> with
+<code>ninja_ssapp_save_settings_export</code>. Check capabilities before using these commands.</p>
 <p>In <code>worker.json</code>, set <code>allowSettingsExport: true</code> for the requesting controller and restart
 the worker. This defaults to false and is separate from <code>allowHostFiles</code>. If using a <code>tools</code>
 allowlist, include all three <code>ssapp_*</code> export tools below. Observers cannot retrieve backups.
@@ -307,7 +399,9 @@ Do not change the loopback bind or the adapter URL restriction to support a remo
 <p>The remote-control baseline is <strong>SSApp 0.4.37 with API 1.4.1 and MCP adapter 1.3.1</strong>.
 Earlier builds sharing the app version can lack the controls. Read <code>payload.commands</code> from
 capabilities and keep <code>ssappVersion</code>, <code>apiVersion</code>, and the MCP server version distinct.
-SSApp's adapter currently reports MCP protocol <code>2025-06-18</code> during initialization.</p>
+SSApp's adapter currently reports MCP protocol <code>2025-06-18</code> during initialization. The bridge
+answers agents with their own protocol up to <code>2025-11-25</code>, which adds URL elicitation for
+private sign-in links.</p>
 <p>The MCP tool list remains discoverable while SSApp is offline. A listed tool is not proof that
 the running app supports it. Preserve the adapter's availability checks and offline errors.
 Browser, app-window and dialog tools can run without first checking renderer-dependent capabilities;
@@ -620,22 +714,26 @@ operation tools when a response returns an operation ID.</p>
 Ninja MCP message, file, and shared-state workflows remain separate from SSApp control.
 For continuing agent inboxes and handoffs, use ninja-p2p; receiving a handoff does not automatically
 authorize an SSApp operation.</p></section>
+    <p class="page-meta"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/references/ssapp-integration.md">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
     <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
   </main>
 </div>
+
 <footer class="footer">
-<div class="wrap">
-<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
-<nav aria-label="Footer">
-<a href="./">Home</a>
-<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
-<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
-<a href="https://discord.vdo.ninja">Discord</a>
-<a href="https://vdo.ninja">VDO.Ninja</a>
-</nav>
-<span>MIT · © 2026 Steve Seguin</span>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
 </footer>
+
 <script src="assets/site.js" defer></script>
 </body>
 </html>

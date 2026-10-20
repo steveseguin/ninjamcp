@@ -33,7 +33,9 @@ function createSetup(directory, options = {}) {
   const worker = `${ssapp ? 'ssapp' : 'chrome'}_${crypto.randomBytes(6).toString('hex')}`;
   const clients = {};
   const files = [];
-  for (const [client, role] of [['agent1', 'controller'], ['agent2', 'controller'], ['viewer', 'observer']]) {
+  // SSApp setups add a separate credential for the person who completes private sign-ins.
+  const roles = [['agent1', 'controller'], ['agent2', 'controller'], ['viewer', 'observer'], ...(ssapp ? [['human', 'human']] : [])];
+  for (const [client, role] of roles) {
     const key = crypto.randomBytes(32).toString('hex');
     clients[client] = { role, key };
     files.push([`${client}.json`, { worker, client, key, connection, ...(ssapp ? { backend: 'ssapp' } : {}) }]);

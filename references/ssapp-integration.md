@@ -25,7 +25,8 @@ npx vdon-mcp-ssapp --worker --config ./private-ssapp/worker.json
 ```
 
 The generated folder contains separate controller credentials for `agent1` and `agent2`, an
-observe-only `viewer`, and a local MCP registration example. Keep `worker.json` on the host.
+observe-only `viewer`, a `human.json` for a person signing in from a different computer than the
+agent, and a local MCP registration example. Keep `worker.json` on the host.
 Give each agent only its own JSON file through a private channel. Protect the folder with your
 operating system's file permissions; these files grant access to the app.
 
@@ -68,6 +69,56 @@ For an uncertain result, inspect the app and use `ninja_ssapp_result` with the r
 `request_id` before repeating an action. If control was suspended after an adapter failure,
 claim with `reconciled: true` only after checking its outcome.
 
+### Sign in to sites remotely
+
+SSApp keeps each platform's sign-in inside its own browser session, so a person has to sign in
+through SSApp itself, even when it runs headless on another computer. When a site needs them,
+the agent asks through the MCP connection already in use. The person sees the SSApp window in a
+private viewer and uses their own mouse and keyboard. The agent and model never receive the link,
+the picture, or what the person types.
+
+This needs SSApp 0.4.40 with API 1.6.0 or newer, and a controller credential that may use
+`ssapp_show_source_for_human`. Both generated agent files qualify; the observer does not.
+
+1. The agent calls `ninja_ssapp_request_human` with a short reason, such as "Sign in to YouTube
+   in the YouTube source window."
+2. The person's MCP client shows the reason and the private link and asks before opening it
+   (MCP URL elicitation). If the client does not support that, the link opens in the default
+   browser of the computer running the AI client. The link works once, on that computer only.
+3. Select **Take private control**. Agents stop at once: their lease ends, their queued actions are
+   discarded, and every agent call except `ssapp_get_human_control_status` returns
+   `HUMAN_CONTROL_ACTIVE`, including screenshots.
+4. Choose the SSApp window. Click a source's **Sign-in** button in the picture, then pick the
+   sign-in window from the window list. Check the site address above the picture before typing.
+5. Click and type in the picture, or use the private text box for passwords and mobile keyboards.
+   Browser prompts appear below the picture.
+6. Select **Done · return control to AI**. The agent's `ninja_ssapp_wait_for_human` call returns
+   `returned_control`, and the agent claims control again.
+
+**Disconnect · keep AI paused**, closing the page, or closing the AI client suspends the viewer
+and keeps agents paused; ask the agent for a new link, take control, and finish. If the
+computer drops off the network, the host suspends the viewer when the connection times out
+(usually 30 to 60 seconds), and SSApp expires an idle viewer after two minutes. Agents stay
+paused until someone selects **Done**. Restarting SSApp ends the takeover.
+
+The picture is a stream of screenshots over the encrypted link: about two to three per second
+with SSApp's viewer. No audio is carried. SSApp's viewer token stays on the host; the person's browser
+gets a separate local token, and the local link only accepts requests from its own page.
+
+#### When the person is at a different computer
+
+If the agent runs elsewhere, such as on a cloud server, `ninja_ssapp_request_human` reports that
+it has no screen. Give the person `human.json` from the setup folder instead. It opens the
+viewer and cannot use agent tools. On that person's computer:
+
+```bash
+npx vdon-mcp-ssapp --human --config ./human.json
+```
+
+The command connects over the same encrypted WebRTC or relay route and opens the private link in
+the browser. Add `--no-open` to print the link instead. The agent waits with
+`ninja_ssapp_wait_for_human` in the same way.
+
 ### Choose permissions
 
 In the host's `worker.json`, each client has a `role` of `controller` or `observer`.
@@ -85,10 +136,9 @@ not part of this bridge.
 
 ### Retrieve a settings backup
 
-Use an SSApp build advertising **API 1.5.0 / MCP 1.4.0** and `exportSettingsBackup`,
-plus a Ninja MCP bridge with `ninja_ssapp_save_settings_export`. These commands require
-the updated 0.4.38 development build; the published 0.4.38 version alone is insufficient.
-Check capabilities before using them.
+Use **SSApp 0.4.39 or newer** advertising **API 1.5.0 / MCP 1.4.0** or newer and
+`exportSettingsBackup`, plus **Ninja MCP 0.4.3 or newer** with
+`ninja_ssapp_save_settings_export`. Check capabilities before using these commands.
 
 In `worker.json`, set `allowSettingsExport: true` for the requesting controller and restart
 the worker. This defaults to false and is separate from `allowHostFiles`. If using a `tools`
@@ -206,7 +256,9 @@ Do not change the loopback bind or the adapter URL restriction to support a remo
 The remote-control baseline is **SSApp 0.4.37 with API 1.4.1 and MCP adapter 1.3.1**.
 Earlier builds sharing the app version can lack the controls. Read `payload.commands` from
 capabilities and keep `ssappVersion`, `apiVersion`, and the MCP server version distinct.
-SSApp's adapter currently reports MCP protocol `2025-06-18` during initialization.
+SSApp's adapter currently reports MCP protocol `2025-06-18` during initialization. The bridge
+answers agents with their own protocol up to `2025-11-25`, which adds URL elicitation for
+private sign-in links.
 
 The MCP tool list remains discoverable while SSApp is offline. A listed tool is not proof that
 the running app supports it. Preserve the adapter's availability checks and offline errors.

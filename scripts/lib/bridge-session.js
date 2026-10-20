@@ -131,7 +131,7 @@ class BridgeSession extends EventEmitter {
       fileChunkBytes: clampInt(config.fileChunkBytes, DEFAULT_FILE_CHUNK_BYTES, MIN_CHUNK_BYTES, MAX_CHUNK_BYTES),
       fileMaxBytes: intFromValue(config.fileMaxBytes, DEFAULT_FILE_MAX_BYTES),
       fileAckTimeoutMs: intFromValue(config.fileAckTimeoutMs, DEFAULT_FILE_ACK_TIMEOUT_MS),
-      fileMaxRetries: intFromValue(config.fileMaxRetries, DEFAULT_FILE_MAX_RETRIES),
+      fileMaxRetries: nonNegativeIntFromValue(config.fileMaxRetries, DEFAULT_FILE_MAX_RETRIES),
       maxStoredFiles: intFromValue(config.maxStoredFiles, 12),
       requireSessionMac: !!config.requireSessionMac,
       fileSpoolDir: (typeof config.fileSpoolDir === 'string' && config.fileSpoolDir.trim())
@@ -362,6 +362,10 @@ class BridgeSession extends EventEmitter {
     const safeKey = String(key || '').trim();
     if (!safeKey) {
       throw new Error('state key is required');
+    }
+    // Peers drop patches that add keys beyond their limit, so refuse them locally too.
+    if (!this.roomState.has(safeKey) && this.roomState.size >= this.config.stateMaxKeys) {
+      throw new Error(`state key limit reached (${this.config.stateMaxKeys} keys)`);
     }
 
     this.stateClock += 1;
@@ -611,6 +615,11 @@ class BridgeSession extends EventEmitter {
         ts: nowISO(),
         detail: event.detail || null
       });
+      // A publisher losing one viewer must leave its other clients connected.
+      // Only a client losing its intended host needs a whole-session reconnect.
+      const failed = event.detail && event.detail.streamID;
+      if (!this.config.targetStreamID || event.detail?.type === 'publisher' ||
+          (failed && failed !== this.config.targetStreamID)) return;
       this.scheduleReconnect('connection_failed');
     });
 
@@ -1046,7 +1055,7 @@ class BridgeSession extends EventEmitter {
       }
 
       for (const peer of this.peerState.values()) {
-        if (peer.stream_id === safe) {
+        if (peer.stream_id === safe && this.hasOpenDataChannel(peer.uuid)) {
           return { ok: true, uuid: peer.uuid, stream_id: peer.stream_id };
         }
       }
@@ -1784,7 +1793,8 @@ class BridgeSession extends EventEmitter {
     let resolvedTarget = target;
     if (typeof target === 'string') {
       for (const peer of this.peerState.values()) {
-        if (peer.stream_id === target) {
+        // Reconnects retain the stream name but replace the connection UUID.
+        if (peer.stream_id === target && this.hasOpenDataChannel(peer.uuid)) {
           resolvedTarget = peer.uuid;
           break;
         }
@@ -1917,7 +1927,8 @@ class BridgeSession extends EventEmitter {
       retries_by_seq: new Map(),
       retries_total: 0,
       last_error: null,
-      wait_timeout_ms: intFromValue(options.timeoutMs, this.config.fileAckTimeoutMs)
+      // Optional override for how long the sender waits for file.accept.
+      wait_timeout_ms: intFromValue(options.timeoutMs, null)
     };
 
     this.outgoingTransfers.set(transfer.transfer_id, transfer);
@@ -1989,8 +2000,9 @@ class BridgeSession extends EventEmitter {
   }
 
   async transmitOutgoingTransfer(transfer, options = {}) {
-    const maxRetries = intFromValue(options.maxRetries, this.config.fileMaxRetries);
+    const maxRetries = nonNegativeIntFromValue(options.maxRetries, this.config.fileMaxRetries);
     const ackTimeoutMs = intFromValue(options.ackTimeoutMs, this.config.fileAckTimeoutMs);
+    const offerTimeoutMs = transfer.wait_timeout_ms || Math.max(ackTimeoutMs, 1000);
 
     const offerCursor = this.protocolCursor;
     const offerOk = this.sendProtocol('file.offer', {
@@ -2011,7 +2023,7 @@ class BridgeSession extends EventEmitter {
       (event.kind === 'file.accept' || event.kind === 'file.nack') &&
       event.transfer_id === transfer.transfer_id &&
       event.from_uuid === transfer.target_uuid
-    ), Math.max(ackTimeoutMs, 1000), offerCursor);
+    ), offerTimeoutMs, offerCursor);
 
     if (!accepted) {
       throw new Error('timed out waiting for file.accept');

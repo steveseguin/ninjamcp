@@ -6,8 +6,33 @@
   <title>SSApp capability matrix · VDO.Ninja MCP</title>
   <meta name="description" content="Remote SSApp capability coverage, implementation references, remaining work and acceptance checks.">
   <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/ssapp-capability-matrix.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="SSApp capability matrix · VDO.Ninja MCP">
+  <meta property="og:description" content="Remote SSApp capability coverage, implementation references, remaining work and acceptance checks.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/ssapp-capability-matrix.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SSApp capability matrix · VDO.Ninja MCP">
+  <meta name="twitter:description" content="Remote SSApp capability coverage, implementation references, remaining work and acceptance checks.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="assets/site.css">
   <script>document.documentElement.classList.add('js');</script>
 <style>
@@ -24,30 +49,72 @@
 </head>
 <body class="reference-page matrix-page">
 <a class="skip-link" href="#main">Skip to content</a>
+
 <header class="nav">
-<div class="wrap">
-<a aria-label="VDO.Ninja MCP home" class="brand" href="./">
-<img alt="" height="28" src="assets/logo.svg" width="28"/>
-<span>VDO.Ninja <small>MCP</small></span>
-</a>
-<nav aria-label="Primary" class="nav-links">
-<a href="./#how">How it works</a>
-<a href="./#privacy">Privacy</a>
-<a href="./#tools">Tools</a>
-<a href="./#faq">FAQ</a>
-<a aria-current="page" href="guide.html">Docs</a>
-</nav>
-<div class="nav-cta">
-<a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
-<a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg aria-hidden="true" class="icon-sm"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
-</div>
-<button aria-expanded="false" aria-label="Menu" class="nav-toggle" type="button"><svg aria-hidden="true" class="icon"><use href="assets/icons.svg#i-menu"></use></svg></button>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
 </header>
+
 <div class="docs">
-  <aside class="sidebar" aria-label="Documentation" id="guide-contents"><h5>Documentation</h5><a href="guide.html">Getting started</a><h5>On this page</h5><a href="#overview">Overview</a><a href="#reading-and-maintaining-the-matrix">Reading and maintaining the matrix</a><a href="#1-connection-identity-and-discovery">1. Connection, identity and discovery</a><a href="#2-targets-and-surface-coverage">2. Targets and surface coverage</a><a href="#3-observation-and-page-understanding">3. Observation and page understanding</a><a href="#4-mouse-keyboard-and-touch">4. Mouse, keyboard and touch</a><a href="#5-navigation-and-window-management">5. Navigation and window management</a><a href="#6-sign-in-prompts-and-native-menus">6. Sign-in, prompts and native menus</a><a href="#7-source-configuration-and-application-state">7. Source configuration and application state</a><a href="#8-dock-overlays-and-audience-operations">8. Dock, overlays and audience operations</a><a href="#9-files-and-artifacts">9. Files and artifacts</a><a href="#10-live-perception-and-media">10. Live perception and media</a><a href="#11-diagnostics-and-recovery-decisions">11. Diagnostics and recovery decisions</a><a href="#12-capture-and-destination-correctness">12. Capture and destination correctness</a><a href="#13-transport-retries-and-process-lifecycle">13. Transport, retries and process lifecycle</a><a href="#14-permissions-ownership-and-ordinary-user-behavior">14. Permissions, ownership and ordinary user behavior</a><a href="#15-agent-and-harness-compatibility">15. Agent and harness compatibility</a><a href="#16-development-and-patch-workflows">16. Development and patch workflows</a><a href="#validation-procedures">Validation procedures</a><a href="#end-to-end-acceptance-workflows">End-to-end acceptance workflows</a><a href="#implementation-sequence">Implementation sequence</a><a href="#evidence-record">Evidence record</a><a href="#implementation-reference-map">Implementation reference map</a><h5>More guides</h5><a href="quickstart-and-compat.html">Quickstart</a><a href="client-config-examples.html">Client configuration</a><a href="http-relay.html">HTTP relay</a><a href="browser-worker.html">Remote Chrome</a><a href="browser-agent.html">Voice companion</a><a href="ssapp-integration.html">Remote SSApp</a><a href="mcp-tool-contract.html">Tool contract</a><a href="advanced-diagnostics.html">Advanced diagnostics</a><a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a><a href="direction.html">Project direction</a></aside>
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
+    <h5>Documentation</h5>
+    <a href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Documentation home</a>
+    <a href="guide.html#guides"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>All guides</a>
+    <h5>On this page</h5>
+    <a href="#overview">Overview</a>
+    <a href="#reading-and-maintaining-the-matrix">Reading and maintaining the matrix</a>
+    <a href="#1-connection-identity-and-discovery">1. Connection, identity and discovery</a>
+    <a href="#2-targets-and-surface-coverage">2. Targets and surface coverage</a>
+    <a href="#3-observation-and-page-understanding">3. Observation and page understanding</a>
+    <a href="#4-mouse-keyboard-and-touch">4. Mouse, keyboard and touch</a>
+    <a href="#5-navigation-and-window-management">5. Navigation and window management</a>
+    <a href="#6-sign-in-prompts-and-native-menus">6. Sign-in, prompts and native menus</a>
+    <a href="#7-source-configuration-and-application-state">7. Source configuration and application state</a>
+    <a href="#8-dock-overlays-and-audience-operations">8. Dock, overlays and audience operations</a>
+    <a href="#9-files-and-artifacts">9. Files and artifacts</a>
+    <a href="#10-live-perception-and-media">10. Live perception and media</a>
+    <a href="#11-diagnostics-and-recovery-decisions">11. Diagnostics and recovery decisions</a>
+    <a href="#12-capture-and-destination-correctness">12. Capture and destination correctness</a>
+    <a href="#13-transport-retries-and-process-lifecycle">13. Transport, retries and process lifecycle</a>
+    <a href="#14-permissions-ownership-and-ordinary-user-behavior">14. Permissions, ownership and ordinary user behavior</a>
+    <a href="#15-agent-and-harness-compatibility">15. Agent and harness compatibility</a>
+    <a href="#16-development-and-patch-workflows">16. Development and patch workflows</a>
+    <a href="#validation-procedures">Validation procedures</a>
+    <a href="#end-to-end-acceptance-workflows">End-to-end acceptance workflows</a>
+    <a href="#implementation-sequence">Implementation sequence</a>
+    <a href="#evidence-record">Evidence record</a>
+    <a href="#implementation-reference-map">Implementation reference map</a>
+    <h5>More guides</h5>
+    <a href="quickstart-and-compat.html">Quickstart</a>
+    <a href="client-config-examples.html">Client configuration</a>
+    <a href="http-relay.html">HTTP relay</a>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="browser-agent.html">Voice companion</a>
+    <a href="ssapp-integration.html">Remote SSApp</a>
+    <a href="mcp-tool-contract.html">Tool contract</a>
+    <a href="advanced-diagnostics.html">Advanced diagnostics</a>
+    <a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a>
+    <a href="direction.html">Project direction</a>
+  </aside>
+
   <main class="docs-main" id="main">
-    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false">Contents</button>
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
     <header>
       <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / SSApp capability matrix</p>
       <h1 id="ssapp-remote-capability-matrix">SSApp remote capability matrix</h1>
@@ -63,9 +130,9 @@ model execution, and repository publishing have separate owners.</p>
 <p>The implementation baseline is SSApp <strong>0.4.38</strong>, control API <strong>1.4.1</strong>, local MCP adapter <strong>1.3.1</strong>,
 and Ninja MCP <strong>0.4.2</strong> with the SSApp backend. Runtime discovery is authoritative. A package version
 alone does not establish that a particular source mode, permission, or workflow is available.</p>
-<p>Settings-export support requires the updated 0.4.38 development build advertising API 1.5.0 /
-MCP 1.4.0 and the Ninja MCP settings-export helper. See the <a href="ssapp-integration.html#retrieve-a-settings-backup">backup workflow</a>.
-The existing 0.4.38 release does not imply these additional commands are available.</p>
+<p>Settings-export support requires SSApp 0.4.39 or newer advertising API 1.5.0 /
+MCP 1.4.0 or newer and Ninja MCP 0.4.3 or newer with the settings-export helper.
+See the <a href="ssapp-integration.html#retrieve-a-settings-backup">backup workflow</a>.</p>
 <div aria-label="Scrollable reference table" class="table-wrap" role="region" tabindex="0"><table>
 <thead>
 <tr>
@@ -567,9 +634,9 @@ a change, not permission to change unrelated behavior.</p>
 <tr>
 <td><a id="cap-a03"></a>A03</td>
 <td>Hand MFA/passkeys/CAPTCHA/private steps to a person and resume.</td>
-<td>External / P0</td>
-<td><code>ssapp_show_source_for_human</code>, window show; <a href="#s3">S3</a>, <a href="#s4">S4</a></td>
-<td>Human participation occurs on host or a separately shared surface; no automatic bypass.</td>
+<td>Implemented / P0</td>
+<td>Agent-offered private viewer: <code>ninja_ssapp_request_human</code> (MCP URL elicitation, else the local browser) and <code>ninja_ssapp_wait_for_human</code>; <code>vdon-mcp-ssapp --human</code> with <code>human.json</code> for a person at another computer (SSApp 0.4.40 / API 1.6.0); <code>ssapp_show_source_for_human</code> on the host; <a href="#n1">N1</a>–<a href="#n3">N3</a>, <a href="#s3">S3</a>, <a href="#s4">S4</a></td>
+<td>The person completes the step; no automatic bypass. Claude Code 2.1.303 delivered the agent-offered link by URL elicitation, and the person reached YouTube's sign-in page in a headless Windows SSApp; a real Google page was also reached earlier; person-completed provider sign-in, MFA, passkeys and CAPTCHA are not yet validated.</td>
 <td><a href="#validation-v03">V03</a>: pause clearly, complete human step, then continue the original source task once.</td>
 </tr>
 <tr>
@@ -607,9 +674,9 @@ a change, not permission to change unrelated behavior.</p>
 <tr>
 <td><a id="cap-a08"></a>A08</td>
 <td>Hand control to a person without losing task context.</td>
-<td>Partial / P1</td>
-<td>release/revoke; <a href="#n1">N1</a>–<a href="#n2">N2</a>; host window controls</td>
-<td>No unified human-assistance request/ack/resume protocol.</td>
+<td>Implemented / P1</td>
+<td>Private takeover revokes the agent lease and discards queued agent actions; <code>ssapp_get_human_control_status</code> and <code>ninja_ssapp_wait_for_human</code>; explicit Done; <a href="#n1">N1</a>–<a href="#n2">N2</a></td>
+<td>Agents must rediscover and reclaim after handback; the agent's own conversation keeps the task context.</td>
 <td><a href="#validation-v03">V03</a>/<a href="#validation-v06">V06</a>: person changes state; agent re-observes and resumes without replaying old input.</td>
 </tr>
 </tbody>
@@ -1683,22 +1750,26 @@ In a local workspace, these paths are relative to its <code>ssapp</code> checkou
 <li><a id="e3"></a><strong>E3 — Client and development adapters:</strong> <a href="client-config-examples.html">client configuration</a>
   and the chosen client's tools for models, files and repositories. Keep those permissions separate from SSApp control.</li>
 </ul></section>
+    <p class="page-meta"><a class="link" href="https://github.com/steveseguin/ninjamcp/edit/main/references/ssapp-capability-matrix.md">Edit this page on GitHub</a> · Found a mistake? <a class="link" href="https://github.com/steveseguin/ninjamcp/issues">Open an issue</a>.</p>
     <nav class="pager" aria-label="More documentation"><a href="guide.html#guides"><small>Keep reading</small><b>Browse all guides</b></a><a href="https://discord.vdo.ninja"><small>Need help?</small><b>Ask on Discord</b></a></nav>
   </main>
 </div>
+
 <footer class="footer">
-<div class="wrap">
-<a class="brand" href="./"><img alt="" height="24" src="assets/logo.svg" width="24"/><span>VDO.Ninja <small>MCP</small></span></a>
-<nav aria-label="Footer">
-<a href="./">Home</a>
-<a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
-<a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
-<a href="https://discord.vdo.ninja">Discord</a>
-<a href="https://vdo.ninja">VDO.Ninja</a>
-</nav>
-<span>MIT · © 2026 Steve Seguin</span>
-</div>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
 </footer>
+
 <script src="assets/site.js" defer></script>
 </body>
 </html>

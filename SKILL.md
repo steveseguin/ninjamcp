@@ -1,6 +1,6 @@
 ---
 name: mcp
-description: Use VDO.Ninja WebRTC data channels as MCP tools for bot-to-bot messaging and reliable file transfer, with clear transport limits, optional TURN, and optional join-token/session-MAC security.
+description: Use VDO.Ninja WebRTC data channels, or a self-hosted HTTP relay, as MCP tools for bot-to-bot messaging, reliable file transfer, and shared state, with clear transport limits, optional TURN, and optional join-token/session-MAC security.
 ---
 
 # VDO.Ninja MCP Skill
@@ -20,7 +20,8 @@ Use this skill to run VDO.Ninja as an MCP data bridge in Codex, Claude Code, and
 
 ## Core Transport Truth
 
-- Transport is WebRTC data channels.
+- Default transport is WebRTC data channels.
+- `transport: "http"` uses a self-hosted, encrypted HTTP relay when WebRTC cannot run or connect. Both peers must choose the same transport; there is no automatic failover.
 - TURN can improve success on restrictive networks.
 - TURN is not guaranteed to bypass all enterprise policies.
 
@@ -49,7 +50,7 @@ If run directly in a terminal, it prints a short running banner and a first-call
 - Connect peer A and peer B with `vdo_connect`.
 - Send with `vdo_send`.
 - Receive with `vdo_receive`.
-- Demo script: `npm run mcp:demo:message`
+- Demo script: `npx vdon-mcp-demo-message`
 
 ### Workflow B: File Transfer
 
@@ -57,7 +58,7 @@ If run directly in a terminal, it prints a short running banner and a first-call
 - Track with `vdo_file_transfers`.
 - Read with `vdo_file_receive` or persist with `vdo_file_save`.
 - Resume interrupted send with `vdo_file_resume`.
-- Demo script: `npm run mcp:demo:file`
+- Demo script: `npx vdon-mcp-demo-file`
 
 ## Security Controls
 
@@ -79,6 +80,8 @@ For secure presets, set `VDON_MCP_JOIN_TOKEN_SECRET` before install/runtime.
 
 ## Testing
 
+Tests ship in the repository, not the npm package. From a checkout:
+
 - Product test bar: `npm run test:mcp`
 - Full engineering suite: `npm run test:mcp:all`
 - Live diagnostics (optional): `references/advanced-diagnostics.md`
@@ -87,6 +90,7 @@ For secure presets, set `VDON_MCP_JOIN_TOKEN_SECRET` before install/runtime.
 
 - Optional SSApp download and remote setup: [SSApp guide](references/ssapp-integration.md) ([HTML](docs/ssapp-integration.html))
 - Operator quickstart: `references/quickstart-and-compat.md`
+- HTTP relay setup: `references/http-relay.md`
 - Client config examples: `references/client-config-examples.md`
 - Tool contract: `references/mcp-tool-contract.md`
 - Transport notes: `references/vdo-ninja-p2p-data-notes.md`
