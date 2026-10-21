@@ -3,7 +3,7 @@
   "name": "io.github.steveseguin/vdo-ninja-mcp",
   "title": "VDO.Ninja MCP Bridge",
   "description": "Private agent rooms with messages, files, and shared state over WebRTC or a self-hosted HTTP relay.",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "websiteUrl": "https://github.com/steveseguin/ninjamcp",
   "repository": {
     "url": "https://github.com/steveseguin/ninjamcp",
@@ -13,7 +13,7 @@
     {
       "registryType": "npm",
       "identifier": "@vdoninja/mcp",
-      "version": "0.4.3",
+      "version": "0.4.4",
       "runtimeHint": "node",
       "runtimeArguments": [
         {

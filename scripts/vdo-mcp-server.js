@@ -28,7 +28,7 @@ const {
 const SUPPORTED_PROTOCOL_VERSIONS = ['2025-06-18', '2024-11-05'];
 const SERVER_INFO = {
   name: 'vdo-ninja-mcp',
-  version: '0.4.3'
+  version: '0.4.4'
 };
 const DEFAULT_MAX_MESSAGE_BYTES = 1024 * 1024;
 
@@ -1391,7 +1391,8 @@ async function runMcpStdioLoop(options = {}) {
   const logger = options.logger || ((message) => errorOutput.write(`${JSON.stringify(message)}\n`));
   const onExit = options.onExit || (async (code) => process.exit(code));
 
-  const server = options.server || new VdoMcpServer({
+  const createServer = options.serverFactory || ((config) => new VdoMcpServer(config));
+  const server = options.server || createServer({
     sdkFactory: options.sdkFactory || null,
     toolProfile: options.toolProfile,
     defaultJoinTokenSecret: options.defaultJoinTokenSecret,

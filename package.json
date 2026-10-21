@@ -1,6 +1,6 @@
 {
   "name": "@vdoninja/mcp",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Private agent rooms with messages, files, and shared state over WebRTC or a self-hosted HTTP relay.",
   "author": "Steve Seguin",
   "license": "MIT",
@@ -30,11 +30,13 @@
     "vdon-mcp-demo-file": "scripts/demo-file-workflow.js",
     "vdon-mcp-browser": "scripts/vdo-mcp-browser.js",
     "vdon-mcp-browser-agent": "scripts/vdo-mcp-browser-agent.js",
-    "vdon-mcp-ssapp": "scripts/vdo-mcp-ssapp.js"
+    "vdon-mcp-ssapp": "scripts/vdo-mcp-ssapp.js",
+    "vdon-mcp-p2p": "scripts/vdo-mcp-p2p.js"
   },
   "scripts": {
     "test": "node tests/run-mcp-tests-minimal.js",
     "test:all": "node tests/run-mcp-tests.js",
+    "test:p2p": "node tests/mcp-p2p.test.js",
     "check": "npm run test:all",
     "test:mcp": "node tests/run-mcp-tests-minimal.js",
     "test:mcp:all": "node tests/run-mcp-tests.js",
@@ -98,7 +100,9 @@
     "scripts/lib/ssapp-export.js",
     "scripts/lib/ssapp-human.js",
     "references/ssapp-integration.md",
-    "references/ssapp-capability-matrix.md"
+    "references/ssapp-capability-matrix.md",
+    "scripts/vdo-mcp-p2p.js",
+    "references/ninja-p2p.md"
   ],
   "engines": {
     "node": ">=18"
@@ -112,13 +116,17 @@
   },
   "peerDependencies": {
     "chrome-devtools-mcp": "1.11.0",
-    "puppeteer-core": "24.37.5"
+    "puppeteer-core": "24.37.5",
+    "@vdoninja/ninja-p2p": "^0.3.1"
   },
   "peerDependenciesMeta": {
     "chrome-devtools-mcp": {
       "optional": true
     },
     "puppeteer-core": {
+      "optional": true
+    },
+    "@vdoninja/ninja-p2p": {
       "optional": true
     }
   }

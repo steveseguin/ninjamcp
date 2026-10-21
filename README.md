@@ -77,7 +77,7 @@ The native WebRTC dependency installs by default. For HTTP-only machines, instal
 
 Choose Ninja MCP when your client should manage an active interaction through MCP tools. Choose ninja-p2p when a background sidecar should retain incoming work and notify an agent between turns. Ninja MCP's ordinary event queues and shared state live in the server process; use ninja-p2p for persistent agent inbox workflows.
 
-Both use the VDO.Ninja SDK, but their message and file protocols differ. A common room name alone does not connect their higher-level workflows. A dedicated adapter is planned; until then, use matching packages on both ends of each workflow.
+Both use the VDO.Ninja SDK, but their message and file protocols differ. A common room name alone does not connect their higher-level workflows. For local sidecar inboxes, handoffs, and receipts, add the [optional ninja-p2p MCP adapter](https://steveseguin.github.io/ninjamcp/ninja-p2p.html). Keep matching native packages on both ends of room and file workflows.
 
 Ninja MCP's direction is live access to remote peers, tools, and perception through MCP. ninja-p2p's direction is the continuing team workspace and its handoffs. See [Ninja MCP's direction](https://steveseguin.github.io/ninjamcp/direction.html) and [ninja-p2p's direction](https://github.com/steveseguin/ninja-p2p/blob/main/docs/north-star.md).
 
@@ -97,6 +97,8 @@ and take turns controlling the app; SSApp keeps its existing sessions and window
 needs you to sign in, the agent asks through its MCP connection and you get a private viewer of SSApp's
 sign-in window, even when SSApp runs headless. The agent never sees the link, the picture, or what you
 type, and stays paused until you hand control back.
+
+For browser conversations with a background Codex agent, use [VDO.Ninja Connect](https://github.com/steveseguin/vdoninja-connect). For an interactive remote terminal, use [Steve's App](https://github.com/steveseguin/stevesapp).
 
 ## Run from a checkout
 

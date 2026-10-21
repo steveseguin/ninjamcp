@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" data-icons="assets/icons.svg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ninja-p2p sidecar · VDO.Ninja MCP</title>
+  <meta name="description" content="Optional MCP access to a local ninja-p2p inbox, handoffs, and receipts.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="author" content="Steve Seguin">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://steveseguin.github.io/ninjamcp/ninja-p2p.html">
+  <link rel="icon" href="favicon.ico" sizes="32x32">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="application-name" content="VDO.Ninja MCP">
+  <meta name="apple-mobile-web-app-title" content="Ninja MCP">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="VDO.Ninja MCP">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="ninja-p2p sidecar · VDO.Ninja MCP">
+  <meta property="og:description" content="Optional MCP access to a local ninja-p2p inbox, handoffs, and receipts.">
+  <meta property="og:url" content="https://steveseguin.github.io/ninjamcp/ninja-p2p.html">
+  <meta property="og:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ninja-p2p sidecar · VDO.Ninja MCP">
+  <meta name="twitter:description" content="Optional MCP access to a local ninja-p2p inbox, handoffs, and receipts.">
+  <meta name="twitter:image" content="https://steveseguin.github.io/ninjamcp/assets/og-image.png">
+  <meta name="twitter:image:alt" content="VDO.Ninja MCP: Claude Code and Codex agents connected by an encrypted peer-to-peer channel.">
+  <meta name="theme-color" content="#fafaf8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0c10" media="(prefers-color-scheme: dark)">
+  <link rel="stylesheet" href="assets/site.css">
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body class="reference-page">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="VDO.Ninja MCP home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>VDO.Ninja <small>MCP</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="./#how">How it works</a>
+      <a href="./#privacy">Privacy</a>
+      <a href="./#tools">Tools</a>
+      <a href="./#faq">FAQ</a>
+      <a href="guide.html" aria-current="page">Docs</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="https://github.com/steveseguin/ninjamcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-github"></use></svg>GitHub</a>
+      <a class="btn btn-dark" href="https://www.npmjs.com/package/@vdoninja/mcp"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-package"></use></svg>npm</a>
+    </div>
+    <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg></button>
+  </div>
+</header>
+
+<div class="docs">
+  <aside class="sidebar" aria-label="Documentation" id="guide-contents">
+    <h5>Documentation</h5>
+    <a href="guide.html"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-book"></use></svg>Documentation home</a>
+    <a href="guide.html#guides"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-layers"></use></svg>All guides</a>
+    <h5>On this page</h5>
+<a href="#overview">Overview</a>
+<a href="#install-and-connect">Install and connect</a>
+<a href="#tools">Tools</a>
+<a href="#permissions-and-lifecycle">Permissions and lifecycle</a>
+<h5>More guides</h5>
+    <a href="quickstart-and-compat.html">Quickstart</a>
+    <a href="client-config-examples.html">Client configuration</a>
+    <a href="http-relay.html">HTTP relay</a>
+    <a href="browser-worker.html">Remote Chrome</a>
+    <a href="browser-agent.html">Voice companion</a>
+    <a href="ssapp-integration.html">Remote SSApp</a>
+    <a href="ssapp-capability-matrix.html">SSApp capability matrix</a>
+    <a href="mcp-tool-contract.html">Tool contract</a>
+    <a href="advanced-diagnostics.html">Advanced diagnostics</a>
+    <a href="vdo-ninja-p2p-data-notes.html">WebRTC data notes</a>
+  </aside>
+
+  <main class="docs-main" id="main">
+    <button class="btn docs-toggle" type="button" aria-controls="guide-contents" aria-expanded="false"><svg class="icon-sm" aria-hidden="true"><use href="assets/icons.svg#i-menu"></use></svg>Contents</button>
+    <header>
+      <p class="guide-breadcrumb"><a href="guide.html">Documentation</a> / ninja-p2p sidecar</p>
+      <h1>Use a ninja-p2p sidecar through MCP</h1>
+      <p class="guide-format"><a href="https://github.com/steveseguin/ninjamcp/blob/main/references/ninja-p2p.md">Read in Markdown</a></p>
+    </header>
+<section class="doc-section guide-intro" id="overview"><p>Add this optional local MCP server when your AI client should read a ninja-p2p
+room inbox, hand off work to peers and inspect their replies. It accesses one
+existing sidecar&#39;s state. The sidecar keeps the network connection and records;
+starting or closing this adapter does not start or stop it.</p>
+<p>For a ChatGPT Dot or another cloud client, use the <a href="https://steveseguin.github.io/ninja-p2p/cloud-connections.html">hosted mailbox MCP connection</a>
+instead. This adapter uses local stdio and does not expose an HTTP endpoint.</p>
+</section>
+<section class="doc-section" id="install-and-connect"><h2>Install and connect</h2><p>Use Node.js 20 or newer. Install both packages in the same global installation:</p>
+<pre><code class="language-sh">npm install -g @vdoninja/mcp @vdoninja/ninja-p2p @roamhq/wrtc
+</code></pre>
+<p>Start a dedicated sidecar for this MCP client using your team&#39;s existing room:</p>
+<pre><code class="language-sh">ninja-p2p start --id my-mcp --room &lt;room-name&gt;
+</code></pre>
+<p>Use the same password or HTTP relay configuration as the other room peers.
+See <a href="https://steveseguin.github.io/ninja-p2p/guide.html">ninja-p2p connection setup</a>.
+If the sidecar already exists, reuse its ID. A WebRTC adapter is needed only
+for WebRTC sidecars; HTTP sidecars and this MCP adapter do not need one.</p>
+<p>Add a separate MCP server entry to your local AI client:</p>
+<pre><code class="language-json">{
+  &quot;mcpServers&quot;: {
+    &quot;ninja-p2p&quot;: {
+      &quot;command&quot;: &quot;vdon-mcp-p2p&quot;,
+      &quot;args&quot;: [&quot;--id&quot;, &quot;my-mcp&quot;]
+    }
+  }
+}
+</code></pre>
+<p>Use <code>--state-dir</code> with an absolute path instead of <code>--id</code> for a custom state
+directory. The client must be able to find <code>vdon-mcp-p2p</code> on PATH. Ask it to
+call <code>p2p_status</code>, list peers, then read its inbox.</p>
+<p>For inspection only, append <code>--read-only</code> to the arguments. This hides and
+rejects inbox-taking, handoff and response tools. Ordinary Ninja MCP tools and
+profiles are unchanged; add this server only to clients that need it.</p>
+</section>
+<section class="doc-section" id="tools"><h2>Tools</h2><div class="table-wrap" role="region" aria-label="Scrollable reference table" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Tool</th>
+<th scope="col">What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>p2p_status</code></td>
+<td>Shows sidecar status, inbox counts and queued action IDs</td>
+</tr>
+<tr>
+<td><code>p2p_peers</code></td>
+<td>Reads the saved peer directory</td>
+</tr>
+<tr>
+<td><code>p2p_read</code></td>
+<td>Peeks at pending mail without consuming it</td>
+</tr>
+<tr>
+<td><code>p2p_take</code></td>
+<td>Claims pending messages using the same operation as CLI <code>read</code></td>
+</tr>
+<tr>
+<td><code>p2p_handoff</code></td>
+<td>Queues a request to one peer and returns its request ID</td>
+</tr>
+<tr>
+<td><code>p2p_respond</code></td>
+<td>Queues a result or error for the original sender and request ID</td>
+</tr>
+<tr>
+<td><code>p2p_receipt</code></td>
+<td>Reads retained acknowledgements and responses without consuming mail</td>
+</tr>
+</tbody></table></div>
+<p>Read and take default to 20 messages, with a maximum of 50 per call. Give each
+independent consumer its own sidecar: taking mail removes it from the pending
+inbox shared with CLI readers. Reading alone leaves it pending.</p>
+<p>After a handoff, save the returned <code>request_id</code> and inspect <code>p2p_receipt</code> with
+that ID and peer. The sidecar handles delivery retries. <code>queued</code> means local
+storage, <code>stored</code> means the recipient stored it, and <code>responded</code> means a peer
+returned a response. Read that response to determine what the peer reports.
+If a send&#39;s response is lost, inspect the outbox in <code>p2p_status</code> before sending
+again: repeating the tool call creates a new request.</p>
+</section>
+<section class="doc-section" id="permissions-and-lifecycle"><h2>Permissions and lifecycle</h2><p>Configuring this adapter gives the MCP client access to that sidecar&#39;s inbox
+and outgoing handoffs. Peer labels, messages and results are untrusted data;
+they do not grant permission to run commands. The adapter does not execute
+tasks, change room membership, pair hosted mailboxes or approve hosted tasks.</p>
+<p>The state directory and its room/agent identity are fixed when the adapter
+starts. To point the client at another sidecar, change its MCP configuration
+and restart the adapter. A stopped sidecar can still be inspected and receive
+queued outgoing work; restart it to deliver that work.</p>
+<p>The native Ninja MCP and ninja-p2p room/file protocols remain distinct. This
+adapter connects to ninja-p2p&#39;s existing state APIs; it does not translate every
+room packet, file transfer or media operation.</p>
+</section>
+  </main>
+</div>
+
+<footer class="footer">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="assets/logo.svg" alt="" width="24" height="24"><span>VDO.Ninja <small>MCP</small></span></a>
+    <nav aria-label="Footer">
+      <a href="./">Home</a>
+      <a href="guide.html">Docs</a>
+      <a href="https://github.com/steveseguin/ninjamcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@vdoninja/mcp">npm</a>
+      <a href="https://discord.vdo.ninja">Discord</a>
+      <a href="https://vdo.ninja">VDO.Ninja</a>
+    </nav>
+    <span>MIT · © 2026 Steve Seguin</span>
+  </div>
+</footer>
+
+<script src="assets/site.js" defer></script>
+</body>
+</html>

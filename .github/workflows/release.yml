@@ -32,6 +32,14 @@ jobs:
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           test "$GITHUB_REF_NAME" = "v$PACKAGE_VERSION"
 
+      - name: Install optional sidecar test dependency
+        run: npm install --prefix "$RUNNER_TEMP/p2p" --omit=optional --ignore-scripts @vdoninja/ninja-p2p@^0.3.1
+
+      - name: Test optional sidecar adapter
+        env:
+          NINJA_P2P_TEST_ROOT: ${{ runner.temp }}/p2p/node_modules/@vdoninja/ninja-p2p
+        run: npm run test:p2p
+
       - name: Run full test suite
         run: npm run test:all
 
